@@ -143,6 +143,17 @@ class Client:
 
         return self.handler.action_register_command(action_name, command)
 
+    def attribute_publish(self, attribute_name, value):
+        """
+        Publish string telemetry to the Cloud
+
+        attribute_name                 name of attribute to publish to
+        value                          value to publish
+        """
+
+        attr = defs.PublishAttribute(attribute_name, value)
+        return self.handler.queue_publish(attr)
+
     def connect(self, timeout=0):
         """
         Connect the Client to the Cloud
@@ -172,8 +183,8 @@ class Client:
         message                        message to publish
         """
 
-        log = defs.Log(message)
-        return self.handler.queue_telemetry(log)
+        log = defs.PublishLog(message)
+        return self.handler.queue_publish(log)
 
     def file_download(self, file_name, blocking=False, timeout=0):
         """
@@ -223,10 +234,10 @@ class Client:
         fix_type                       fix type
         """
 
-        location = defs.Location(latitude, longitude, heading=heading,
+        location = defs.PublishLocation(latitude, longitude, heading=heading,
                 altitude=altitude, speed=speed, accuracy=accuracy,
                 fix_type=fix_type)
-        return self.telemetry_publish("location", location)
+        return self.handler.queue_publish(location)
 
     def telemetry_publish(self, telemetry_name, value):
         """
@@ -236,17 +247,6 @@ class Client:
         value                          value to publish
         """
 
-        telem = defs.Telemetry(telemetry_name, value)
-        return self.handler.queue_telemetry(telem)
-
-    def attribute_publish(self, attribute_name, value):
-        """
-        Publish string telemetry to the Cloud
-
-        telemetry_name                 name of attribute to publish to
-        value                          value to publish
-        """
-
-        telem = defs.Telemetry(attribute_name, value)
-        return self.handler.queue_telemetry(telem)
+        telem = defs.PublishTelemetry(telemetry_name, value)
+        return self.handler.queue_publish(telem)
 

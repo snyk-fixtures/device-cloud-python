@@ -193,37 +193,6 @@ class FileTransfer(object):
         self.status = None
 
 
-class Location(object):
-    """
-    Holds location information
-    """
-
-    def __init__(self, latitude, longitude, heading=None, altitude=None,
-            speed=None, accuracy=None, fix_type=None):
-        self.latitude = latitude
-        self.longitude = longitude
-        self.heading = heading
-        self.altitude = altitude
-        self.speed = speed
-        self.accuracy = accuracy
-        self.fix_type = fix_type
-
-    def __str__(self):
-        string = "latitude: {}, longitude: {}".format(self.latitude,
-                self.longitude)
-        if self.heading:
-            string += ", heading: {}".format(self.heading)
-        if self.altitude:
-            string += ", altitude: {}".format(self.altitude)
-        if self.speed:
-            string += ", speed: {}".format(self.speed)
-        if self.accuracy:
-            string += ", accuracy: {}".format(self.accuracy)
-        if self.fix_type:
-            string += ", fix type: {}".format(self.fix_type)
-        return string
-
-
 class Message(object):
     """
     Holds received messages in their json format
@@ -296,26 +265,78 @@ class OutTracker(dict):
         return removed
 
 
-class Telemetry(object):
+class Publish(object):
     """
-    Holds information about telemetry (and other data) that is to be published
+    Super Class for holding information about a pending publish
+    """
+
+    def __init__(self):
+        self.ts = datetime.utcnow().strftime(constants._TIME_FORMAT)
+        self.type = self.__class__.__name__
+
+
+class PublishAttribute(Publish):
+    """
+    Holds information about an attribute that is to be published
     """
 
     def __init__(self, name, value):
+        super(PublishAttribute, self).__init__()
         self.name = name
         self.value = value
-        self.ts = datetime.utcnow().strftime(constants._TIME_FORMAT)
-        self.type = value.__class__.__name__
 
 
-class Log(Telemetry):
+class PublishLocation(Publish):
+    """
+    Holds location information
+    """
+
+    def __init__(self, latitude, longitude, heading=None, altitude=None,
+            speed=None, accuracy=None, fix_type=None):
+        super(PublishLocation, self).__init__()
+        self.latitude = latitude
+        self.longitude = longitude
+        self.heading = heading
+        self.altitude = altitude
+        self.speed = speed
+        self.accuracy = accuracy
+        self.fix_type = fix_type
+
+    def __str__(self):
+        string = "latitude: {}, longitude: {}".format(self.latitude,
+                self.longitude)
+        if self.heading:
+            string += ", heading: {}".format(self.heading)
+        if self.altitude:
+            string += ", altitude: {}".format(self.altitude)
+        if self.speed:
+            string += ", speed: {}".format(self.speed)
+        if self.accuracy:
+            string += ", accuracy: {}".format(self.accuracy)
+        if self.fix_type:
+            string += ", fix type: {}".format(self.fix_type)
+        return string
+
+
+class PublishLog(Publish):
     """
     Holds a log message to be sent to the Cloud
     """
 
     def __init__(self, message):
-        super(Log, self).__init__("log", message)
-        self.type = "Log"
+        super(PublishLog, self).__init__()
+        self.message = message
+
+
+class PublishTelemetry(Publish):
+    """
+    Holds information about telemetry that is to be published
+    """
+
+    def __init__(self, name, value):
+        super(PublishTelemetry, self).__init__()
+        self.name = name
+        self.value = value
 
 
 class Work(object):

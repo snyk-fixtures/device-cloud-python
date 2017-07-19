@@ -93,8 +93,7 @@ class Handler:
         # Lock for thread safety
         self.lock = threading.Lock()
 
-        # Queue for any pending telemetry to be published (number, string, or
-        # location)
+        # Queue for any pending publishes (number, string, location, etc.)
         self.publish_queue = Queue.Queue()
 
         # Dicts to track which messages sent out have not received replies. Also
@@ -544,37 +543,37 @@ class Handler:
             for pub in to_publish:
 
                 # Create publish command for strings
-                if pub.type == "str":
+                if pub.type == "PublishAttribute":
                     command = tr50.create_attribute_publish(self.config.key,
                             pub.name, pub.value, ts=pub.ts)
                     message = defs.OutMessage(command, "Attribute Publish {} : "
                             "\"{}\"".format(pub.name, pub.value))
 
                 # Create publish command for numbers
-                elif pub.type == "int" or pub.type == "float":
+                elif pub.type == "PublishTelemetry":
                     command = tr50.create_property_publish(self.config.key,
                             pub.name, pub.value, ts=pub.ts)
                     message = defs.OutMessage(command, "Property Publish {} : "
                             "{}".format(pub.name, pub.value))
 
                 # Create publish command for location
-                elif pub.type == "Location":
+                elif pub.type == "PublishLocation":
                     command = tr50.create_location_publish(self.config.key,
-                            pub.value.latitude, pub.value.longitude,
-                            heading=pub.value.heading,
-                            altitude=pub.value.altitude,
-                            speed=pub.value.speed,
-                            fixAcc=pub.value.accuracy,
-                            fixType=pub.value.fix_type, ts=pub.ts)
+                            pub.latitude, pub.longitude,
+                            heading=pub.heading,
+                            altitude=pub.altitude,
+                            speed=pub.speed,
+                            fixAcc=pub.accuracy,
+                            fixType=pub.fix_type, ts=pub.ts)
                     message = defs.OutMessage(command,"Location Publish "
-                            "{}".format(str(pub.value)))
+                            "{}".format(str(pub)))
 
                 # Create publish command for a log
-                elif pub.type == "Log":
+                elif pub.type == "PublishLog":
                     command = tr50.create_log_publish(self.config.key,
-                            pub.value, ts=pub.ts)
+                            pub.message, ts=pub.ts)
                     message = defs.OutMessage(command, "Log Publish "
-                            "{}".format(pub.value))
+                            "{}".format(pub.message))
 
                 messages.append(message)
 
@@ -647,7 +646,7 @@ class Handler:
             finally:
                 self.lock.release()
 
-            # Make a work item to publish pending telemetry if there is any
+            # Make a work item to publish anything that's pending
             if not self.publish_queue.empty():
                 work = defs.Work(_WORK_PUBLISH, None)
                 self.work_queue.put(work)
@@ -705,12 +704,12 @@ class Handler:
         work = defs.Work(_WORK_MESSAGE, message)
         self.queue_work(work)
 
-    def queue_telemetry(self, telemetry):
+    def queue_publish(self, pub):
         """
-        Place telemetry in the publish queue
+        Place pub in the publish queue
         """
 
-        self.publish_queue.put(telemetry)
+        self.publish_queue.put(pub)
         return STATUS_SUCCESS
 
     def queue_work(self, work):
