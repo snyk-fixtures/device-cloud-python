@@ -165,6 +165,16 @@ class Client:
         return self.handler.disconnect(wait_for_replies=wait_for_replies,
                 timeout=timeout)
 
+    def event_publish(self, message):
+        """
+        Publishes an event message to the Cloud
+
+        message                        message to publish
+        """
+
+        log = defs.Log(message)
+        return self.handler.queue_telemetry(log)
+
     def file_download(self, file_name, blocking=False, timeout=0):
         """
         Download a file from the Cloud to the device (C2D)

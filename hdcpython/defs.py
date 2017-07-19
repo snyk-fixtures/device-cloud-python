@@ -1,6 +1,8 @@
 
 import constants
+import Queue
 import subprocess
+import threading
 
 from datetime import datetime
 
@@ -304,6 +306,16 @@ class Telemetry(object):
         self.value = value
         self.ts = datetime.utcnow().strftime(constants._TIME_FORMAT)
         self.type = value.__class__.__name__
+
+
+class Log(Telemetry):
+    """
+    Holds a log message to be sent to the Cloud
+    """
+
+    def __init__(self, message):
+        super(Log, self).__init__("log", message)
+        self.type = "Log"
 
 
 class Work(object):

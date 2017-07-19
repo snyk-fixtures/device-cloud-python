@@ -51,6 +51,7 @@ def file_download(client, params, user_data):
         file_name = params.get("file_name")
     if file_name:
         client.log("Downloading")
+        client.event_publish("C2D File Transfer for {}".format(file_name))
         result = client.file_download(file_name, blocking=True, timeout=15)
         if result == iot.STATUS_SUCCESS:
             message = "Downloaded!"
@@ -69,6 +70,7 @@ def file_upload(client, params, user_data):
         file_name = params.get("file_name")
     if file_name:
         client.log("Uploading")
+        client.event_publish("D2C File Transfer for {}".format(file_name))
         result = client.file_upload(file_name, blocking=True, timeout=240)
         if result == iot.STATUS_SUCCESS:
             message = "Uploaded!"

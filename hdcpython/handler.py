@@ -52,8 +52,10 @@ class Handler:
         # Set up logging, with optional logging to a specified file
         if self.config.key:
             self.logger = logging.getLogger(self.config.key)
+            self.event_logger = logging.getLogger(self.config.key + " events")
         else:
             self.logger = logging.getLogger("APP NAME HERE")
+            self.event_logger = logging.getLogger("APP NAME HERE events")
         log_formatter = logging.Formatter("[%(asctime)s]%(levelname)s: "
                 "%(filename)s:%(lineno)d (%(funcName)s) - %(message)s")
         log_handler = logging.StreamHandler()
@@ -362,8 +364,6 @@ class Handler:
                             download.fileName)
                 else:
                     # Checksums do not match, remove temporary file and fail
-                    print checksum
-                    print download.fileChecksum
                     os.remove(temp_path)
                     self.logger.error("Failed to download \"%s\" "
                             "(checksums do not match)", download.fileName)
@@ -460,7 +460,6 @@ class Handler:
                 try:
                     sent_message = self.reply_tracker.pop_message(topic_num,
                             command_num)
-                    print(sent_message)
                 except KeyError as e:
                     raise e
                 finally:
@@ -526,52 +525,60 @@ class Handler:
 
     def handle_publish(self):
         """
-        Publish any pending telemetry in the publish queue
+        Publish any pending publishes in the publish queue, or the cloud logger
         """
 
         status = STATUS_SUCCESS
 
-        # Collect all pending telemetry
-        telemetry = []
+        # Collect all pending publishes in publish queue
+        to_publish = []
         while not self.publish_queue.empty():
             try:
-                telemetry.append(self.publish_queue.get())
+                to_publish.append(self.publish_queue.get())
             except Queue.Empty:
                 break
 
-        if telemetry:
-            # If pending telemetry is found, parse into list for sending
+        if to_publish:
+            # If pending publishes are found, parse into list for sending
             messages = []
-            for telem in telemetry:
+            for pub in to_publish:
 
                 # Create publish command for strings
-                if telem.type == "str":
+                if pub.type == "str":
                     command = tr50.create_attribute_publish(self.config.key,
-                            telem.name, telem.value, ts=telem.ts)
+                            pub.name, pub.value, ts=pub.ts)
                     message = defs.OutMessage(command, "Attribute Publish {} : "
-                            "\"{}\"".format(telem.name, telem.value))
+                            "\"{}\"".format(pub.name, pub.value))
 
                 # Create publish command for numbers
-                elif telem.type == "int" or telem.type == "float":
+                elif pub.type == "int" or pub.type == "float":
                     command = tr50.create_property_publish(self.config.key,
-                            telem.name, telem.value, ts=telem.ts)
+                            pub.name, pub.value, ts=pub.ts)
                     message = defs.OutMessage(command, "Property Publish {} : "
-                            "{}".format(telem.name, telem.value))
+                            "{}".format(pub.name, pub.value))
 
                 # Create publish command for location
-                elif telem.type == "Location":
+                elif pub.type == "Location":
                     command = tr50.create_location_publish(self.config.key,
-                            telem.value.latitude, telem.value.longitude,
-                            heading=telem.value.heading,
-                            altitude=telem.value.altitude,
-                            speed=telem.value.speed,
-                            fixAcc=telem.value.accuracy,
-                            fixType=telem.value.fix_type, ts=telem.ts)
+                            pub.value.latitude, pub.value.longitude,
+                            heading=pub.value.heading,
+                            altitude=pub.value.altitude,
+                            speed=pub.value.speed,
+                            fixAcc=pub.value.accuracy,
+                            fixType=pub.value.fix_type, ts=pub.ts)
                     message = defs.OutMessage(command,"Location Publish "
-                            "{}".format(str(telem.value)))
+                            "{}".format(str(pub.value)))
+
+                # Create publish command for a log
+                elif pub.type == "Log":
+                    command = tr50.create_log_publish(self.config.key,
+                            pub.value, ts=pub.ts)
+                    message = defs.OutMessage(command, "Log Publish "
+                            "{}".format(pub.value))
+
                 messages.append(message)
 
-            # Send telemetry
+            # Send all publishes
             status = self.send(messages)
         return status
 
@@ -678,7 +685,6 @@ class Handler:
         Callback when MQTT Client disconnects from Cloud
         """
 
-        #self.logger.info("MQTT disconnected %s", mqttlib.connack_string(rc))
         self.logger.info("MQTT disconnected %d", rc)
         self.state = STATE_DISCONNECTED
         # Wait for worker threads to finish.

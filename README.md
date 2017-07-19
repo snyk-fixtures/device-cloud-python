@@ -31,10 +31,15 @@ So far supports:
 - Configuration files (parses the standard iot-connect.cfg and iot.cfg files for
   Cloud connection information. Currently they are found by default in the
   working directory instead of a system directory)
-- Example app (example of all APIs in use, but also still a work in progress)
+- Example app (example of most APIs in use, but also still a work in progress)
+- Logging to console with optional logging to a specified file
+- Event message publishing
 
 Not yet supported:
 - Python packaging (only comes as loose files for now)
 - pytest implementation (for coverage and unit tests)
 - Proxy support (may not be possible for paho)
 - Finalized APIs
+- Alarms
+- Logging functions included in pydocs
+- Return values in pydocs
