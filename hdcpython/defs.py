@@ -275,6 +275,18 @@ class Publish(object):
         self.type = self.__class__.__name__
 
 
+class PublishAlarm(Publish):
+    """
+    Holds information about an alarm
+    """
+
+    def __init__(self, name, state, message=None):
+        super(PublishAlarm, self).__init__()
+        self.name = name
+        self.state = state
+        self.message = message
+
+
 class PublishAttribute(Publish):
     """
     Holds information about an attribute that is to be published

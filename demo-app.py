@@ -86,6 +86,10 @@ def toggle_telem( client, params, user_data ):
     # Turns Telemetry on or off
     global sending_telemetry
     sending_telemetry = not sending_telemetry
+    if sending_telemetry:
+        client.alarm_publish("alarm_1", 0)
+    else:
+        client.alarm_publish("alarm_1", 1)
     client.log("{} sending telemetry".format(
         "Now" if sending_telemetry else "No longer"))
     return (iot.STATUS_SUCCESS, "Turned On" if sending_telemetry else "Turned Off")

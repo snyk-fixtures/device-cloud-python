@@ -143,6 +143,18 @@ class Client:
 
         return self.handler.action_register_command(action_name, command)
 
+    def alarm_publish(self, alarm_name, state, message=None):
+        """
+        Publish an alarm to the Cloud
+
+        alarm_name                     name of alarm to publish
+        state                          state of publish
+        message                        optional message to accompany alarm
+        """
+
+        alarm = defs.PublishAlarm(alarm_name, state, message)
+        return self.handler.queue_publish(alarm)
+
     def attribute_publish(self, attribute_name, value):
         """
         Publish string telemetry to the Cloud

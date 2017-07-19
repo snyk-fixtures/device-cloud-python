@@ -542,8 +542,15 @@ class Handler:
             messages = []
             for pub in to_publish:
 
+                # Create publish command for an alarm
+                if pub.type == "PublishAlarm":
+                    command = tr50.create_alarm_publish(self.config.key,
+                            pub.name, pub.state, msg=pub.message, ts=pub.ts)
+                    message = defs.OutMessage(command, "Alarm Publish {} : "
+                            "{}".format(pub.name, pub.state))
+
                 # Create publish command for strings
-                if pub.type == "PublishAttribute":
+                elif pub.type == "PublishAttribute":
                     command = tr50.create_attribute_publish(self.config.key,
                             pub.name, pub.value, ts=pub.ts)
                     message = defs.OutMessage(command, "Attribute Publish {} : "
