@@ -1,10 +1,11 @@
+"""
+This module defines several helper classes for use in the hdcpython handler
+"""
 
-import constants
-import Queue
 import subprocess
-import threading
-
 from datetime import datetime
+
+from hdcpython import constants
 
 class Action(object):
     """
@@ -18,8 +19,8 @@ class Action(object):
         self.user_data = user_data
 
     def __str__(self):
-        return "Action {} --> Callback {}".format(self.name,
-                self.callback.__name__)
+        string = "Action {} --> Callback {}"
+        return string.format(self.name, self.callback.__name__)
 
     def execute(self, params):
         """
@@ -50,10 +51,10 @@ class ActionCommand(Action):
         final_command = self.command
         if params:
             for key in params:
-                if params[key] == True:
+                if params[key] is True:
                     # Value is True, just append flag
                     final_command += " --{}".format(key)
-                elif params[key] == False:
+                elif params[key] is False:
                     # Value is False, do not append flag
                     pass
                 else:
@@ -62,13 +63,14 @@ class ActionCommand(Action):
 
         # Execute command with arguments and wait for result
         proc = subprocess.Popen(final_command, shell=True,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
         outstr, errstr = proc.communicate()
         proc.wait()
         ret_code = proc.returncode
 
-        return (ret_code, "command: {}  ,  stdout: {}  ,  stderr: {}".format(
-                final_command, outstr, errstr))
+        return_string = "command: {}  ,  stdout: {}  ,  stderr: {}"
+        return (ret_code, return_string.format(final_command, outstr, errstr))
 
 
 class ActionRequest(object):
@@ -76,8 +78,8 @@ class ActionRequest(object):
     Holds information about action requests for execution
     """
 
-    def __init__(self, id, name, params):
-        self.id = id
+    def __init__(self, request_id, name, params):
+        self.request_id = request_id
         self.name = name
         self.params = params
 
@@ -98,7 +100,7 @@ class Callbacks(dict):
 
         if self.__contains__(action.name):
             raise KeyError("Action \"{}\" already has a callback".format(
-                    action.name))
+                action.name))
         else:
             self.__setitem__(action.name, action)
 
@@ -111,12 +113,11 @@ class Callbacks(dict):
 
         # Attempt to execute action callback if an action with the same name as
         # the request is registered
-        if not self.__contains__(action_request.name):
+        if action_request.name not in self:
             raise KeyError("Action \"{}\" does not have a callback".format(
-                    action_request.name))
+                action_request.name))
         else:
-            result = self.__getitem__(action_request.name).execute(
-                    action_request.params)
+            result = self[action_request.name].execute(action_request.params)
 
         return result
 
@@ -125,11 +126,11 @@ class Callbacks(dict):
         Remove an action callback as long as it exists
         """
 
-        if not self.__contains__(action.name):
+        if action_name not in self:
             raise KeyError("Action \"{}\" does not have a callback".format(
-                    action.name))
+                action_name))
         else:
-            self.__delitem__(action.name)
+            del self[action_name]
 
 
 class Config(dict):
@@ -169,12 +170,12 @@ class Config(dict):
         # Handle validate_cert boolean
         if self.get("validate_cloud_cert"):
             self["validate_cloud_cert"] = (self["validate_cloud_cert"].lower()
-                    == "true")
+                                           == "true")
 
     def __getattribute__(self, attr):
         try:
             return super(Config, self).__getattribute__(attr)
-        except:
+        except AttributeError:
             return self.get(attr)
 
     def __setattr__(self, attr, value):
@@ -186,10 +187,10 @@ class FileTransfer(object):
     Holds information about pending file transfers
     """
 
-    def __init__(self, fileName, fileId=None, fileChecksum=None):
-        self.fileName = fileName
-        self.fileId = fileId
-        self.fileChecksum = fileChecksum
+    def __init__(self, file_name, file_id=None, file_checksum=None):
+        self.file_name = file_name
+        self.file_id = file_id
+        self.file_checksum = file_checksum
         self.status = None
 
 
@@ -208,12 +209,13 @@ class OutMessage(object):
     Hold sent messages and their timestamps so that their replies can be handled
     """
 
-    def __init__(self, command, description, ts=None, data=None, id=None):
+    def __init__(self, command, description, timestamp=None, data=None,
+                 out_id=None):
         self.command = command
         self.description = description
-        self.ts = ts
+        self.timestamp = timestamp
         self.data = data
-        self.id = id
+        self.out_id = out_id
 
     def __str__(self):
         return self.description
@@ -232,19 +234,19 @@ class OutTracker(dict):
         Add a message
         """
 
-        self[message.id] = message
+        self[message.out_id] = message
 
     def pop_message(self, topic_num, cmd_num):
         """
         Remove a single message
         """
 
-        id = "{}-{}".format(topic_num, cmd_num)
+        out_id = "{}-{}".format(topic_num, cmd_num)
         try:
-            message = self.pop(id)
+            message = self.pop(out_id)
         except KeyError:
             raise KeyError("Message {} not found. May have already timed "
-                    "out".format(id))
+                           "out".format(out_id))
         return message
 
     def time_out(self, current_time, max_time):
@@ -253,14 +255,14 @@ class OutTracker(dict):
         """
 
         to_remove = []
-        for id in self:
-            message = self[id]
-            if ((current_time - message.ts).total_seconds() > max_time):
-                to_remove.append(id)
+        for out_id in self:
+            message = self[out_id]
+            if (current_time - message.timestamp).total_seconds() > max_time:
+                to_remove.append(out_id)
 
         removed = []
-        for id in to_remove:
-            removed.append(self.pop_message(*(id.split("-"))))
+        for out_id in to_remove:
+            removed.append(self.pop_message(*(out_id.split("-"))))
 
         return removed
 
@@ -271,7 +273,7 @@ class Publish(object):
     """
 
     def __init__(self):
-        self.ts = datetime.utcnow().strftime(constants._TIME_FORMAT)
+        self.timestamp = datetime.utcnow().strftime(constants.TIME_FORMAT)
         self.type = self.__class__.__name__
 
 
@@ -304,7 +306,7 @@ class PublishLocation(Publish):
     """
 
     def __init__(self, latitude, longitude, heading=None, altitude=None,
-            speed=None, accuracy=None, fix_type=None):
+                 speed=None, accuracy=None, fix_type=None):
         super(PublishLocation, self).__init__()
         self.latitude = latitude
         self.longitude = longitude
@@ -316,7 +318,7 @@ class PublishLocation(Publish):
 
     def __str__(self):
         string = "latitude: {}, longitude: {}".format(self.latitude,
-                self.longitude)
+                                                      self.longitude)
         if self.heading:
             string += ", heading: {}".format(self.heading)
         if self.altitude:

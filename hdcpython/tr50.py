@@ -1,33 +1,38 @@
+"""
+This module contains functions for generating TR50 messages relevent to the
+Client application
+"""
 
-import defs
 import json
 
-from constants import *
-
-_cloud_error_codes = {
-        STATUS_SUCCESS:0,
-        STATUS_INVOKED:STATUS_INVOKED,
-        STATUS_BAD_PARAMETER:STATUS_BAD_PARAMETER,
-        STATUS_BAD_REQUEST:STATUS_BAD_REQUEST,
-        STATUS_EXECUTION_ERROR:STATUS_EXECUTION_ERROR,
-        STATUS_EXISTS:STATUS_EXISTS,
-        STATUS_FILE_OPEN_FAILED:STATUS_FILE_OPEN_FAILED,
-        STATUS_FULL:STATUS_FULL,
-        STATUS_IO_ERROR:STATUS_IO_ERROR,
-        STATUS_NO_MEMORY:STATUS_NO_MEMORY,
-        STATUS_NO_PERMISSION:STATUS_NO_PERMISSION,
-        STATUS_NOT_EXECUTABLE:STATUS_NOT_EXECUTABLE,
-        STATUS_NOT_FOUND:STATUS_NOT_FOUND,
-        STATUS_NOT_INITIALIZED:STATUS_NOT_INITIALIZED,
-        STATUS_OUT_OF_RANGE:STATUS_OUT_OF_RANGE,
-        STATUS_PARSE_ERROR:STATUS_PARSE_ERROR,
-        STATUS_TIMED_OUT:STATUS_TIMED_OUT,
-        STATUS_TRY_AGAIN:STATUS_TRY_AGAIN,
-        STATUS_NOT_SUPPORTED:STATUS_NOT_SUPPORTED,
-        STATUS_FAILURE:STATUS_FAILURE}
+from hdcpython import constants
 
 
-class TR50Command:
+CLOUD_ERROR_CODES = {
+    constants.STATUS_SUCCESS:0,
+    constants.STATUS_INVOKED:constants.STATUS_INVOKED,
+    constants.STATUS_BAD_PARAMETER:constants.STATUS_BAD_PARAMETER,
+    constants.STATUS_BAD_REQUEST:constants.STATUS_BAD_REQUEST,
+    constants.STATUS_EXECUTION_ERROR:constants.STATUS_EXECUTION_ERROR,
+    constants.STATUS_EXISTS:constants.STATUS_EXISTS,
+    constants.STATUS_FILE_OPEN_FAILED:constants.STATUS_FILE_OPEN_FAILED,
+    constants.STATUS_FULL:constants.STATUS_FULL,
+    constants.STATUS_IO_ERROR:constants.STATUS_IO_ERROR,
+    constants.STATUS_NO_MEMORY:constants.STATUS_NO_MEMORY,
+    constants.STATUS_NO_PERMISSION:constants.STATUS_NO_PERMISSION,
+    constants.STATUS_NOT_EXECUTABLE:constants.STATUS_NOT_EXECUTABLE,
+    constants.STATUS_NOT_FOUND:constants.STATUS_NOT_FOUND,
+    constants.STATUS_NOT_INITIALIZED:constants.STATUS_NOT_INITIALIZED,
+    constants.STATUS_OUT_OF_RANGE:constants.STATUS_OUT_OF_RANGE,
+    constants.STATUS_PARSE_ERROR:constants.STATUS_PARSE_ERROR,
+    constants.STATUS_TIMED_OUT:constants.STATUS_TIMED_OUT,
+    constants.STATUS_TRY_AGAIN:constants.STATUS_TRY_AGAIN,
+    constants.STATUS_NOT_SUPPORTED:constants.STATUS_NOT_SUPPORTED,
+    constants.STATUS_FAILURE:constants.STATUS_FAILURE
+}
+
+
+class TR50Command(object):
     """
     Holds all relevant TR50 command names
     """
@@ -59,43 +64,64 @@ def _generate_params(kwargs):
             params[key] = kwargs[key]
     return params
 
-def create_alarm_publish(thingKey, key, state, msg=None, ts=None, corrId=None,
-        lat=None, lng=None, republish=None):
+def create_alarm_publish(thing_key, key, state, message=None, timestamp=None,
+                         corr_id=None, latitude=None, longitude=None,
+                         republish=None):
     """
     Generate a TR50 JSON request for publishing an alarm
     """
 
-    kwargs = locals()
+    kwargs = {
+        "thing_key":thing_key,
+        "key":key,
+        "state":state,
+        "msg":message,
+        "ts":timestamp,
+        "corrId":corr_id,
+        "lat":latitude,
+        "lng":longitude,
+        "republish":republish
+    }
     cmd = {"command":TR50Command.alarm_publish}
     cmd["params"] = _generate_params(kwargs)
     return cmd
 
-def create_attribute_current(thingKey, key, ts=None):
+def create_attribute_current(thing_key, key, timestamp=None):
     """
     Generate a TR50 JSON request for getting an attribute's current value
     """
 
-    kwargs = locals()
+    kwargs = {
+        "thing_key":thing_key,
+        "key":key,
+        "ts":timestamp
+    }
     cmd = {"command":TR50Command.attribute_current}
     cmd["params"] = _generate_params(kwargs)
     return cmd
 
-def create_attribute_publish(thingKey, key, value, ts=None, republish=None ):
+def create_attribute_publish(thing_key, key, value, timestamp=None,
+                             republish=None):
     """
     Generate a TR50 JSON request for publishing a string value
     """
 
-    kwargs = locals()
+    kwargs = {
+        "thing_key":thing_key,
+        "key":key,
+        "value":value,
+        "ts":timestamp,
+        "republish":republish
+    }
     cmd = {"command":TR50Command.attribute_publish}
     cmd["params"] = _generate_params(kwargs)
     return cmd
 
-def create_diag_echo(thingKey, params):
+def create_diag_echo(params):
     """
     Generate a TR50 JSON request for a diagnostic echo
     """
 
-    kwargs = locals()
     cmd = {"command":TR50Command.diag_echo}
     cmd["params"] = params
     return cmd
@@ -108,93 +134,147 @@ def create_diag_ping():
     cmd = {"command":TR50Command.diag_ping}
     return cmd
 
-def create_file_get(thingKey, fileName):
+def create_file_get(thing_key, file_name):
     """
     Generate a TR50 JSON request for getting a file from the Cloud
     """
 
-    kwargs = locals()
+    kwargs = {
+        "thing_key":thing_key,
+        "fileName":file_name
+    }
     cmd = {"command":TR50Command.file_get}
     cmd["params"] = _generate_params(kwargs)
     return cmd
 
-def create_file_put(thingKey, fileName, public=False, crc32=None, tags=None,
-        secTags=None, ttl=None, logComplete=None):
+def create_file_put(thing_key, file_name, public=False, crc32=None, tags=None,
+                    sec_tags=None, ttl=None, log_complete=None):
     """
     Generate a TR50 JSON request for putting a file in the Cloud
     """
 
-    kwargs = locals()
+    kwargs = {
+        "thing_key":thing_key,
+        "fileName":file_name,
+        "public":public,
+        "crc32":crc32,
+        "tags":tags,
+        "secTags":sec_tags,
+        "ttl":ttl,
+        "logComplete":log_complete
+    }
     cmd = {"command":TR50Command.file_put}
     cmd["params"] = _generate_params(kwargs)
     return cmd
 
-def create_location_publish(thingKey, lat, lng, heading=None, altitude=None,
-        speed=None,  fixAcc=None, fixType=None, ts=None, corrId=None,
-        debounce=None, streetNumber=None, street=None, city=None, state=None,
-        zipCode=None, country=None ):
+def create_location_publish(thing_key, latitude, longitude, heading=None,
+                            altitude=None, speed=None, fix_accuracy=None,
+                            fix_type=None, timestamp=None, corr_id=None,
+                            debounce=None, street_number=None, street=None,
+                            city=None, state=None, zip_code=None, country=None):
     """
     Generate a TR50 JSON request for publishing a location to the Cloud
     """
 
-    kwargs = locals()
+    kwargs = {
+        "thing_key":thing_key,
+        "lat":latitude,
+        "lng":longitude,
+        "heading":heading,
+        "altitude":altitude,
+        "speed":speed,
+        "fixAcc":fix_accuracy,
+        "fixType":fix_type,
+        "ts":timestamp,
+        "corrId":corr_id,
+        "debounce":debounce,
+        "streetNumber":street_number,
+        "street":street,
+        "city":city,
+        "state":state,
+        "zipCode":zip_code,
+        "country":country
+    }
     cmd = {"command":TR50Command.location_publish}
     cmd["params"] = _generate_params(kwargs)
     return cmd
 
-def create_log_publish(thingKey, msg, ts=None, level=None, corrId=None,
-        globalLog=None):
+def create_log_publish(thing_key, message, timestamp=None, level=None,
+                       corr_id=None, global_log=None):
     """
     Generate a TR50 JSON request for publishing a log entry to the Cloud
     """
 
-    kwargs = locals()
-    # Handle globalLog because global is a keyword
-    kwargs["global"] = globalLog
-    del kwargs["globalLog"]
+    kwargs = {
+        "thing_key":thing_key,
+        "msg":message,
+        "ts":timestamp,
+        "level":level,
+        "corrId":corr_id,
+        "global":global_log
+    }
     cmd = {"command":TR50Command.log_publish}
     cmd["params"] = _generate_params(kwargs)
     return cmd
 
-def create_mailbox_ack(id, errorCode=None, errorMessage=None, params=None):
+def create_mailbox_ack(mail_id, error_code=None, error_message=None,
+                       params=None):
     """
     Generate a TR50 JSON request for acknowledging the execution of an action
     """
 
-    kwargs = locals()
+    kwargs = {
+        "id":mail_id,
+        "errorCode":error_code,
+        "errorMessage":error_message,
+        "params":params
+    }
     cmd = {"command":TR50Command.mailbox_ack}
     cmd["params"] = _generate_params(kwargs)
     return cmd
 
-def create_mailbox_check(autoComplete, limit=None):
+def create_mailbox_check(auto_complete, limit=None):
     """
     Generate a TR50 JSON request for checking the mailbox in the Cloud
     """
 
-    kwargs = locals()
+    kwargs = {
+        "autoComplete":auto_complete,
+        "limit":limit
+    }
     cmd = {"command":TR50Command.mailbox_check}
     params = _generate_params(kwargs)
     if params:
         cmd["params"] = params
     return cmd
 
-def create_mailbox_update(id, msg):
+def create_mailbox_update(mail_id, message):
     """
     Generate a TR50 JSON request for updating a mailbox message
     """
 
-    kwargs = locals()
+    kwargs = {
+        "id":mail_id,
+        "msg":message
+    }
     cmd = {"command":TR50Command.mailbox_update}
     cmd["params"] = _generate_params(kwargs)
     return cmd
 
-def create_property_publish(thingKey, key, value, ts=None, corrId=None,
-        aggregate=None):
+def create_property_publish(thing_key, key, value, timestamp=None, corr_id=None,
+                            aggregate=None):
     """
     Generate a TR50 JSON request for publishing a numeric value to the Cloud
     """
 
-    kwargs = locals()
+    kwargs = {
+        "thing_key":thing_key,
+        "key":key,
+        "value":value,
+        "ts":timestamp,
+        "corrId":corr_id,
+        "aggregate":aggregate
+    }
     cmd = {"command":TR50Command.property_publish}
     cmd["params"] = _generate_params(kwargs)
     return cmd
@@ -204,7 +284,9 @@ def create_thing_find(key):
     Generate a TR50 JSON request for finding a different registered app
     """
 
-    kwargs = locals()
+    kwargs = {
+        "key":key
+    }
     cmd = {"command":TR50Command.thing_find}
     cmd["params"] = _generate_params(kwargs)
     return cmd
@@ -222,8 +304,8 @@ def generate_request(commands):
         command_list = [commands]
 
     # Add each command to the request
-    for i in range(len(command_list)):
-        request[str(i+1)] = command_list[i]
+    for num, val in enumerate(command_list):
+        request[str(num+1)] = val
 
     return json.dumps(request)
 
@@ -232,5 +314,5 @@ def translate_error_code(error_code):
     Return the related Cloud error code for a given device error code
     """
 
-    return (_cloud_error_codes.get(error_code) if error_code in
-            _cloud_error_codes else error_code)
+    return (CLOUD_ERROR_CODES.get(error_code) if error_code in
+            CLOUD_ERROR_CODES else error_code)

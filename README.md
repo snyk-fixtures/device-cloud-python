@@ -34,12 +34,12 @@ So far supports:
 - Example app (example of most APIs in use, but also still a work in progress)
 - Logging to console with optional logging to a specified file
 - Event message publishing
+- Alarm publishing
 
 Not yet supported:
 - Python packaging (only comes as loose files for now)
 - pytest implementation (for coverage and unit tests)
 - Proxy support (may not be possible for paho)
 - Finalized APIs
-- Alarms
 - Logging functions included in pydocs
 - Return values in pydocs

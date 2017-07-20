@@ -1,20 +1,6 @@
-
-# Time format supported by Cloud
-_TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
-
-
-# TYPES OF WORK
-
-# Parse a received message
-_WORK_MESSAGE = 0
-# Publish pending publishes
-_WORK_PUBLISH = 1
-# Execute a requested action
-_WORK_ACTION = 2
-# Download a file
-_WORK_DOWNLOAD = 3
-# Upload a file
-_WORK_UPLOAD = 4
+"""
+This module contains all the constant values required by the Client
+"""
 
 
 # CONFIGURATION DEFAULTS
@@ -88,24 +74,48 @@ STATUS_FAILURE = 19
 
 
 # STATUS STRINGS
-_STATUS_STRINGS = {
-        STATUS_SUCCESS:"Success",
-        STATUS_INVOKED:"Invoked",
-        STATUS_BAD_PARAMETER:"Bad Parameter",
-        STATUS_BAD_REQUEST:"Bad Request",
-        STATUS_EXECUTION_ERROR:"Execution Error",
-        STATUS_EXISTS:"Already Exists",
-        STATUS_FILE_OPEN_FAILED:"File Open Failed",
-        STATUS_FULL:"Full",
-        STATUS_IO_ERROR:"I/O Error",
-        STATUS_NO_MEMORY:"Out of Memory",
-        STATUS_NO_PERMISSION:"No Permission",
-        STATUS_NOT_EXECUTABLE:"Not Executable",
-        STATUS_NOT_FOUND:"Not Found",
-        STATUS_NOT_INITIALIZED:"Not Initialized",
-        STATUS_OUT_OF_RANGE:"Out of Range",
-        STATUS_PARSE_ERROR:"Parsing Error",
-        STATUS_TIMED_OUT:"Timed Out",
-        STATUS_TRY_AGAIN:"Try Again",
-        STATUS_NOT_SUPPORTED:"Not Supported",
-        STATUS_FAILURE:"Failure"}
+STATUS_STRINGS = {
+    STATUS_SUCCESS:"Success",
+    STATUS_INVOKED:"Invoked",
+    STATUS_BAD_PARAMETER:"Bad Parameter",
+    STATUS_BAD_REQUEST:"Bad Request",
+    STATUS_EXECUTION_ERROR:"Execution Error",
+    STATUS_EXISTS:"Already Exists",
+    STATUS_FILE_OPEN_FAILED:"File Open Failed",
+    STATUS_FULL:"Full",
+    STATUS_IO_ERROR:"I/O Error",
+    STATUS_NO_MEMORY:"Out of Memory",
+    STATUS_NO_PERMISSION:"No Permission",
+    STATUS_NOT_EXECUTABLE:"Not Executable",
+    STATUS_NOT_FOUND:"Not Found",
+    STATUS_NOT_INITIALIZED:"Not Initialized",
+    STATUS_OUT_OF_RANGE:"Out of Range",
+    STATUS_PARSE_ERROR:"Parsing Error",
+    STATUS_TIMED_OUT:"Timed Out",
+    STATUS_TRY_AGAIN:"Try Again",
+    STATUS_NOT_SUPPORTED:"Not Supported",
+    STATUS_FAILURE:"Failure"
+}
+
+
+# Log message format
+LOG_FORMAT = "[%(asctime)s]%(levelname)s: %(filename)s:%(lineno)d (%(funcName)s) - %(message)s"
+
+# Time format supported by Cloud
+TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+
+
+# TYPES OF WORK
+
+# Parse a received message
+WORK_MESSAGE = 0
+# Publish pending publishes
+WORK_PUBLISH = 1
+# Execute a requested action
+WORK_ACTION = 2
+# Download a file
+WORK_DOWNLOAD = 3
+# Upload a file
+WORK_UPLOAD = 4
+
+

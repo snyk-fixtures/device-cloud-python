@@ -1,20 +1,22 @@
+"""
+This module contains the Client class for user applications
+"""
 
-import defs
 import json
 import os
 import uuid
 
-from constants import *
-from datetime import datetime
-from handler import Handler
+from hdcpython import defs
+from hdcpython.handler import Handler
 
-class Client:
+
+class Client(object):
     """
     This class is used by apps to connect to and communicate with the HDC Cloud
     """
 
     def __init__(self, name, log_file=None, loop_time=None,
-            message_timeout=None, thread_count=None):
+                 message_timeout=None, thread_count=None):
         """
         Called on initialization.
 
@@ -27,7 +29,12 @@ class Client:
         """
 
         # Collect all local arguments for later parsing
-        kwargs = locals()
+        kwargs = {}
+        kwargs["name"] = name
+        kwargs["log_file"] = log_file
+        kwargs["loop_time"] = loop_time
+        kwargs["message_timeout"] = message_timeout
+        kwargs["thread_count"] = thread_count
 
         # TODO: default path to config files ($CONFIG_DIR ?)
         # Read JSON from config files.
@@ -35,18 +42,18 @@ class Client:
             try:
                 with open("iot.cfg") as config_file:
                     kwargs.update(json.load(config_file))
-            except Exception as e:
-                print("Error parsing JSON from iot.cfg")
-                raise e
+            except Exception as error:
+                print "Error parsing JSON from iot.cfg"
+                raise error
         if os.path.exists("iot-connect.cfg"):
             try:
                 with open("iot-connect.cfg") as config_file:
                     kwargs.update(json.load(config_file))
-            except Exception as e:
-                print("Error parsing JSON from iot-connect.cfg")
-                raise e
+            except Exception as error:
+                print "Error parsing JSON from iot-connect.cfg"
+                raise error
         else:
-            print("Cannot find iot-connect.cfg")
+            print "Cannot find iot-connect.cfg"
             raise Exception("Cannot find iot-connect.cfg")
 
         runtime_dir = kwargs.get("runtime_dir")
@@ -57,31 +64,32 @@ class Client:
                 try:
                     os.makedirs(os.path.join(runtime_dir, "download"))
                 except:
-                    print("Failed to make download directory")
+                    print "Failed to make download directory"
                     raise Exception("Failed to make download directory")
             if not os.path.isdir(os.path.join(runtime_dir, "upload")):
                 try:
                     os.makedirs(os.path.join(runtime_dir, "upload"))
                 except:
-                    print("Failed to make upload directory")
+                    print "Failed to make upload directory"
                     raise Exception("Failed to make upload directory")
 
             # Check runtime directory for deivce_id. If it does not exist,
             # generate a uuid and write it to device_id.
-            if os.path.exists(os.path.join(runtime_dir, "device_id")):
+            device_id_path = os.path.join(runtime_dir, "device_id")
+            if os.path.exists(device_id_path):
                 try:
-                    with open(os.path.join(runtime_dir, "device_id"), "r") as file:
-                        kwargs["device_id"] = file.read()
+                    with open(device_id_path, "r") as id_file:
+                        kwargs["device_id"] = id_file.read()
                 except:
-                    print("Failed to read device_id")
+                    print "Failed to read device_id"
                     raise Exception("Failed to read device_id")
             else:
                 try:
-                    with open(os.path.join(runtime_dir, "device_id"), "w") as file:
+                    with open(device_id_path) as id_file:
                         kwargs["device_id"] = str(uuid.uuid4())
-                        file.write(kwargs["device_id"])
+                        id_file.write(kwargs["device_id"])
                 except:
-                    print("Failed to write device_id")
+                    print "Failed to write device_id"
                     raise Exception("Failed to write device_id")
 
         # Parse and store configuration for Client
@@ -89,19 +97,17 @@ class Client:
 
         # Check that all necessary configuration has been obtained
         if not self.config.cloud_token:
-            print("Cloud token not set. Must be set in iot-connect.cfg")
+            print "Cloud token not set. Must be set in iot-connect.cfg"
             raise KeyError("Cloud token not set. Must be set in "
-                    "iot-connect.cfg")
+                           "iot-connect.cfg")
         if not self.config.cloud_host:
-            self.logger.error("Cloud host addess not set. Must be set in "
-                    "iot-connect.cfg")
+            print "Cloud host addess not set. Must be set in iot-connect.cfg"
             raise KeyError("Cloud host address not set. Must be set in "
-                    "iot-connect.cfg")
+                           "iot-connect.cfg")
         if not self.config.cloud_port:
-            self.logger.error("Cloud port not set. Must be set in "
-                    "iot-connect.cfg")
+            print "Cloud port not set. Must be set in iot-connect.cfg"
             raise KeyError("Cloud port not set. Must be set in "
-                    "iot-connect.cfg")
+                           "iot-connect.cfg")
 
         # Initialize handler
         self.handler = Handler(self.config, self)
@@ -117,10 +123,10 @@ class Client:
         action_name                    action to deregister
         """
 
-        return self.handler.action_deregister_callback(action_name)
+        return self.handler.action_deregister(action_name)
 
     def action_register_callback(self, action_name, callback_function,
-            user_data=None):
+                                 user_data=None):
         """
         Associate a callback function with an action in the Cloud
 
@@ -130,7 +136,8 @@ class Client:
         """
 
         return self.handler.action_register_callback(action_name,
-                callback_function, user_data)
+                                                     callback_function,
+                                                     user_data)
 
     def action_register_command(self, action_name, command):
         """
@@ -186,7 +193,7 @@ class Client:
         """
 
         return self.handler.disconnect(wait_for_replies=wait_for_replies,
-                timeout=timeout)
+                                       timeout=timeout)
 
     def event_publish(self, message):
         """
@@ -233,7 +240,7 @@ class Client:
         return self.handler.is_connected()
 
     def location_publish(self, latitude, longitude, heading=None, altitude=None,
-            speed=None, accuracy=None, fix_type=None):
+                         speed=None, accuracy=None, fix_type=None):
         """
         Publish a location metric to the Cloud
 
@@ -247,8 +254,8 @@ class Client:
         """
 
         location = defs.PublishLocation(latitude, longitude, heading=heading,
-                altitude=altitude, speed=speed, accuracy=accuracy,
-                fix_type=fix_type)
+                                        altitude=altitude, speed=speed,
+                                        accuracy=accuracy, fix_type=fix_type)
         return self.handler.queue_publish(location)
 
     def telemetry_publish(self, telemetry_name, value):
