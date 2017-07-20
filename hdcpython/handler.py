@@ -31,6 +31,15 @@ def error_string(error_code):
 
     return constants.STATUS_STRINGS[error_code]
 
+def is_valid_status(error_code):
+    """
+    Check if passed object is a valid status code
+    """
+
+    return (error_code.__class__.__name__ == "int" and
+            error_code >= constants.STATUS_SUCCESS and
+            error_code <= constants.STATUS_FAILURE)
+
 
 class Handler(object):
     """
@@ -256,36 +265,47 @@ class Handler(object):
         Handle action execution requests from Cloud
         """
 
+        result_code = -1
         try:
             # Execute callback
             result = self.callbacks.execute_action(action_request)
 
+            result_args = {"mail_id":action_request.request_id}
             # Handle returning a tuple or just a status code
             if result.__class__.__name__ == "tuple":
                 result_code = result[0]
                 if len(result) >= 2:
-                    result_message = result[1]
+                    result_args["error_message"] = str(result[1])
+                if len(result) >= 3:
+                    result_args["params"] = result[2]
             else:
                 result_code = result
-                result_message = None
+
+            if not is_valid_status(result_code):
+                raise TypeError
 
         except KeyError as error:
             # Action has not been registered
             self.logger.error(str(error))
             result_code = constants.STATUS_NOT_FOUND
-            result_message = "Unhandled action"
+            result_args["error_message"] = "Unhandled action"
+
+        except TypeError:
+            # Returned 'status' is not a valid status
+            self.logger.error("Invalid return status: %s", str(result_code))
+            result_code = constants.STATUS_BAD_PARAMETER
+            result_args["error_message"] = "Invalid return status"
 
         # Return status to Cloud
-        # TODO: return changed parameters
-        cloud_error_code = tr50.translate_error_code(result_code)
-        mailbox_ack = tr50.create_mailbox_ack(action_request.request_id,
-                                              error_code=cloud_error_code,
-                                              error_message=result_message)
+        result_args["error_code"] = tr50.translate_error_code(result_code)
+        mailbox_ack = tr50.create_mailbox_ack(**result_args)
 
         message_desc = "Action Complete \"{}\"".format(action_request.name)
         message_desc += " result : {}".format(result_code)
-        if result_message:
-            message_desc += " \"{}\"".format(result_message)
+        if result_args.get("error_message"):
+            message_desc += " \"{}\"".format(result_args["error_message"])
+        if result_args.get("params"):
+            message_desc += " \"{}\"".format(str(result_args["params"]))
         message = defs.OutMessage(mailbox_ack, message_desc)
         status = self.send(message)
 

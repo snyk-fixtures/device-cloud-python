@@ -140,8 +140,12 @@ class Client(object):
           action_name                  action to register
           callback_function            function to execute when triggered by
                                        action. Callback function must take
-                                       parameters of the form
-                                       (client, parameters, user_data)
+                                       parameters of the form (client,
+                                       parameters, user_data). The callback
+                                       function must also return status_code, or
+                                       (status_code, status_message), or
+                                       (status_code, status_message,
+                                       out_parameters).
 
         Returns:
           STATUS_EXISTS                Action with that name already exists
