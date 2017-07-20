@@ -20,12 +20,13 @@ class Client(object):
         """
         Called on initialization.
 
-        log_file                       optional file to print logs to as well as
+        Parameters:
+          log_file                     optional file to print logs to as well as
                                        the console
-        loop_time                      maximum time between each MQTT iteration
-        message_timeout                maximum time a message can wait without a
+          loop_time                    maximum time between each MQTT iteration
+          message_timeout              maximum time a message can wait without a
                                        reply before timing out
-        thread_count                   number of worker threads to spawn
+          thread_count                 number of worker threads to spawn
         """
 
         # Collect all local arguments for later parsing
@@ -120,7 +121,12 @@ class Client(object):
         """
         Dissociates a Cloud action action from any command or callback
 
-        action_name                    action to deregister
+        Parameters:
+          action_name                  action to deregister
+
+        Returns:
+          STATUS_NOT_FOUND             No action with that name registered
+          STATUS_SUCCESS               Action deregistered
         """
 
         return self.handler.action_deregister(action_name)
@@ -130,9 +136,16 @@ class Client(object):
         """
         Associate a callback function with an action in the Cloud
 
-        action_name                    action to register
-        callback_function              function to execute when
-                                       triggered by action
+        Parameters:
+          action_name                  action to register
+          callback_function            function to execute when triggered by
+                                       action. Callback function must take
+                                       parameters of the form
+                                       (client, parameters, user_data)
+
+        Returns:
+          STATUS_EXISTS                Action with that name already exists
+          STATUS_SUCCESS               Successfully registered callback
         """
 
         return self.handler.action_register_callback(action_name,
@@ -143,9 +156,13 @@ class Client(object):
         """
         Associate a console command with an action in the Cloud
 
-        action_name                    action to register
-        command                        console command to execute when
+        Parameters:
+          action_name                  action to register
+          command                      console command to execute when
                                        triggered by action
+        Returns:
+          STATUS_EXISTS                Action with that name already exists
+          STATUS_SUCCESS               Successfully registered command
         """
 
         return self.handler.action_register_command(action_name, command)
@@ -154,9 +171,13 @@ class Client(object):
         """
         Publish an alarm to the Cloud
 
-        alarm_name                     name of alarm to publish
-        state                          state of publish
-        message                        optional message to accompany alarm
+        Parameters:
+          alarm_name                   name of alarm to publish
+          state                        state of publish
+          message                      optional message to accompany alarm
+
+        Returns:
+          STATUS_SUCCESS               Alarm has been queued for publishing
         """
 
         alarm = defs.PublishAlarm(alarm_name, state, message)
@@ -166,8 +187,12 @@ class Client(object):
         """
         Publish string telemetry to the Cloud
 
-        attribute_name                 name of attribute to publish to
-        value                          value to publish
+        Parameters:
+          attribute_name               name of attribute to publish to
+          value                        value to publish
+
+        Returns:
+          STATUS_SUCCESS               Attribute has been queued for publishing
         """
 
         attr = defs.PublishAttribute(attribute_name, value)
@@ -177,7 +202,13 @@ class Client(object):
         """
         Connect the Client to the Cloud
 
-        timeout                        maximum time to try to connect
+        Parameters:
+          timeout                      maximum time to try to connect
+
+        Returns:
+          STATUS_FAILURE               Failed to connect to Cloud
+          STATUS_SUCCESS               Successfully connected to Cloud
+          STATUS_TIMED_OUT             Connection attempt timed out
         """
 
         return self.handler.connect(timeout)
@@ -186,10 +217,14 @@ class Client(object):
         """
         End Client connection to the Cloud
 
-        wait_for_replies               when set, wait for any pending replies to
+        Parameters:
+          wait_for_replies             When True, wait for any pending replies to
                                        be received or time out before
                                        disconnecting
-        timeout                        maximum time to wait before returning
+          timeout                      Maximum time to wait before returning
+
+        Returns:
+          STATUS_SUCCESS               Successfully disconnected
         """
 
         return self.handler.disconnect(wait_for_replies=wait_for_replies,
@@ -199,7 +234,11 @@ class Client(object):
         """
         Publishes an event message to the Cloud
 
-        message                        message to publish
+        Parameters:
+          message                      Message to publish
+
+        Returns:
+          STATUS_SUCCESS               Event has been queued for publishing
         """
 
         log = defs.PublishLog(message)
@@ -209,11 +248,21 @@ class Client(object):
         """
         Download a file from the Cloud to the device (C2D)
 
-        file_name                      file in Cloud to download
-        blocking                       wait for file transfer to complete
+        Parameters:
+          file_name                    File in Cloud to download
+          blocking                     Wait for file transfer to complete
+                                       before returning. Otherwise return
+                                       immediately.
+          timeout                      If blocking, maximum time to wait
                                        before returning
-        timeout                        if blocking, maximum time to wait
-                                       before returning
+
+        Returns:
+          STATUS_FAILURE               Failed to download file.
+          STATUS_NOT_FOUND             Could not find download directory to
+                                       download file to.
+          STATUS_SUCCESS               File download successful
+          STATUS_TIMED_OUT             Wait for file transfer timed out. File
+                                       transfer is still in progress.
         """
 
         return self.handler.request_download(file_name, blocking, timeout)
@@ -222,12 +271,22 @@ class Client(object):
         """
         Upload a file from the device to the Cloud (D2C)
 
-        file_filter                    any file in upload directory matching
+        Parameters:
+          file_filter                  any file in upload directory matching
                                        this pattern will be uploaded
-        blocking                       wait for file transfer to complete
+          blocking                     wait for file transfer to complete
+                                       before returning. Otherwise return
+                                       immediately.
+          timeout                      if blocking, maximum time to wait
                                        before returning
-        timeout                        if blocking, maximum time to wait
-                                       before returning
+
+        Returns:
+          STATUS_FAILURE               Failed to upload file.
+          STATUS_NOT_FOUND             Could not find find to upload in upload
+                                       directory.
+          STATUS_SUCCESS               File upload successful
+          STATUS_TIMED_OUT             Wait for file transfer timed out. File
+                                       transfer is still in progress.
         """
 
         return self.handler.request_upload(file_filter, blocking, timeout)
@@ -235,6 +294,10 @@ class Client(object):
     def is_connected(self):
         """
         Return the current connect status of the Client
+
+        Returns:
+          True                         Connected to Cloud
+          False                        Not connected to Cloud
         """
 
         return self.handler.is_connected()
@@ -244,13 +307,17 @@ class Client(object):
         """
         Publish a location metric to the Cloud
 
-        latitude                       latitude coordinate
-        longitude                      longitude coordinate
-        heading                        heading
-        altitude                       altitude
-        speed                          speed
-        accuracy                       accuracy of fix
-        fix_type                       fix type
+        Parameters:
+          latitude                     latitude coordinate
+          longitude                    longitude coordinate
+          heading                      heading
+          altitude                     altitude
+          speed                        speed
+          accuracy                     accuracy of fix
+          fix_type                     fix type
+
+        Returns:
+          STATUS_SUCCESS               Location has been queued for publishing
         """
 
         location = defs.PublishLocation(latitude, longitude, heading=heading,
@@ -262,8 +329,12 @@ class Client(object):
         """
         Publish telemetry to the Cloud
 
-        telemetry_name                 name of property to publish to
-        value                          value to publish
+        Parameters:
+          telemetry_name               name of property to publish to
+          value                        value to publish
+
+        Returns:
+          STATUS_SUCCESS               Telemetry has been queued for publishing
         """
 
         telem = defs.PublishTelemetry(telemetry_name, value)

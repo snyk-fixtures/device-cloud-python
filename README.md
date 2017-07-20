@@ -7,18 +7,22 @@ as features are ironed out on that side, and more input is received. It is
 recommended to make a wrapper package for testing purposes as none of the APIs
 are necessarily final.
 
-Requirements:
-- Python 2.7.9 or later
-- paho-mqtt
-- requests
-(The last two can be obtained with `sudo pip install` and the package name)
 
 Purpose:
 The Python agent is designed for quick deployment on any platform that supports
 Python.
 
+
+Requirements:
+- Python 2.7.9 or later
+- paho-mqtt
+- requests
+
+(The last two can be obtained with `sudo pip install` and the package name)
+
+
 So far supports:
-- Documented user APIs (can be obtained by running `pydoc hdcpython.client`)
+- Documented user APIs (can be obtained by running `pydoc hdcpython`)
 - Telemetry (known as properties on the Cloud side)
 - Attributes (string telemetry)
 - Actions (both function callbacks and console commands. Known as methods on
@@ -36,10 +40,10 @@ So far supports:
 - Event message publishing
 - Alarm publishing
 
+
 Not yet supported:
 - Python packaging (only comes as loose files for now)
 - pytest implementation (for coverage and unit tests)
 - Proxy support (may not be possible for paho)
 - Finalized APIs
 - Logging functions included in pydocs
-- Return values in pydocs

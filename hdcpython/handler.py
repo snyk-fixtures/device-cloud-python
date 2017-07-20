@@ -246,6 +246,7 @@ class Handler(object):
             current_time = datetime.utcnow()
 
         self.state = constants.STATE_DISCONNECTED
+        #TODO: Kill any hanging threads
         self.main_thread.join()
 
         return constants.STATUS_SUCCESS
@@ -294,6 +295,7 @@ class Handler(object):
         """
         Handle any accepted C2D file transfers
         """
+        #TODO: Timeout
 
         status = constants.STATUS_SUCCESS
         self.logger.info("Downloading \"%s\"", download.file_name)
@@ -373,6 +375,8 @@ class Handler(object):
         Handle any accepted D2C file transfers
         """
 
+        #TODO: Timeout
+
         status = constants.STATUS_SUCCESS
 
         self.logger.info("Uploading \"%s\"", upload.file_name)
@@ -413,6 +417,7 @@ class Handler(object):
                     self.logger.error("Failed to upload \"%s\"",
                                       upload.file_name)
                     self.logger.debug(".... %s", response.content)
+                    status = constants.STATUS_FAILURE
 
             else:
                 # File does not exist
