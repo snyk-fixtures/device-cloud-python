@@ -48,25 +48,24 @@ class ActionCommand(Action):
         """
 
         # Append parameters as command line arguments
-        final_command = self.command
+        final_command = [self.command]
         if params:
             for key in params:
                 if params[key] is True:
                     # Value is True, just append flag
-                    final_command += " --{}".format(key)
+                    final_command.append("--{}".format(key))
                 elif params[key] is False:
                     # Value is False, do not append flag
                     pass
                 else:
                     # Append --param=value
-                    final_command += " --{}={}".format(key, params[key])
+                    final_command.append("--{}={}".format(key, params[key]))
 
         # Execute command with arguments and wait for result
-        proc = subprocess.Popen(final_command, shell=True,
+        proc = subprocess.Popen(final_command, shell=False,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
         outstr, errstr = proc.communicate()
-        proc.wait()
         ret_code = proc.returncode
 
         return_string = "command: {}  ,  stdout: {}  ,  stderr: {}"
