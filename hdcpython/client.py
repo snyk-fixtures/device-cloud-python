@@ -41,14 +41,14 @@ class Client(object):
         # Read JSON from config files.
         if os.path.exists("iot.cfg"):
             try:
-                with open("iot.cfg") as config_file:
+                with open("iot.cfg", "r") as config_file:
                     kwargs.update(json.load(config_file))
             except Exception as error:
                 print "Error parsing JSON from iot.cfg"
                 raise error
         if os.path.exists("iot-connect.cfg"):
             try:
-                with open("iot-connect.cfg") as config_file:
+                with open("iot-connect.cfg", "r") as config_file:
                     kwargs.update(json.load(config_file))
             except Exception as error:
                 print "Error parsing JSON from iot-connect.cfg"
@@ -86,7 +86,7 @@ class Client(object):
                     raise Exception("Failed to read device_id")
             else:
                 try:
-                    with open(device_id_path) as id_file:
+                    with open(device_id_path, "w") as id_file:
                         kwargs["device_id"] = str(uuid.uuid4())
                         id_file.write(kwargs["device_id"])
                 except:
