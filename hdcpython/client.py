@@ -147,9 +147,7 @@ class Client(object):
                                        parameters of the form (client,
                                        parameters, user_data). The callback
                                        function must also return status_code, or
-                                       (status_code, status_message), or
-                                       (status_code, status_message,
-                                       out_parameters).
+                                       (status_code, status_message)
 
         Returns:
           STATUS_EXISTS                Action with that name already exists
