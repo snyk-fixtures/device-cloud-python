@@ -18,8 +18,15 @@ Requirements:
 - paho-mqtt
 - requests
 
-(The last two can be obtained with `sudo pip install` and the package name)
+(The last two can be obtained with `sudo pip install` and the package name, or 
+by running `pip install .`, which will install the module and its dependencies)
 
+Pip Installation:
+
+The module can be installed locally for ease of use by running `pip install .`
+in the root directory of the cloned repository. This will install the module and
+its dependencies. The agent can then be imported into other Python scripts as
+normal (`import hdcpython`).
 
 So far supports:
 - Documented user APIs (can be obtained by running `pydoc hdcpython`)
