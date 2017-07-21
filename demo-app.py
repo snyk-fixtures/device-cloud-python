@@ -51,7 +51,7 @@ def file_download(client, params, user_data):
         if result == iot.STATUS_SUCCESS:
             message = "Downloaded!"
         else:
-            message = iot.error_string(result)
+            message = iot.status_string(result)
         download = False
         return (result, message)
     else:
@@ -70,7 +70,7 @@ def file_upload(client, params, user_data):
         if result == iot.STATUS_SUCCESS:
             message = "Uploaded!"
         else:
-            message = iot.error_string(result)
+            message = iot.status_string(result)
         download = True
         return (result, message)
     else:
@@ -125,12 +125,9 @@ if __name__ == "__main__":
     client.action_register_callback("toggle_telemetry", toggle_telem)
     client.action_register_callback("toggle_location", toggle_loc)
     client.action_register_callback("quit", quit_me)
-    try:
-        # This should fail
-        client.action_register_callback("quit", i_dont_do_anything)
-    except Exception as e:
-        print("Exception")
-        print(repr(e))
+    # This should fail
+    status = client.action_register_callback("quit", i_dont_do_anything)
+    client.debug("i_dont_do_anything registration status: %s", iot.status_string(status))
 
     # Telemetry names (properties for numbers, attributes for strings)
     properties = ["property-1", "property-2"]
