@@ -216,7 +216,9 @@ class Handler(object):
             # Not connected. Stop main loop.
             self.logger.error("Failed to connect")
             self.state = constants.STATE_DISCONNECTED
-            self.main_thread.join()
+            if self.main_thread:
+                self.main_thread.join()
+                self.main_thread = None
 
         # Return result of connection
         return status
@@ -255,7 +257,9 @@ class Handler(object):
 
         self.state = constants.STATE_DISCONNECTED
         #TODO: Kill any hanging threads
-        self.main_thread.join()
+        if self.main_thread:
+            self.main_thread.join()
+            self.main_thread = None
 
         return constants.STATUS_SUCCESS
 
@@ -737,6 +741,7 @@ class Handler(object):
         # Wait for worker threads to finish.
         for thread in self.worker_threads:
             thread.join()
+        self.worker_threads = []
 
     def on_message(self, mqtt, userdata, msg):
         """
