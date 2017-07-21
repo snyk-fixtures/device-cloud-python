@@ -266,11 +266,11 @@ class Handler(object):
         """
 
         result_code = -1
+        result_args = {"mail_id":action_request.request_id}
         try:
             # Execute callback
             result = self.callbacks.execute_action(action_request)
 
-            result_args = {"mail_id":action_request.request_id}
             # Handle returning a tuple or just a status code
             if result.__class__.__name__ == "tuple":
                 result_code = result[0]
