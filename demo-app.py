@@ -33,15 +33,10 @@ def sighandler(signum, frame):
 def method_1_callback(client, params, user_data):
     # Prints all parameters and user data.
     global download
-    client.log("I'm a callback!")
-    client.log(str(params))
-    client.log(user_data)
+    client.log(iot.LOGINFO, "I'm a callback!")
+    client.debug(str(params))
+    client.log(iot.LOGDEBUG, user_data)
     return (iot.STATUS_SUCCESS, "Return from callback")
-
-
-def dump_logs(client, params, user_data):
-    # Will eventually dump log files into upload directory
-    return (iot.STATUS_NOT_SUPPORTED, "Not supported yet")
 
 
 def file_download(client, params, user_data):
@@ -50,7 +45,7 @@ def file_download(client, params, user_data):
     if params:
         file_name = params.get("file_name")
     if file_name:
-        client.log("Downloading")
+        client.info("Downloading")
         client.event_publish("C2D File Transfer for {}".format(file_name))
         result = client.file_download(file_name, blocking=True, timeout=15)
         if result == iot.STATUS_SUCCESS:
@@ -69,7 +64,7 @@ def file_upload(client, params, user_data):
     if params:
         file_name = params.get("file_name")
     if file_name:
-        client.log("Uploading")
+        client.log(iot.LOGINFO, "Uploading")
         client.event_publish("D2C File Transfer for {}".format(file_name))
         result = client.file_upload(file_name, blocking=True, timeout=240)
         if result == iot.STATUS_SUCCESS:
@@ -90,7 +85,7 @@ def toggle_telem( client, params, user_data ):
         client.alarm_publish("alarm_1", 0)
     else:
         client.alarm_publish("alarm_1", 1)
-    client.log("{} sending telemetry".format(
+    client.info("{} sending telemetry".format(
         "Now" if sending_telemetry else "No longer"))
     return (iot.STATUS_SUCCESS, "Turned On" if sending_telemetry else "Turned Off")
 
@@ -99,7 +94,7 @@ def toggle_loc( client, params, user_data ):
     # Turns Location on or off
     global sending_location
     sending_location = not sending_location
-    client.log("{} sending location".format(
+    client.info("{} sending location".format(
         "Now" if sending_telemetry else "No longer"))
     return (iot.STATUS_SUCCESS, "Turned On" if sending_location else "Turned Off")
 
@@ -113,7 +108,7 @@ def quit_me( client, params, user_data ):
 
 def i_dont_do_anything(client, params, user_data):
     # Garbage function to show that registering an action can only happen once
-    client.log("Except this")
+    client.error("Except this")
     return iot.STATUS_SUCCESS
 
 
@@ -127,7 +122,6 @@ if __name__ == "__main__":
     client.action_register_command("method_1", "echo")
     client.action_register_callback("file_download", file_download)
     client.action_register_callback("file_upload", file_upload)
-    client.action_register_callback("dump_logs", dump_logs)
     client.action_register_callback("toggle_telemetry", toggle_telem)
     client.action_register_callback("toggle_location", toggle_loc)
     client.action_register_callback("quit", quit_me)
@@ -155,12 +149,12 @@ if __name__ == "__main__":
             # Randomly generate telemetry and attributes to send
             for p in properties:
                 value = round(random.random()*1000, 2)
-                client.log("Publishing {} to {}".format(value, p))
+                client.info("Publishing {} to {}".format(value, p))
                 client.telemetry_publish(p, value)
             for a in attributes:
                 value = "".join(random.choice("abcdefghijklmnopqrstuvwxyz")
                         for x in range(20))
-                client.log("Publishing {} to {}".format(value, a))
+                client.log(iot.LOGINFO, "Publishing {} to {}".format(value, a))
                 client.attribute_publish(a, value)
 
             if sending_location:
@@ -174,7 +168,7 @@ if __name__ == "__main__":
                 pos_lat  += round((speed * math.cos(math.radians(heading))) * 0.001, 2)
                 pos_long += round((speed * math.sin(math.radians(heading))) * 0.001, 2)
 
-                client.log("Publishing Location")
+                client.log(iot.LOGINFO, "Publishing Location")
                 client.location_publish(pos_lat, pos_long, heading=heading, speed=speed)
 
             # Reset counter after sending telemetry

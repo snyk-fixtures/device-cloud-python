@@ -644,7 +644,7 @@ class Handler(object):
                         self.handle_file_upload(work.data)
                 except Exception:
                     # Print traceback, but don't kill thread
-                    print traceback.format_exc()
+                    self.logger.exception(traceback.format_exc())
 
         return constants.STATUS_SUCCESS
 

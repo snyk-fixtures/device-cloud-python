@@ -114,8 +114,12 @@ class Client(object):
         self.handler = Handler(self.config, self)
 
         # Access logger functions
-        self.log = self.handler.logger.info
+        self.critical = self.handler.logger.critical
+        self.debug = self.handler.logger.debug
         self.error = self.handler.logger.error
+        self.info = self.handler.logger.info
+        self.log = self.handler.logger.log
+        self.warning = self.handler.logger.warning
 
     def action_deregister(self, action_name):
         """

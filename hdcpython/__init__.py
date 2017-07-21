@@ -3,6 +3,13 @@ This module contains the Client class required for applications to connect and
 interact with the Wind River Helix Device Cloud 2.Next.
 """
 
+from logging import CRITICAL as LOGCRITICAL
+from logging import ERROR as LOGERROR
+from logging import DEBUG as LOGDEBUG
+from logging import INFO as LOGINFO
+from logging import NOTSET as LOGNOTSET
+from logging import WARNING as LOGWARNING
+
 from hdcpython.client import Client
 from hdcpython.handler import error_string
 
@@ -42,6 +49,12 @@ __all__ = ["Client",
            "DEFAULT_MESSAGE_TIMEOUT",
            "DEFAULT_RUNTIME_DIR",
            "DEFAULT_THREAD_COUNT",
+           "LOGCRITICAL",
+           "LOGERROR",
+           "LOGDEBUG",
+           "LOGINFO",
+           "LOGNOTSET",
+           "LOGWARNING",
            "STATUS_SUCCESS",
            "STATUS_INVOKED",
            "STATUS_BAD_PARAMETER",
