@@ -10,7 +10,6 @@ import Queue
 import random
 import ssl
 import threading
-import traceback
 from binascii import crc32
 from datetime import datetime
 from datetime import timedelta
@@ -24,7 +23,7 @@ from hdcpython import tr50
 from hdcpython.tr50 import TR50Command
 
 
-def error_string(error_code):
+def status_string(error_code):
     """
     Return a string describing the error code
     """
@@ -267,41 +266,52 @@ class Handler(object):
 
         result_code = -1
         result_args = {"mail_id":action_request.request_id}
+        action_result = None
+        action_failed = False
+
         try:
             # Execute callback
-            result = self.callbacks.execute_action(action_request)
+            action_result = self.callbacks.execute_action(action_request)
 
-            # Handle returning a tuple or just a status code
-            if result.__class__.__name__ == "tuple":
-                result_code = result[0]
-                if len(result) >= 2:
-                    result_args["error_message"] = str(result[1])
-                if len(result) >= 3:
-                    result_args["params"] = result[2]
+        except Exception as error:
+            # Error with action execution. Might not have been registered.
+            action_failed = True
+            self.logger.error("Action %s execution failed", action_request.name)
+            self.logger.error(".... %s", str(error))
+            result_code = constants.STATUS_FAILURE
+            result_args["error_message"] = "ERROR: {}".format(str(error))
+            if action_request.name not in self.callbacks:
+                result_code = constants.STATUS_NOT_FOUND
             else:
-                result_code = result
+                self.logger.exception("Exception:")
+
+        # Action execution did not raise an error
+        if not action_failed:
+            # Handle returning a tuple or just a status code
+            if action_result.__class__.__name__ == "tuple":
+                result_code = action_result[0]
+                if len(action_result) >= 2:
+                    result_args["error_message"] = str(action_result[1])
+                if len(action_result) >= 3:
+                    result_args["params"] = action_result[2]
+            else:
+                result_code = action_result
 
             if not is_valid_status(result_code):
-                raise TypeError
-
-        except KeyError as error:
-            # Action has not been registered
-            self.logger.error(str(error))
-            result_code = constants.STATUS_NOT_FOUND
-            result_args["error_message"] = "Unhandled action"
-
-        except TypeError:
-            # Returned 'status' is not a valid status
-            self.logger.error("Invalid return status: %s", str(result_code))
-            result_code = constants.STATUS_BAD_PARAMETER
-            result_args["error_message"] = "Invalid return status"
+                # Returned 'status' is not a valid status
+                error_string = ("Invalid return status: " +
+                                str(result_code))
+                self.logger.error(error_string)
+                result_code = constants.STATUS_BAD_PARAMETER
+                result_args["error_message"] = "ERROR: " + error_string
 
         # Return status to Cloud
         result_args["error_code"] = tr50.translate_error_code(result_code)
         mailbox_ack = tr50.create_mailbox_ack(**result_args)
 
         message_desc = "Action Complete \"{}\"".format(action_request.name)
-        message_desc += " result : {}".format(result_code)
+        message_desc += " result : {}({})".format(result_code,
+                                                  status_string(result_code))
         if result_args.get("error_message"):
             message_desc += " \"{}\"".format(result_args["error_message"])
         if result_args.get("params"):
@@ -644,7 +654,7 @@ class Handler(object):
                         self.handle_file_upload(work.data)
                 except Exception:
                     # Print traceback, but don't kill thread
-                    self.logger.exception(traceback.format_exc())
+                    self.logger.exception("Exception:")
 
         return constants.STATUS_SUCCESS
 

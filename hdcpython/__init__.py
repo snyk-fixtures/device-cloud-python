@@ -11,7 +11,7 @@ from logging import NOTSET as LOGNOTSET
 from logging import WARNING as LOGWARNING
 
 from hdcpython.client import Client
-from hdcpython.handler import error_string
+from hdcpython.handler import status_string
 
 from hdcpython.constants import DEFAULT_CONFIG_DIR
 from hdcpython.constants import DEFAULT_LOG_LEVEL
@@ -42,7 +42,7 @@ from hdcpython.constants import STATUS_FAILURE
 
 
 __all__ = ["Client",
-           "error_string",
+           "status_string",
            "DEFAULT_CONFIG_DIR",
            "DEFAULT_LOG_LEVEL",
            "DEFAULT_LOOP_TIME",
