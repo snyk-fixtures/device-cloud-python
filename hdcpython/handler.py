@@ -624,7 +624,9 @@ class Handler(object):
                 messages.append(message)
 
             # Send all publishes
-            status = self.send(messages)
+            if messages:
+                status = self.send(messages)
+
         return status
 
     def handle_work_loop(self):

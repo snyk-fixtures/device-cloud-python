@@ -7,6 +7,7 @@ import os
 import uuid
 
 from hdcpython import defs
+from hdcpython.constants import WORK_PUBLISH
 from hdcpython.handler import Handler
 
 
@@ -187,7 +188,9 @@ class Client(object):
         """
 
         alarm = defs.PublishAlarm(alarm_name, state, message)
-        return self.handler.queue_publish(alarm)
+        self.handler.queue_publish(alarm)
+        work = defs.Work(WORK_PUBLISH, None)
+        return self.handler.queue_work(work)
 
     def attribute_publish(self, attribute_name, value):
         """
