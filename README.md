@@ -46,11 +46,13 @@ So far supports:
 - Logging to console with optional logging to a specified file
 - Event message publishing
 - Alarm publishing
+- pytest implementation start. Run `pytest -v .` to run unit tests.
+  `pytest --cov-report=html --cov=hdcpython -v .` Will generate a directory
+  containing an HTML report of coverage.
 
 
 Not yet supported:
 - Python packaging (only comes as loose files for now)
-- pytest implementation (for coverage and unit tests)
 - Proxy support (may not be possible for paho)
 - Finalized APIs
 - Logging functions included in pydocs
