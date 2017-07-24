@@ -30,16 +30,19 @@ class Client(object):
           thread_count                 number of worker threads to spawn
         """
 
-        # Collect all local arguments for later parsing
+        # Start collecting configuration parameters
         kwargs = {}
         kwargs["name"] = name
         kwargs["log_file"] = log_file
         kwargs["loop_time"] = loop_time
         kwargs["message_timeout"] = message_timeout
         kwargs["thread_count"] = thread_count
+        self.config = defs.Config()
+        self.config.update(kwargs)
 
         # TODO: default path to config files ($CONFIG_DIR ?)
         # Read JSON from config files.
+        kwargs = {}
         if os.path.exists("iot.cfg"):
             try:
                 with open("iot.cfg", "r") as config_file:
@@ -57,8 +60,10 @@ class Client(object):
         else:
             print "Cannot find iot-connect.cfg"
             raise Exception("Cannot find iot-connect.cfg")
+        self.config.update(kwargs)
 
-        runtime_dir = kwargs.get("runtime_dir")
+        kwargs = {}
+        runtime_dir = self.config.runtime_dir
         if runtime_dir:
             # Check runtime directory for file transfer directories. If they do
             # not exist, create them.
@@ -93,9 +98,7 @@ class Client(object):
                 except:
                     print "Failed to write device_id"
                     raise Exception("Failed to write device_id")
-
-        # Parse and store configuration for Client
-        self.config = defs.Config(kwargs)
+            self.config.update(kwargs)
 
         # Check that all necessary configuration has been obtained
         if not self.config.cloud_token:

@@ -137,23 +137,9 @@ class Config(dict):
     Holds all configuration information about the Client
     """
 
-    def __init__(self, cfg):
-        """
-        Parse a dict to determine aspects of the configuration
-        """
-
+    def __init__(self):
+        # Call dict init function
         super(Config, self).__init__()
-
-        # Add every config item, only one level deep
-        for key in cfg:
-            if cfg[key].__class__.__name__ == "dict":
-                for subkey in cfg[key]:
-                    if cfg[key][subkey]:
-                        self["{}_{}".format(key, subkey)] = cfg[key][subkey]
-            else:
-                if cfg[key]:
-                    self[key] = cfg[key]
-
 
         # Handle defaults
         self.setdefault("log_level", constants.DEFAULT_LOG_LEVEL)
@@ -161,15 +147,6 @@ class Config(dict):
         self.setdefault("message_timeout", constants.DEFAULT_MESSAGE_TIMEOUT)
         self.setdefault("runtime_dir", constants.DEFAULT_RUNTIME_DIR)
         self.setdefault("thread_count", constants.DEFAULT_THREAD_COUNT)
-
-        # Handle key
-        if self.get("name") and self.get("device_id"):
-            self["key"] = "{}-{}".format(self.device_id, self.name)
-
-        # Handle validate_cert boolean
-        if self.get("validate_cloud_cert"):
-            self["validate_cloud_cert"] = (self["validate_cloud_cert"].lower()
-                                           == "true")
 
     def __getattribute__(self, attr):
         try:
@@ -179,6 +156,26 @@ class Config(dict):
 
     def __setattr__(self, attr, value):
         self.__setitem__(attr, value)
+
+    def update(self, other):
+        # Add every dict item, only one level deep
+        for key in other:
+            if other[key].__class__.__name__ == "dict":
+                for subkey in other[key]:
+                    if other[key][subkey]:
+                        self["{}_{}".format(key, subkey)] = other[key][subkey]
+            else:
+                if other[key]:
+                    self[key] = other[key]
+
+        # Handle key
+        if self.get("name") and self.get("device_id"):
+            self["key"] = "{}-{}".format(self.device_id, self.name)
+
+        # Handle validate_cert boolean
+        cloud_cert = self.get("validate_cloud_cert")
+        if cloud_cert and cloud_cert.__class__.__name__ == "str":
+            self["validiate_cloud_cert"] = cloud_cert.lower() == "true"
 
 
 class FileTransfer(object):
