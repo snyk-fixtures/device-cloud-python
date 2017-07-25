@@ -114,6 +114,16 @@ class Handler(object):
         # publishing, file transfer, etc.)
         self.work_queue = Queue.Queue()
 
+    def _thing_def_change(self, new_def_key):
+        """
+        Change current thing's thing definition
+        """
+
+        cmd = tr50.create_thing_def_change(self.config.key, new_def_key)
+        message = defs.OutMessage(cmd, "Change Thing Definition to "
+                                  "{}".format(new_def_key))
+        return self.send(message)
+
     def action_deregister(self, action_name):
         """
         Disassociate any function or command from an action in the Cloud
@@ -743,6 +753,11 @@ class Handler(object):
                     target=self.handle_work_loop))
             for thread in self.worker_threads:
                 thread.start()
+
+            # If a thing definition is defined in the config, switch this thing
+            # to that thing definition
+            if self.config.thing_def_key:
+                self._thing_def_change(self.config.thing_def_key)
 
     def on_disconnect(self, mqtt, userdata, rc):
         """
