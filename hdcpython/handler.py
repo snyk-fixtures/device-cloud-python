@@ -2,7 +2,7 @@
 This module handles all the underlying functionality of the Client
 """
 
-import fnmatch
+import glob
 import json
 import logging
 import os
@@ -355,9 +355,6 @@ class Handler(object):
         temp_file_name += ".part"
         temp_path = os.path.join(download_dir, temp_file_name)
 
-        # Path where temporary file will be moved to
-        real_path = os.path.join(download_dir, download.file_name)
-
         # Ensure download directory exists
         if not os.path.isdir(download_dir):
             self.logger.error("Cannot find download directory \"%s\". "
@@ -402,7 +399,7 @@ class Handler(object):
                     checksum = checksum & 0xffffffff
                 if checksum == download.file_checksum:
                     # Checksums match, move temporary file to real file position
-                    os.rename(temp_path, real_path)
+                    os.rename(temp_path, download.file_path)
                     self.logger.info("Successfully downloaded \"%s\"",
                                      download.file_name)
                 else:
@@ -432,53 +429,41 @@ class Handler(object):
         # Start creating URL for file upload
         url = "{}/file/{}".format(self.config.cloud_host, upload.file_id)
 
-        # Upload directory
-        upload_dir = os.path.join(self.config.runtime_dir, "upload")
-        # Path of file to upload
-        file_path = os.path.join(upload_dir, upload.file_name)
+        response = None
+        if os.path.exists(upload.file_path):
+            # If file exists attempt upload
+            with open(upload.file_path, "rb") as up_file:
+                # Secure or insecure HTTP Post
+                if self.config.validiate_cloud_cert is False:
+                    url = "https://" + url
+                    response = requests.post(url, data=up_file,
+                                             verify=False)
+                elif self.config.ca_bundle_file:
+                    url = "https://" + url
+                    cert_location = self.config.ca_bundle_file
+                    response = requests.post(url, data=up_file,
+                                             verify=cert_location)
+                else:
+                    url = "http://" + url
+                    response = requests.post(url, data=up_file)
+            if response.status_code == 200:
+                self.logger.info("Successfully uploaded \"%s\"",
+                                 upload.file_name)
+                status = constants.STATUS_SUCCESS
+            else:
+                self.logger.error("Failed to upload \"%s\"",
+                                  upload.file_name)
+                self.logger.debug(".... %s", response.content)
+                status = constants.STATUS_FAILURE
 
-        # Ensure upload directory exists
-        if not os.path.isdir(upload_dir):
-            self.logger.error("Cannot find upload directory \"%s\". "
-                              "Upload cancelled.", upload_dir)
+        else:
+            # File does not exist
+            self.logger.error("Cannot find file \"%s\". Upload failed.",
+                              upload.file_name)
             status = constants.STATUS_NOT_FOUND
 
-        if status == constants.STATUS_SUCCESS:
-            # If file exists attempt upload
-            response = None
-            if os.path.exists(file_path):
-                with open(file_path, "rb") as up_file:
-                    # Secure or insecure HTTP Post
-                    if self.config.validiate_cloud_cert is False:
-                        url = "https://" + url
-                        response = requests.post(url, data=up_file,
-                                                 verify=False)
-                    elif self.config.ca_bundle_file:
-                        url = "https://" + url
-                        cert_location = self.config.ca_bundle_file
-                        response = requests.post(url, data=up_file,
-                                                 verify=cert_location)
-                    else:
-                        url = "http://" + url
-                        response = requests.post(url, data=up_file)
-                if response.status_code == 200:
-                    self.logger.info("Successfully uploaded \"%s\"",
-                                     upload.file_name)
-                    status = constants.STATUS_SUCCESS
-                else:
-                    self.logger.error("Failed to upload \"%s\"",
-                                      upload.file_name)
-                    self.logger.debug(".... %s", response.content)
-                    status = constants.STATUS_FAILURE
-
-            else:
-                # File does not exist
-                self.logger.error("File \"%s\" does not exist, cannot upload",
-                                  upload.file_name)
-                status = constants.STATUS_NOT_FOUND
-
-            # Update file transfer status
-            upload.status = status
+        # Update file transfer status
+        upload.status = status
 
         return status
 
@@ -802,7 +787,8 @@ class Handler(object):
         self.logger.info("Request download of %s", file_name)
 
         # File Transfer object for tracking progress
-        transfer = defs.FileTransfer(file_name)
+        file_path = os.path.join(self.config.runtime_dir, "download", file_name)
+        transfer = defs.FileTransfer(file_name, file_path)
 
         # Generate and send message to request file transfer
         command = tr50.create_file_get(self.config.key, file_name)
@@ -836,28 +822,36 @@ class Handler(object):
 
         self.logger.info("Request upload of %s", file_filter)
 
-        # Check to make sure upload directory exists
-        upload_dir = os.path.join(self.config.runtime_dir, "upload")
-        if os.path.isdir(upload_dir):
+        # If path is not absolute, start in the upload directory
+        if not os.path.isabs(file_filter):
+            # Check to make sure upload directory exists
+            upload_dir = os.path.join(self.config.runtime_dir, "upload")
+            if os.path.isdir(upload_dir):
+                file_filter = os.path.join(upload_dir, file_filter)
+            else:
+                # Upload directory not found
+                self.logger.error("Cannot find upload directory \"%s\". "
+                                  "Upload cancelled.", upload_dir)
+                status = constants.STATUS_NOT_FOUND
 
+        if status == constants.STATUS_SUCCESS:
             # Get a list of all matching files to upload
-            files = [f for f in os.listdir(upload_dir) if
-                     os.path.isfile(os.path.join(upload_dir, f))]
-            files = fnmatch.filter(files, file_filter)
+            files = glob.glob(file_filter)
 
             transfers = []
-            for file_name in files:
+            for file_path in files:
+                file_name = os.path.basename(file_path)
+
                 # Get file crc32 checksum
                 checksum = 0
-                up_file_path = os.path.join(upload_dir, file_name)
-                with open(up_file_path, "rb") as up_file:
+                with open(file_path, "rb") as up_file:
                     for chunk in up_file:
                         checksum = crc32(chunk, checksum)
                 checksum = checksum & 0xffffffff
 
                 if checksum != 0:
                     # File Transfer object for tracking progress
-                    transfer = defs.FileTransfer(file_name)
+                    transfer = defs.FileTransfer(file_name, file_path)
 
                     # Generate and send message to request file transfer
                     command = tr50.create_file_put(self.config.key, file_name)
@@ -873,11 +867,6 @@ class Handler(object):
                     status = constants.STATUS_FAILURE
                     break
 
-        else:
-            # Upload directory not found
-            self.logger.error("Cannot find upload directory \"%s\". "
-                              "Upload cancelled.", upload_dir)
-            status = constants.STATUS_NOT_FOUND
 
         # If blocking is set, wait for result of file transfer
         if transfers and status == constants.STATUS_SUCCESS and blocking:
