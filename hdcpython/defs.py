@@ -175,8 +175,8 @@ class Config(dict):
 
         # Handle validate_cert boolean
         cloud_cert = self.get("validate_cloud_cert")
-        if cloud_cert and cloud_cert.__class__.__name__ == "str":
-            self["validiate_cloud_cert"] = cloud_cert.lower() == "true"
+        if cloud_cert:
+            self["validiate_cloud_cert"] = str(cloud_cert).lower() == "true"
 
 
 class FileTransfer(object):
