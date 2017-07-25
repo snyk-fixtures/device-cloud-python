@@ -41,9 +41,6 @@ class Client(object):
         self.config = defs.Config()
         self.config.update(kwargs)
 
-        print os.environ
-        print "CONFIG DIR: \"{}\"".format(self.config.config_dir)
-
         # Read JSON from config files.
         kwargs = {}
         config_dir = self.config.config_dir
