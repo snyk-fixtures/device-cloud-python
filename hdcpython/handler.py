@@ -242,6 +242,14 @@ class Handler(object):
         current_time = datetime.utcnow()
         end_time = current_time + timedelta(seconds=timeout)
 
+        #TODO: to_quit flag for faster exit
+
+        # Wait for pending work that has not been dealt with
+        while ((timeout == 0 or current_time < end_time) and
+               not self.work_queue.empty()):
+            sleep(1)
+            current_time = datetime.utcnow()
+
         # Optionally wait for any outstanding replies. Any that timeout will be
         # removed so that this loop can end.
         if wait_for_replies:
@@ -257,12 +265,6 @@ class Handler(object):
         self.mqtt.disconnect()
         while ((timeout == 0 or current_time < end_time) and
                self.state == constants.STATE_CONNECTED):
-            sleep(1)
-            current_time = datetime.utcnow()
-
-        # Wait for pending work that has not been dealt with
-        while ((timeout == 0 or current_time < end_time) and
-               not self.work_queue.empty()):
             sleep(1)
             current_time = datetime.utcnow()
 
