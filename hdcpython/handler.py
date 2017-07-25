@@ -848,50 +848,56 @@ class Handler(object):
             # Get a list of all matching files to upload
             files = glob.glob(file_filter)
 
-            transfers = []
-            for file_path in files:
-                file_name = os.path.basename(file_path)
+            if len(files) == 0:
+                # No files to upload
+                self.logger.error("Cannot find any files to upload. "
+                                  "Upload cancelled.")
+                status = constants.STATUS_NOT_FOUND
 
-                # Get file crc32 checksum
-                checksum = 0
-                with open(file_path, "rb") as up_file:
-                    for chunk in up_file:
-                        checksum = crc32(chunk, checksum)
-                checksum = checksum & 0xffffffff
-
-                if checksum != 0:
-                    # File Transfer object for tracking progress
-                    transfer = defs.FileTransfer(file_name, file_path)
-
-                    # Generate and send message to request file transfer
-                    command = tr50.create_file_put(self.config.key, file_name)
-                    message_desc = "Upload {}".format(file_name)
-                    message = defs.OutMessage(command, message_desc,
-                                              data=transfer)
-                    status = self.send(message)
-                    transfers.append(transfer)
-                else:
-                    self.logger.error("Upload request failed. Failed to "
-                                      "retrieve checksum for \"%s\".",
-                                      file_name)
-                    status = constants.STATUS_FAILURE
-                    break
-
-
-        # If blocking is set, wait for result of file transfer
-        if transfers and status == constants.STATUS_SUCCESS and blocking:
-            while ((timeout == 0 or current_time < end_time) and
-                   len(transfers) != 0) and self.is_connected():
-                if transfers[0].status is not None:
-                    transfers.pop(0)
-                else:
-                    sleep(1)
-                current_time = datetime.utcnow()
-
-            if len(transfers) != 0:
-                status = constants.STATUS_TIMED_OUT
             else:
-                status = constants.STATUS_SUCCESS
+                transfers = []
+                for file_path in files:
+                    file_name = os.path.basename(file_path)
+
+                    # Get file crc32 checksum
+                    checksum = 0
+                    with open(file_path, "rb") as up_file:
+                        for chunk in up_file:
+                            checksum = crc32(chunk, checksum)
+                    checksum = checksum & 0xffffffff
+
+                    if checksum != 0:
+                        # File Transfer object for tracking progress
+                        transfer = defs.FileTransfer(file_name, file_path)
+
+                        # Generate and send message to request file transfer
+                        command = tr50.create_file_put(self.config.key, file_name)
+                        message_desc = "Upload {}".format(file_name)
+                        message = defs.OutMessage(command, message_desc,
+                                                  data=transfer)
+                        status = self.send(message)
+                        transfers.append(transfer)
+                    else:
+                        self.logger.error("Upload request failed. Failed to "
+                                          "retrieve checksum for \"%s\".",
+                                          file_name)
+                        status = constants.STATUS_FAILURE
+                        break
+
+                # If blocking is set, wait for result of file transfer
+                if transfers and status == constants.STATUS_SUCCESS and blocking:
+                    while ((timeout == 0 or current_time < end_time) and
+                           len(transfers) != 0) and self.is_connected():
+                        if transfers[0].status is not None:
+                            transfers.pop(0)
+                        else:
+                            sleep(1)
+                        current_time = datetime.utcnow()
+
+                    if len(transfers) != 0:
+                        status = constants.STATUS_TIMED_OUT
+                    else:
+                        status = constants.STATUS_SUCCESS
 
         return status
 

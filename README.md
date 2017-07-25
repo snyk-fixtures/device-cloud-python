@@ -34,9 +34,10 @@ So far supports:
 - Attributes (string telemetry)
 - Actions (both function callbacks and console commands. Known as methods on
   Cloud side)
-- File transfer (upload and download from the respective runtime directories.
-  Additionally, file upload supports unix filename wildcards for uploading
-  multiple files at once)
+- File Download to runtime/download directory
+- File Upload (If given path is relative, starts from runtime/upload directory.
+  Absolute file paths are also supported, as well as unix style wildcards for
+  uploading multiple files at once.)
 - Secure connection with TLS/SSL (this includes MQTT over TLSv1.2 and also HTTPS
   file transfer)
 - Configuration files (parses the standard iot-connect.cfg and iot.cfg files for
