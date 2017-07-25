@@ -13,6 +13,7 @@ import threading
 from binascii import crc32
 from datetime import datetime
 from datetime import timedelta
+from socket import gaierror
 from time import sleep
 import requests
 import paho.mqtt.client as mqttlib
@@ -170,24 +171,30 @@ class Handler(object):
         """
 
         status = constants.STATUS_FAILURE
+        result = -1
 
         # Ensure we have a host and port to connect to
         if not self.config.cloud_host or not self.config.cloud_port:
             self.logger.error("Missing host or port from configuration")
-            raise KeyError("Missing host or port from configuration")
+            status = constants.STATUS_BAD_PARAMETER
 
-        current_time = datetime.utcnow()
-        end_time = current_time + timedelta(seconds=timeout)
-        self.state = constants.STATE_CONNECTING
+        else:
+            current_time = datetime.utcnow()
+            end_time = current_time + timedelta(seconds=timeout)
+            self.state = constants.STATE_CONNECTING
 
-        # Start a secure connection if the cert file is available
-        if self.config.ca_bundle_file:
-            self.mqtt.tls_set(self.config.ca_bundle_file,
-                              tls_version=ssl.PROTOCOL_TLSv1_2)
+            # Start a secure connection if the cert file is available
+            if self.config.ca_bundle_file:
+                self.mqtt.tls_set(self.config.ca_bundle_file,
+                                  tls_version=ssl.PROTOCOL_TLSv1_2)
 
-        # Start MQTT connection
-        result = self.mqtt.connect(self.config.cloud_host,
-                                   self.config.cloud_port, 60)
+            # Start MQTT connection
+            try:
+                result = self.mqtt.connect(self.config.cloud_host,
+                                           self.config.cloud_port, 60)
+            except gaierror as error:
+                self.logger.error(str(error))
+                self.state = constants.STATE_DISCONNECTED
 
         if result == 0:
             # Successful MQTT connection
