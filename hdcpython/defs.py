@@ -142,6 +142,7 @@ class Config(dict):
         super(Config, self).__init__()
 
         # Handle defaults
+        self.setdefault("config_dir", constants.DEFAULT_CONFIG_DIR)
         self.setdefault("log_level", constants.DEFAULT_LOG_LEVEL)
         self.setdefault("loop_time", constants.DEFAULT_LOOP_TIME)
         self.setdefault("message_timeout", constants.DEFAULT_MESSAGE_TIMEOUT)

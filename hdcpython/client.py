@@ -37,22 +37,28 @@ class Client(object):
         kwargs["loop_time"] = loop_time
         kwargs["message_timeout"] = message_timeout
         kwargs["thread_count"] = thread_count
+        kwargs["config_dir"] = os.environ.get("CONFIG_DIR")
         self.config = defs.Config()
         self.config.update(kwargs)
 
-        # TODO: default path to config files ($CONFIG_DIR ?)
+        print os.environ
+        print "CONFIG DIR: \"{}\"".format(self.config.config_dir)
+
         # Read JSON from config files.
         kwargs = {}
-        if os.path.exists("iot.cfg"):
+        config_dir = self.config.config_dir
+        config_path = os.path.join(config_dir, "iot.cfg")
+        connect_config_path = os.path.join(config_dir, "iot-connect.cfg")
+        if os.path.exists(config_path):
             try:
-                with open("iot.cfg", "r") as config_file:
+                with open(config_path, "r") as config_file:
                     kwargs.update(json.load(config_file))
             except Exception as error:
                 print "Error parsing JSON from iot.cfg"
                 raise error
-        if os.path.exists("iot-connect.cfg"):
+        if os.path.exists(connect_config_path):
             try:
-                with open("iot-connect.cfg", "r") as config_file:
+                with open(connect_config_path, "r") as config_file:
                     kwargs.update(json.load(config_file))
             except Exception as error:
                 print "Error parsing JSON from iot-connect.cfg"
