@@ -53,19 +53,19 @@ class Client(object):
             try:
                 with open(config_path, "r") as config_file:
                     kwargs.update(json.load(config_file))
-            except Exception as error:
+            except IOError as error:
                 print "Error parsing JSON from iot.cfg"
                 raise error
         if os.path.exists(connect_config_path):
             try:
                 with open(connect_config_path, "r") as config_file:
                     kwargs.update(json.load(config_file))
-            except Exception as error:
+            except IOError as error:
                 print "Error parsing JSON from iot-connect.cfg"
                 raise error
         else:
             print "Cannot find iot-connect.cfg"
-            raise Exception("Cannot find iot-connect.cfg")
+            raise IOError("Cannot find iot-connect.cfg")
         self.config.update(kwargs)
 
         kwargs = {}
@@ -78,13 +78,13 @@ class Client(object):
                     os.makedirs(os.path.join(runtime_dir, "download"))
                 except:
                     print "Failed to make download directory"
-                    raise Exception("Failed to make download directory")
+                    raise IOError("Failed to make download directory")
             if not os.path.isdir(os.path.join(runtime_dir, "upload")):
                 try:
                     os.makedirs(os.path.join(runtime_dir, "upload"))
                 except:
                     print "Failed to make upload directory"
-                    raise Exception("Failed to make upload directory")
+                    raise IOError("Failed to make upload directory")
 
             # Check runtime directory for deivce_id. If it does not exist,
             # generate a uuid and write it to device_id.
@@ -95,7 +95,7 @@ class Client(object):
                         kwargs["device_id"] = id_file.read()
                 except:
                     print "Failed to read device_id"
-                    raise Exception("Failed to read device_id")
+                    raise IOError("Failed to read device_id")
             else:
                 try:
                     with open(device_id_path, "w") as id_file:
@@ -103,7 +103,7 @@ class Client(object):
                         id_file.write(kwargs["device_id"])
                 except:
                     print "Failed to write device_id"
-                    raise Exception("Failed to write device_id")
+                    raise IOError("Failed to write device_id")
             self.config.update(kwargs)
 
         # Check that all necessary configuration has been obtained
