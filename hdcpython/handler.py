@@ -467,6 +467,14 @@ class Handler(object):
         # Update file transfer status
         upload.status = status
 
+        # If the file was successfully uploaded, and is located in the upload
+        # directory, remove if flag is set
+        if status == constants.STATUS_SUCCESS:
+            upload_dir = os.path.join(self.config.runtime_dir, "upload")
+            if (self.config.upload_remove_on_success and
+                upload_dir in os.path.normpath(upload.file_path)):
+                os.remove(upload.file_path)
+
         return status
 
     def handle_message(self, mqtt_message):
