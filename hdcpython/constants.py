@@ -102,7 +102,7 @@ STATUS_STRINGS = {
 LOG_FORMAT = "[%(asctime)s]%(levelname)s: %(filename)s:%(lineno)d (%(funcName)s) - %(message)s"
 
 # Time format supported by Cloud
-TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 
 # TYPES OF WORK
