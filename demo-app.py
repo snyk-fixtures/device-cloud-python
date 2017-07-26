@@ -142,17 +142,18 @@ if __name__ == "__main__":
     while running and client.is_connected():
         sleep(1)
         counter += 1
-        if sending_telemetry and counter >= TELEMINTERVAL:
-            # Randomly generate telemetry and attributes to send
-            for p in properties:
-                value = round(random.random()*1000, 2)
-                client.info("Publishing {} to {}".format(value, p))
-                client.telemetry_publish(p, value)
-            for a in attributes:
-                value = "".join(random.choice("abcdefghijklmnopqrstuvwxyz")
-                        for x in range(20))
-                client.log(iot.LOGINFO, "Publishing {} to {}".format(value, a))
-                client.attribute_publish(a, value)
+        if counter >= TELEMINTERVAL:
+            if sending_telemetry:
+                # Randomly generate telemetry and attributes to send
+                for p in properties:
+                    value = round(random.random()*1000, 2)
+                    client.info("Publishing {} to {}".format(value, p))
+                    client.telemetry_publish(p, value)
+                for a in attributes:
+                    value = "".join(random.choice("abcdefghijklmnopqrstuvwxyz")
+                            for x in range(20))
+                    client.log(iot.LOGINFO, "Publishing {} to {}".format(value, a))
+                    client.attribute_publish(a, value)
 
             if sending_location:
                 # Randomly generate location data
