@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import hdcpython as iot
 import math
 import os
@@ -119,20 +120,41 @@ def i_dont_do_anything(client, params, user_data):
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, sighandler)
 
-    # Initialize client called 'device_manager_demo'
-    client = iot.Client("device_manager_demo")
+    # Parse command line arguments for easy customization
+    parser = argparse.ArgumentParser(description="Demo app for Python HDC "
+                                     "APIs")
+    parser.add_argument("-i", "--app_id", help="Custom app id")
+    parser.add_argument("-c", "--config_dir", help="Custom config directory")
+    parser.add_argument("-f", "--config_file", help="Custom config file name "
+                        "(in config directory)")
+    parser.add_argument("-d", "--thing_definition", help="Custom thing "
+                        "definition key")
+    args = parser.parse_args(sys.argv[1:])
 
-    # Ensure this thing is using the ba_device_manager definition
-    # This can be set in the configuration file
-    #client.config.thing_def_key = "ba_device_manager"
+    # Initialize client default called 'device_manager_demo'
+    app_id = "device_manager_demo"
+    if args.app_id:
+        app_id = args.app_id
+    client = iot.Client(app_id)
+
+    # Ensure this thing is using the args.thing_definition definition
+    # This can alternatively be set in the configuration file
+    if args.thing_definition:
+        client.config.thing_def_key = args.thing_definition
 
     # Use the demo-connect.cfg file inside the config directory
     # (Default would be device_manager_demo-connect.cfg)
-    client.config.config_file = "demo-connect.cfg"
+    config_file = "demo-connect.cfg"
+    if args.config_file:
+        config_file = args.config_file
+    client.config.config_file = config_file
 
     # Look for device_id and demo-connect.cfg in this directory
     # (This is already default behaviour)
-    client.config.config_dir = "."
+    config_dir = "."
+    if args.config_dir:
+        config_dir = args.config_dir
+    client.config.config_dir = config_dir
 
     # Finish configuration and initialize client
     client.initialize()
