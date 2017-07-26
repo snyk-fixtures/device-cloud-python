@@ -14,11 +14,12 @@ from hdcpython.client import Client
 from hdcpython.handler import status_string
 
 from hdcpython.constants import DEFAULT_CONFIG_DIR
+from hdcpython.constants import DEFAULT_CONFIG_FILE
 from hdcpython.constants import DEFAULT_LOG_LEVEL
 from hdcpython.constants import DEFAULT_LOOP_TIME
 from hdcpython.constants import DEFAULT_MESSAGE_TIMEOUT
-from hdcpython.constants import DEFAULT_RUNTIME_DIR
 from hdcpython.constants import DEFAULT_THREAD_COUNT
+
 from hdcpython.constants import STATUS_SUCCESS
 from hdcpython.constants import STATUS_INVOKED
 from hdcpython.constants import STATUS_BAD_PARAMETER

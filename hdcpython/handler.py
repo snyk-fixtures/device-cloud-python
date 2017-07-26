@@ -69,7 +69,7 @@ class Handler(object):
         self.logger.setLevel(logging.DEBUG)
 
         # Ensure we're not missing required configuration information
-        if not self.config.key or not self.config.cloud_token:
+        if not self.config.key or not self.config.cloud.token:
             self.logger.error("Missing key or cloud token from configuration")
             raise KeyError("Missing key or cloud token from configuration")
 
@@ -82,7 +82,7 @@ class Handler(object):
         self.mqtt.on_connect = self.on_connect
         self.mqtt.on_disconnect = self.on_disconnect
         self.mqtt.on_message = self.on_message
-        self.mqtt.username_pw_set(self.config.key, self.config.cloud_token)
+        self.mqtt.username_pw_set(self.config.key, self.config.cloud.token)
 
         # Dict to associate action names with callback functions and any user
         # data
@@ -184,7 +184,7 @@ class Handler(object):
         result = -1
 
         # Ensure we have a host and port to connect to
-        if not self.config.cloud_host or not self.config.cloud_port:
+        if not self.config.cloud.host or not self.config.cloud.port:
             self.logger.error("Missing host or port from configuration")
             status = constants.STATUS_BAD_PARAMETER
 
@@ -204,8 +204,8 @@ class Handler(object):
 
             # Start MQTT connection
             try:
-                result = self.mqtt.connect(self.config.cloud_host,
-                                           self.config.cloud_port, 60)
+                result = self.mqtt.connect(self.config.cloud.host,
+                                           self.config.cloud.port, 60)
             except gaierror as error:
                 self.logger.error(str(error))
                 self.state = constants.STATE_DISCONNECTED
@@ -358,20 +358,19 @@ class Handler(object):
         self.logger.info("Downloading \"%s\"", download.file_name)
 
         # Start creating URL for file download
-        url = "{}/file/{}".format(self.config.cloud_host, download.file_id)
+        url = "{}/file/{}".format(self.config.cloud.host, download.file_id)
 
         # Download directory
-        download_dir = os.path.join(self.config.runtime_dir, "download")
+        download_dir = os.path.dirname(download.file_path)
+
         # Temporary file name while downloading
         temp_file_name = "".join([random.choice("0123456789") for _ in range(10)])
         temp_file_name += ".part"
         temp_path = os.path.join(download_dir, temp_file_name)
 
         # Ensure download directory exists
-        if not os.path.isdir(download_dir):
-            self.logger.error("Cannot find download directory \"%s\". "
-                              "Download cancelled.", download_dir)
-            status = constants.STATUS_NOT_FOUND
+        if not os.path.exists(download_dir) or not os.path.isdir(download_dir):
+            os.makedirs(download_dir)
 
         if status == constants.STATUS_SUCCESS:
             # Secure or insecure HTTP request.
@@ -439,7 +438,7 @@ class Handler(object):
         self.logger.info("Uploading \"%s\"", upload.file_name)
 
         # Start creating URL for file upload
-        url = "{}/file/{}".format(self.config.cloud_host, upload.file_id)
+        url = "{}/file/{}".format(self.config.cloud.host, upload.file_id)
 
         response = None
         if os.path.exists(upload.file_path):
@@ -476,14 +475,6 @@ class Handler(object):
 
         # Update file transfer status
         upload.status = status
-
-        # If the file was successfully uploaded, and is located in the upload
-        # directory, remove if flag is set
-        if status == constants.STATUS_SUCCESS:
-            upload_dir = os.path.join(self.config.runtime_dir, "upload")
-            if (self.config.upload_remove_on_success and
-                upload_dir in os.path.normpath(upload.file_path)):
-                os.remove(upload.file_path)
 
         return status
 
@@ -801,7 +792,7 @@ class Handler(object):
         self.work_queue.put(work)
         return constants.STATUS_SUCCESS
 
-    def request_download(self, file_name, blocking=False, timeout=0):
+    def request_download(self, file_name, file_dest, blocking=False, timeout=0):
         """
         Request a C2D file transfer
         """
@@ -811,9 +802,12 @@ class Handler(object):
 
         self.logger.info("Request download of %s", file_name)
 
+        # is file_dest the full path or the parent directory?
+        if os.path.isdir(file_dest):
+            file_dest = os.path.join(file_dest, file_name)
+
         # File Transfer object for tracking progress
-        file_path = os.path.join(self.config.runtime_dir, "download", file_name)
-        transfer = defs.FileTransfer(file_name, file_path)
+        transfer = defs.FileTransfer(file_name, file_dest)
 
         # Generate and send message to request file transfer
         command = tr50.create_file_get(self.config.key, file_name)
@@ -847,17 +841,10 @@ class Handler(object):
 
         self.logger.info("Request upload of %s", file_filter)
 
-        # If path is not absolute, start in the upload directory
+        # Path must be absolute
         if not os.path.isabs(file_filter):
-            # Check to make sure upload directory exists
-            upload_dir = os.path.join(self.config.runtime_dir, "upload")
-            if os.path.isdir(upload_dir):
-                file_filter = os.path.join(upload_dir, file_filter)
-            else:
-                # Upload directory not found
-                self.logger.error("Cannot find upload directory \"%s\". "
-                                  "Upload cancelled.", upload_dir)
-                status = constants.STATUS_NOT_FOUND
+            self.logger.error("Path must be absolute \"%s\"", file_filter)
+            status = constants.STATUS_NOT_FOUND
 
         if status == constants.STATUS_SUCCESS:
             # Get a list of all matching files to upload

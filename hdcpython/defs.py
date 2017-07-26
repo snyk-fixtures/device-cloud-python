@@ -141,14 +141,6 @@ class Config(dict):
         # Call dict init function
         super(Config, self).__init__()
 
-        # Handle defaults
-        self.setdefault("config_dir", constants.DEFAULT_CONFIG_DIR)
-        self.setdefault("log_level", constants.DEFAULT_LOG_LEVEL)
-        self.setdefault("loop_time", constants.DEFAULT_LOOP_TIME)
-        self.setdefault("message_timeout", constants.DEFAULT_MESSAGE_TIMEOUT)
-        self.setdefault("runtime_dir", constants.DEFAULT_RUNTIME_DIR)
-        self.setdefault("thread_count", constants.DEFAULT_THREAD_COUNT)
-
     def __getattribute__(self, attr):
         try:
             return super(Config, self).__getattribute__(attr)
@@ -158,25 +150,30 @@ class Config(dict):
     def __setattr__(self, attr, value):
         self.__setitem__(attr, value)
 
-    def update(self, other):
-        # Add every dict item, only one level deep
-        for key in other:
-            if other[key].__class__.__name__ == "dict":
-                for subkey in other[key]:
-                    if other[key][subkey]:
-                        self["{}_{}".format(key, subkey)] = other[key][subkey]
-            else:
-                if other[key]:
-                    self[key] = other[key]
+    def update(self, other, overwrite=True):
+        # Update self with values from other dict
+        # Default behaviour is to overwrite all values, but optionally can keep
+        # any previous values
+        if not isinstance(other, dict):
+            raise ValueError("Config can only be updated with a dict")
 
-        # Handle key
-        if self.get("name") and self.get("device_id"):
-            self["key"] = "{}-{}".format(self.device_id, self.name)
+        for key, value in other.items():
+            if isinstance(value, dict):
+                if key not in self:
+                    self[key] = Config()
+                if isinstance(self[key], Config):
+                    self[key].update(value, overwrite)
+                elif override:
+                    self[key] = Config()
+                    self[key].update(value, overwrite)
 
-        # Handle validate_cert boolean
-        cloud_cert = self.get("validate_cloud_cert")
-        if cloud_cert:
-            self["validiate_cloud_cert"] = str(cloud_cert).lower() == "true"
+            elif key not in self or overwrite:
+                if str(value).lower() == "true":
+                    self[key] = True
+                elif str(value).lower() == "false":
+                    self[key] = False
+                elif value is not None:
+                    self[key] = value
 
 
 class FileTransfer(object):

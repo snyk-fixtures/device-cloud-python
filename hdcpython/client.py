@@ -7,6 +7,13 @@ import os
 import uuid
 
 from hdcpython import defs
+from hdcpython.constants import DEFAULT_CONFIG_DIR
+from hdcpython.constants import DEFAULT_CONFIG_FILE
+from hdcpython.constants import DEFAULT_LOG_LEVEL
+from hdcpython.constants import DEFAULT_LOOP_TIME
+from hdcpython.constants import DEFAULT_MESSAGE_TIMEOUT
+from hdcpython.constants import DEFAULT_THREAD_COUNT
+from hdcpython.constants import STATUS_SUCCESS
 from hdcpython.constants import WORK_PUBLISH
 from hdcpython.handler import Handler
 
@@ -16,106 +23,104 @@ class Client(object):
     This class is used by apps to connect to and communicate with the HDC Cloud
     """
 
-    def __init__(self, name, log_file=None, loop_time=None,
-                 message_timeout=None, thread_count=None):
+    def __init__(self, app_id, kwargs=None):
         """
-        Called on initialization.
+        Called on initialization
 
         Parameters:
-          log_file                     optional file to print logs to as well as
-                                       the console
-          loop_time                    maximum time between each MQTT iteration
-          message_timeout              maximum time a message can wait without a
-                                       reply before timing out
-          thread_count                 number of worker threads to spawn
+          app_id                       ID of application that will be used to
+                                       generate a key. Also used as part of
+                                       default configuration file
+                                       [APP_ID]-connect.cfg
+          kwargs                       Optional dict to override any
+                                       configuration values. These can also be
+                                       overridden individually later.
         """
 
-        # Start collecting configuration parameters
-        kwargs = {}
-        kwargs["name"] = name
-        kwargs["log_file"] = log_file
-        kwargs["loop_time"] = loop_time
-        kwargs["message_timeout"] = message_timeout
-        kwargs["thread_count"] = thread_count
-        kwargs["config_dir"] = os.environ.get("CONFIG_DIR")
+        # Setup Config
         self.config = defs.Config()
-        self.config.update(kwargs)
+        self.config.app_id = app_id
 
-        # Read JSON from config files.
+        # Set config defaults
+        self.config.config_dir = DEFAULT_CONFIG_DIR
+        self.config.config_file = DEFAULT_CONFIG_FILE.format(app_id)
+        self.config.log_level = DEFAULT_LOG_LEVEL
+        self.config.loop_time = DEFAULT_LOOP_TIME
+        self.config.message_timeout = DEFAULT_MESSAGE_TIMEOUT
+        self.config.thread_count = DEFAULT_THREAD_COUNT
+        self.cloud = defs.Config()
+        self.proxy = defs.Config()
+
+        # Override config defaults with any passed values
+        if kwargs:
+            self.config.update(kwargs)
+
+
+    def initialize(self):
+        """
+        Finish client setup by reading config files using any config values
+        already set, and initializing the client handler
+
+        Returns:
+          STATUS_SUCCESS               Always
+        """
+
+        # Read JSON from config file.
         kwargs = {}
-        config_dir = self.config.config_dir
-        config_path = os.path.join(config_dir, "iot.cfg")
-        connect_config_path = os.path.join(config_dir, "iot-connect.cfg")
+        config_path = os.path.join(self.config.config_dir,
+                                   self.config.config_file)
         if os.path.exists(config_path):
             try:
                 with open(config_path, "r") as config_file:
                     kwargs.update(json.load(config_file))
             except IOError as error:
-                print "Error parsing JSON from iot.cfg"
-                raise error
-        if os.path.exists(connect_config_path):
-            try:
-                with open(connect_config_path, "r") as config_file:
-                    kwargs.update(json.load(config_file))
-            except IOError as error:
-                print "Error parsing JSON from iot-connect.cfg"
+                print ("Error parsing JSON from "
+                       "{}".format(self.config.config_file))
                 raise error
         else:
-            print "Cannot find iot-connect.cfg"
-            raise IOError("Cannot find iot-connect.cfg")
-        self.config.update(kwargs)
+            print "Cannot find {}".format(self.config.config_file)
+            raise IOError("Cannot find {}".format(self.config.config_file))
+        self.config.update(kwargs, False)
 
         kwargs = {}
-        runtime_dir = self.config.runtime_dir
-        if runtime_dir:
-            # Check runtime directory for file transfer directories. If they do
-            # not exist, create them.
-            if not os.path.isdir(os.path.join(runtime_dir, "download")):
-                try:
-                    os.makedirs(os.path.join(runtime_dir, "download"))
-                except:
-                    print "Failed to make download directory"
-                    raise IOError("Failed to make download directory")
-            if not os.path.isdir(os.path.join(runtime_dir, "upload")):
-                try:
-                    os.makedirs(os.path.join(runtime_dir, "upload"))
-                except:
-                    print "Failed to make upload directory"
-                    raise IOError("Failed to make upload directory")
-
-            # Check runtime directory for deivce_id. If it does not exist,
-            # generate a uuid and write it to device_id.
-            device_id_path = os.path.join(runtime_dir, "device_id")
-            if os.path.exists(device_id_path):
-                try:
-                    with open(device_id_path, "r") as id_file:
-                        kwargs["device_id"] = id_file.read()
-                except:
-                    print "Failed to read device_id"
-                    raise IOError("Failed to read device_id")
-            else:
-                try:
-                    with open(device_id_path, "w") as id_file:
-                        kwargs["device_id"] = str(uuid.uuid4())
-                        id_file.write(kwargs["device_id"])
-                except:
-                    print "Failed to write device_id"
-                    raise IOError("Failed to write device_id")
-            self.config.update(kwargs)
+        # Check config directory for device_id. If it does not exist, generate a
+        # uuid and write it to device_id.
+        device_id_path = os.path.join(self.config.config_dir, "device_id")
+        if os.path.exists(device_id_path):
+            try:
+                with open(device_id_path, "r") as id_file:
+                    self.config.device_id = id_file.read()
+            except:
+                print "Failed to read device_id"
+                raise IOError("Failed to read device_id")
+        else:
+            try:
+                with open(device_id_path, "w") as id_file:
+                    self.config.device_id = str(uuid.uuid4())
+                    id_file.write(self.config.device_id)
+            except:
+                print "Failed to write device_id"
+                raise IOError("Failed to write device_id")
+        self.config.update(kwargs, False)
 
         # Check that all necessary configuration has been obtained
-        if not self.config.cloud_token:
-            print "Cloud token not set. Must be set in iot-connect.cfg"
-            raise KeyError("Cloud token not set. Must be set in "
-                           "iot-connect.cfg")
-        if not self.config.cloud_host:
-            print "Cloud host addess not set. Must be set in iot-connect.cfg"
-            raise KeyError("Cloud host address not set. Must be set in "
-                           "iot-connect.cfg")
-        if not self.config.cloud_port:
-            print "Cloud port not set. Must be set in iot-connect.cfg"
-            raise KeyError("Cloud port not set. Must be set in "
-                           "iot-connect.cfg")
+        if not self.config.cloud.token:
+            print "Cloud token not set. Must be set in config"
+            raise KeyError("Cloud token not set. Must be set in config")
+        if not self.config.cloud.host:
+            print "Cloud host addess not set. Must be set in config"
+            raise KeyError("Cloud host address not set. Must be set in config")
+        if not self.config.cloud.port:
+            print "Cloud port not set. Must be set in config"
+            raise KeyError("Cloud port not set. Must be set in config")
+
+        # Generate key
+        if self.config.app_id and self.config.device_id:
+            self.config.key = "{}-{}".format(self.config.device_id,
+                                             self.config.app_id)
+        else:
+            print "app_id or device_id not set. Required for key."
+            raise KeyError("app_id or device_id not set. Required for key.")
 
         # Initialize handler
         self.handler = Handler(self.config, self)
@@ -127,6 +132,8 @@ class Client(object):
         self.info = self.handler.logger.info
         self.log = self.handler.logger.log
         self.warning = self.handler.logger.warning
+
+        return STATUS_SUCCESS
 
     def action_deregister(self, action_name):
         """
@@ -259,12 +266,14 @@ class Client(object):
         log = defs.PublishLog(message)
         return self.handler.queue_publish(log)
 
-    def file_download(self, file_name, blocking=False, timeout=0):
+    def file_download(self, file_name, download_dest, blocking=False,
+                      timeout=0):
         """
         Download a file from the Cloud to the device (C2D)
 
         Parameters:
           file_name                    File in Cloud to download
+          download_dest                Destination for downloaded file
           blocking                     Wait for file transfer to complete
                                        before returning. Otherwise return
                                        immediately.
@@ -280,19 +289,21 @@ class Client(object):
                                        transfer is still in progress.
         """
 
-        return self.handler.request_download(file_name, blocking, timeout)
+        return self.handler.request_download(file_name, download_dest, blocking,
+                                             timeout)
 
     def file_upload(self, file_filter, blocking=False, timeout=0):
         """
         Upload a file from the device to the Cloud (D2C)
 
         Parameters:
-          file_filter                  any file in upload directory matching
-                                       this pattern will be uploaded
-          blocking                     wait for file transfer to complete
+          file_filter                  Absolute path for uploading files.
+                                       Supports Unix style filename wildcards
+                                       for uploading multiple files.
+          blocking                     Wait for file transfer to complete
                                        before returning. Otherwise return
                                        immediately.
-          timeout                      if blocking, maximum time to wait
+          timeout                      If blocking, maximum time to wait
                                        before returning
 
         Returns:

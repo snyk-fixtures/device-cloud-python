@@ -7,14 +7,15 @@ This module contains all the constant values required by the Client
 
 # Default configuration directory
 DEFAULT_CONFIG_DIR = "."
+# Default configuration file name
+# {} is replaced with app id
+DEFAULT_CONFIG_FILE = "{}-connect.cfg"
 # Default level of logging
 DEFAULT_LOG_LEVEL = "ALL"
 # Default loop time for MQTT in seconds
 DEFAULT_LOOP_TIME = 5
 # Default number of seconds to receive a reply
 DEFAULT_MESSAGE_TIMEOUT = 15
-# Default runtime directory
-DEFAULT_RUNTIME_DIR = "."
 # Default number of worker threads
 DEFAULT_THREAD_COUNT = 3
 

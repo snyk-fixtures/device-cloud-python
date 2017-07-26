@@ -23,7 +23,7 @@ def configure_callback_function(expected_client, expected_params,
         return return_tuple
     return callback_function
 
-def config_files_default(runtime="runtime"):
+def config_file_default():
     """
     Default configuration to allow unrelated tests to run
     """
@@ -35,37 +35,21 @@ def config_files_default(runtime="runtime"):
     kwargs["cloud"]["token"] = "abcdefghijklm"
     kwargs["validate_cloud_cert"] = "true"
     kwargs["ca_bundle_file"] = "/top/secret/location"
-    kwargs["runtime_dir"] = runtime
-    kwargs["log_level"] = "INFO"
     return kwargs
 
-def make_config_files(config_dir, kwargs):
+def make_config_file(config_dir, kwargs):
     """
-    Write configuration files
+    Write configuration file
     """
 
-    config_path = os.path.join(config_dir, "iot.cfg")
-    connect_path = os.path.join(config_dir, "iot-connect.cfg")
-
-    connect = {}
+    config_file_name = kwargs.get("config_file", "testing-client-connect.cfg")
+    config_path = os.path.join(config_dir, config_file_name)
     config = {}
-
-    connect["cloud"] = kwargs.get("cloud")
-    connect["validate_cloud_cert"] = kwargs.get("validate_cloud_cert")
-    connect["ca_bundle_file"] = kwargs.get("ca_bundle_file")
-    connect["proxy"] = kwargs.get("proxy")
-    for key, value in connect.items():
-        if value is None:
-            del connect[key]
-    with open(connect_path, "w+") as connect_file:
-        json.dump(connect, connect_file, sort_keys=True, indent=4,
-                  separators=(",", ":"))
-
-    config["runtime_dir"] = kwargs.get("runtime_dir")
-    config["log_level"] = kwargs.get("log_level")
-    config["actions_enabled"] = kwargs.get("actions_enabled")
-    config["upload_remove_on_success"] = kwargs.get("upload_remove_on_success")
-    config["upload_additional_dirs"] = kwargs.get("upload_additional_dirs")
+    config["cloud"] = kwargs.get("cloud")
+    config["validate_cloud_cert"] = kwargs.get("validate_cloud_cert")
+    config["ca_bundle_file"] = kwargs.get("ca_bundle_file")
+    config["thing_def_key"] = kwargs.get("thing_def_key")
+    config["proxy"] = kwargs.get("proxy")
     for key, value in config.items():
         if value is None:
             del config[key]
@@ -144,13 +128,8 @@ def setup_func(case_dir):
     """
 
     path = os.path.join(cwd, "testruns", case_dir)
-    config_path = os.path.join(path, "config")
-    runtime_path = os.path.join(path, "runtime")
     if os.path.exists(path):
         shutil.rmtree(path)
     os.makedirs(path)
-    os.makedirs(config_path)
-    os.environ["CONFIG_DIR"] = config_path
-    os.makedirs(runtime_path)
 
     return path

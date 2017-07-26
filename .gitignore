@@ -1,4 +1,6 @@
 *.pyc
+device_id
+download/
 *.coverage
 *.cache/
 *htmlcov/

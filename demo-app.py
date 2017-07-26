@@ -47,7 +47,9 @@ def file_download(client, params, user_data):
     if file_name:
         client.info("Downloading")
         client.event_publish("C2D File Transfer for {}".format(file_name))
-        result = client.file_download(file_name, blocking=True, timeout=15)
+        download_dest = os.path.join(os.path.abspath("download"), file_name)
+        result = client.file_download(file_name, download_dest, blocking=True,
+                                      timeout=15)
         if result == iot.STATUS_SUCCESS:
             message = "Downloaded!"
         else:
@@ -66,6 +68,8 @@ def file_upload(client, params, user_data):
     if file_name:
         client.log(iot.LOGINFO, "Uploading")
         client.event_publish("D2C File Transfer for {}".format(file_name))
+        if not os.path.isabs(file_name):
+            file_name = abspath(file_name)
         result = client.file_upload(file_name, blocking=True, timeout=240)
         if result == iot.STATUS_SUCCESS:
             message = "Uploaded!"
@@ -114,8 +118,24 @@ def i_dont_do_anything(client, params, user_data):
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, sighandler)
+
     # Initialize client called 'device_manager_demo'
     client = iot.Client("device_manager_demo")
+
+    # Ensure this thing is using the ba_device_manager definition
+    # This can be set in the configuration file
+    #client.config.thing_def_key = "ba_device_manager"
+
+    # Use the demo-connect.cfg file inside the config directory
+    # (Default would be device_manager_demo-connect.cfg)
+    client.config.config_file = "demo-connect.cfg"
+
+    # Look for device_id and demo-connect.cfg in this directory
+    # (This is already default behaviour)
+    client.config.config_dir = "."
+
+    # Finish configuration and initialize client
+    client.initialize()
 
     # Set action callbacks
     #client.action_register_callback("method_1", method_1_callback, "This is user data")

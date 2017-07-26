@@ -11,6 +11,8 @@ import hdcpython_test.test_helpers as helpers
 class ClientActionDeregister(unittest.TestCase):
     def runTest(self):
         self.client = hdcpython.Client("testing-client")
+        self.client.config.config_dir = self.test_path
+        self.client.initialize()
         user_data = "user data"
         callback = helpers.configure_callback_function(self.client, None,
                                                        user_data, 0)
@@ -26,29 +28,29 @@ class ClientActionDeregister(unittest.TestCase):
         assert "action-name" not in self.client.handler.callbacks
 
     def setUp(self):
-        path = helpers.setup_func("ClientActionDeregister")
-        config_path = os.path.join(path, "config")
-        runtime_path = os.path.join(path, "runtime")
-        kwargs = helpers.config_files_default(runtime=runtime_path)
-        helpers.make_config_files(config_path, kwargs)
+        self.test_path = helpers.setup_func("ClientActionDeregister")
+        kwargs = helpers.config_file_default()
+        helpers.make_config_file(self.test_path, kwargs)
 
 class ClientActionReregisterNotExist(unittest.TestCase):
     def runTest(self):
         self.client = hdcpython.Client("testing-client")
+        self.client.config.config_dir = self.test_path
+        self.client.initialize()
         result = self.client.action_deregister("action-name")
         assert result == hdcpython.STATUS_NOT_FOUND
         assert "action-name" not in self.client.handler.callbacks
 
     def setUp(self):
-        path = helpers.setup_func("ClientActionReregisterNotExist")
-        config_path = os.path.join(path, "config")
-        runtime_path = os.path.join(path, "runtime")
-        kwargs = helpers.config_files_default(runtime=runtime_path)
-        helpers.make_config_files(config_path, kwargs)
+        self.test_path = helpers.setup_func("ClientActionReregisterNotExist")
+        kwargs = helpers.config_file_default()
+        helpers.make_config_file(self.test_path, kwargs)
 
 class ClientActionRegisterCallback(unittest.TestCase):
     def runTest(self):
         self.client = hdcpython.Client("testing-client")
+        self.client.config.config_dir = self.test_path
+        self.client.initialize()
         user_data = "user data"
         callback = helpers.configure_callback_function(self.client, None,
                                                        user_data, 0)
@@ -61,15 +63,15 @@ class ClientActionRegisterCallback(unittest.TestCase):
                 user_data)
 
     def setUp(self):
-        path = helpers.setup_func("ClientActionRegisterCallback")
-        config_path = os.path.join(path, "config")
-        runtime_path = os.path.join(path, "runtime")
-        kwargs = helpers.config_files_default(runtime=runtime_path)
-        helpers.make_config_files(config_path, kwargs)
+        self.test_path = helpers.setup_func("ClientActionRegisterCallback")
+        kwargs = helpers.config_file_default()
+        helpers.make_config_file(self.test_path, kwargs)
 
 class ClientActionRegisterCallbackExists(unittest.TestCase):
     def runTest(self):
         self.client = hdcpython.Client("testing-client")
+        self.client.config.config_dir = self.test_path
+        self.client.initialize()
         user_data = "user data"
         user_data_2 = "user_data"
         callback = helpers.configure_callback_function(self.client, None,
@@ -92,15 +94,15 @@ class ClientActionRegisterCallbackExists(unittest.TestCase):
                 user_data)
 
     def setUp(self):
-        path = helpers.setup_func("ClientActionRegisterCallbackExists")
-        config_path = os.path.join(path, "config")
-        runtime_path = os.path.join(path, "runtime")
-        kwargs = helpers.config_files_default(runtime=runtime_path)
-        helpers.make_config_files(config_path, kwargs)
+        self.test_path = helpers.setup_func("ClientActionRegisterCallbackExists")
+        kwargs = helpers.config_file_default()
+        helpers.make_config_file(self.test_path, kwargs)
 
 class ClientActionRegisterCommand(unittest.TestCase):
     def runTest(self):
         self.client = hdcpython.Client("testing-client")
+        self.client.config.config_dir = self.test_path
+        self.client.initialize()
         command = "do a thing"
         result = self.client.action_register_command("action-name", command)
         assert result == hdcpython.STATUS_SUCCESS
@@ -108,15 +110,15 @@ class ClientActionRegisterCommand(unittest.TestCase):
         assert self.client.handler.callbacks["action-name"].command is command
 
     def setUp(self):
-        path = helpers.setup_func("ClientActionRegisterCommand")
-        config_path = os.path.join(path, "config")
-        runtime_path = os.path.join(path, "runtime")
-        kwargs = helpers.config_files_default(runtime=runtime_path)
-        helpers.make_config_files(config_path, kwargs)
+        self.test_path = helpers.setup_func("ClientActionRegisterCommand")
+        kwargs = helpers.config_file_default()
+        helpers.make_config_file(self.test_path, kwargs)
 
 class ClientActionRegisterCommandExists(unittest.TestCase):
     def runTest(self):
         self.client = hdcpython.Client("testing-client")
+        self.client.config.config_dir = self.test_path
+        self.client.initialize()
         command = "do a thing"
         command_2 = "do a different thing"
         result = self.client.action_register_command("action-name", command)
@@ -129,19 +131,19 @@ class ClientActionRegisterCommandExists(unittest.TestCase):
         assert self.client.handler.callbacks["action-name"].command is command
 
     def setUp(self):
-        path = helpers.setup_func("ClientActionRegisterCommandExists")
-        config_path = os.path.join(path, "config")
-        runtime_path = os.path.join(path, "runtime")
-        kwargs = helpers.config_files_default(runtime=runtime_path)
-        helpers.make_config_files(config_path, kwargs)
+        self.test_path = helpers.setup_func("ClientActionRegisterCommandExists")
+        kwargs = helpers.config_file_default()
+        helpers.make_config_file(self.test_path, kwargs)
 
 class ClientConnectFailure(unittest.TestCase):
     @mock.patch("hdcpython.handler.sleep")
     @mock.patch("hdcpython.handler.mqttlib.Client",
                 side_effect=helpers.configure_init_mock_mqtt(False, True))
     def runTest(self, mock_sleep, mock_mqtt):
-        self.client = hdcpython.Client("testing-client", loop_time=1,
-                                       thread_count=0)
+        kwargs = {"loop_time":1, "thread_count":0}
+        self.client = hdcpython.Client("testing-client", kwargs)
+        self.client.config.config_dir = self.test_path
+        self.client.initialize()
         mqtt = self.client.handler.mqtt
         assert self.client.connect(timeout=5) == hdcpython.STATUS_FAILURE
         mqtt.connect.assert_called_once_with("api.notarealcloudhost.com",
@@ -149,11 +151,9 @@ class ClientConnectFailure(unittest.TestCase):
         assert self.client.is_connected() is False
 
     def setUp(self):
-        path = helpers.setup_func("ClientConnectFailure")
-        config_path = os.path.join(path, "config")
-        runtime_path = os.path.join(path, "runtime")
-        kwargs = helpers.config_files_default(runtime=runtime_path)
-        helpers.make_config_files(config_path, kwargs)
+        self.test_path = helpers.setup_func("ClientConnectFailure")
+        kwargs = helpers.config_file_default()
+        helpers.make_config_file(self.test_path, kwargs)
 
     def tearDown(self):
         self.client.handler.state = hdcpython.constants.STATE_DISCONNECTED
@@ -165,8 +165,10 @@ class ClientConnectSuccess(unittest.TestCase):
     @mock.patch("hdcpython.handler.mqttlib.Client",
                 side_effect=helpers.configure_init_mock_mqtt(True, True))
     def runTest(self, mock_sleep, mock_mqtt):
-        self.client = hdcpython.Client("testing-client", loop_time=1,
-                                       thread_count=0)
+        kwargs = {"loop_time":1, "thread_count":0}
+        self.client = hdcpython.Client("testing-client", kwargs)
+        self.client.config.config_dir = self.test_path
+        self.client.initialize()
         mqtt = self.client.handler.mqtt
         assert self.client.connect(timeout=5) == hdcpython.STATUS_SUCCESS
         mqtt.connect.assert_called_once_with("api.notarealcloudhost.com",
@@ -177,11 +179,9 @@ class ClientConnectSuccess(unittest.TestCase):
         assert self.client.is_connected() is False
 
     def setUp(self):
-        path = helpers.setup_func("ClientConnectSuccess")
-        config_path = os.path.join(path, "config")
-        runtime_path = os.path.join(path, "runtime")
-        kwargs = helpers.config_files_default(runtime=runtime_path)
-        helpers.make_config_files(config_path, kwargs)
+        self.test_path = helpers.setup_func("ClientConnectSuccess")
+        kwargs = helpers.config_file_default()
+        helpers.make_config_file(self.test_path, kwargs)
 
     def tearDown(self):
         self.client.handler.state = hdcpython.constants.STATE_DISCONNECTED
@@ -193,8 +193,10 @@ class ClientDisconnectFailure(unittest.TestCase):
     @mock.patch("hdcpython.handler.mqttlib.Client",
                 side_effect=helpers.configure_init_mock_mqtt(True, False))
     def runTest(self, mock_sleep, mock_mqtt):
-        self.client = hdcpython.Client("testing-client", loop_time=1,
-                                       thread_count=0)
+        kwargs = {"loop_time":1, "thread_count":0}
+        self.client = hdcpython.Client("testing-client", kwargs)
+        self.client.config.config_dir = self.test_path
+        self.client.initialize()
         mqtt = self.client.handler.mqtt
         assert self.client.connect(timeout=5) == hdcpython.STATUS_SUCCESS
         mqtt.connect.assert_called_once_with("api.notarealcloudhost.com",
@@ -205,60 +207,58 @@ class ClientDisconnectFailure(unittest.TestCase):
         assert self.client.is_connected() is False
 
     def setUp(self):
-        path = helpers.setup_func("ClientDisconnectFailure")
-        config_path = os.path.join(path, "config")
-        runtime_path = os.path.join(path, "runtime")
-        kwargs = helpers.config_files_default(runtime=runtime_path)
-        helpers.make_config_files(config_path, kwargs)
+        self.test_path = helpers.setup_func("ClientDisconnectFailure")
+        kwargs = helpers.config_file_default()
+        helpers.make_config_file(self.test_path, kwargs)
 
     def tearDown(self):
         self.client.handler.state = hdcpython.constants.STATE_DISCONNECTED
         if self.client.handler.main_thread:
             self.client.handler.main_thread.join()
 
-class ConfigReadFiles(unittest.TestCase):
+class ConfigReadFile(unittest.TestCase):
     def runTest(self):
         self.client = hdcpython.Client("testing-client")
-        assert self.client.config.cloud_host == "api.notarealcloudhost.com"
-        assert self.client.config.log_level == "INFO"
+        self.client.config.config_dir = self.test_path
+        self.client.initialize()
+        assert self.client.config.cloud.host == "api.notarealcloudhost.com"
         assert self.client.config.ca_bundle_file == "/top/secret/location"
 
     def setUp(self):
-        path = helpers.setup_func("ConfigReadFiles")
-        config_path = os.path.join(path, "config")
-        runtime_path = os.path.join(path, "runtime")
-        kwargs = helpers.config_files_default(runtime=runtime_path)
-        helpers.make_config_files(config_path, kwargs)
+        self.test_path = helpers.setup_func("ConfigReadFile")
+        kwargs = helpers.config_file_default()
+        helpers.make_config_file(self.test_path, kwargs)
 
 class ConfigReadDefaults(unittest.TestCase):
     def runTest(self):
         self.client = hdcpython.Client("testing-client")
-        assert self.client.config.cloud_host == "api.notarealcloudhost.com"
-        assert self.client.config.log_level == "ALL"
+        self.client.config.config_dir = self.test_path
+        self.client.initialize()
+        assert self.client.config.cloud.host == "api.notarealcloudhost.com"
         assert self.client.config.ca_bundle_file is None
 
     def setUp(self):
-        path = helpers.setup_func("ConfigReadDefaults")
-        config_path = os.path.join(path, "config")
-        runtime_path = os.path.join(path, "runtime")
+        self.test_path = helpers.setup_func("ConfigReadDefaults")
         kwargs = {"cloud":{"host":"api.notarealcloudhost.com",
-                           "port":8883, "token":"abcdefghijklm"},
-                  "runtime_dir":runtime_path}
-        helpers.make_config_files(config_path, kwargs)
+                           "port":8883, "token":"abcdefghijklm"}}
+        helpers.make_config_file(self.test_path, kwargs)
 
 class ConfigReadDeviceID(unittest.TestCase):
     def runTest(self):
         self.client = hdcpython.Client("testing-client")
-        assert self.client.config.cloud_host == "api.notarealcloudhost.com"
-        assert self.client.config.log_level == "INFO"
+        self.client.config.config_dir = self.test_path
+        self.client.initialize()
+        assert self.client.config.cloud.host == "api.notarealcloudhost.com"
         assert self.client.config.ca_bundle_file == "/top/secret/location"
         dev_id = self.client.config.device_id
         self.client_2 = hdcpython.Client("testing-client-2")
+        self.client_2.config.config_dir = self.test_path
+        self.client_2.initialize()
         assert self.client_2.config.device_id == dev_id
 
     def setUp(self):
-        path = helpers.setup_func("ConfigReadDeviceID")
-        config_path = os.path.join(path, "config")
-        runtime_path = os.path.join(path, "runtime")
-        kwargs = helpers.config_files_default(runtime=runtime_path)
-        helpers.make_config_files(config_path, kwargs)
+        self.test_path = helpers.setup_func("ConfigReadDeviceID")
+        kwargs = helpers.config_file_default()
+        helpers.make_config_file(self.test_path, kwargs)
+        kwargs["config_file"] = "testing-client-2-connect.cfg"
+        helpers.make_config_file(self.test_path, kwargs)
