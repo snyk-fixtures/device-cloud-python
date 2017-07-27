@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
-import json
-import os
-import shutil
 import ssl
+from Queue import Queue
+from time import sleep
 import mock
 
 
-cwd = os.getcwd()
+uuid = "991d72fb-03b6-471d-8d0e-8134beaae7a2"
 
 def configure_callback_function(expected_client, expected_params,
                                 expected_user_data, return_tuple):
@@ -37,99 +36,50 @@ def config_file_default():
     kwargs["ca_bundle_file"] = "/top/secret/location"
     return kwargs
 
-def make_config_file(config_dir, kwargs):
-    """
-    Write configuration file
-    """
 
-    config_file_name = kwargs.get("config_file", "testing-client-connect.cfg")
-    config_path = os.path.join(config_dir, config_file_name)
-    config = {}
-    config["cloud"] = kwargs.get("cloud")
-    config["validate_cloud_cert"] = kwargs.get("validate_cloud_cert")
-    config["ca_bundle_file"] = kwargs.get("ca_bundle_file")
-    config["thing_def_key"] = kwargs.get("thing_def_key")
-    config["proxy"] = kwargs.get("proxy")
-    for key, value in config.items():
-        if value is None:
-            del config[key]
-    with open(config_path, "w+") as config_file:
-        json.dump(config, config_file, sort_keys=True, indent=4,
-                  separators=(",", ":"))
-
-def configure_init_mock_mqtt(connect_succeed=True, disconnect_succeed=True):
+def init_mock_mqtt():
     """
-    Configure pretend initializer for the specific test being performed
+    Pretend initializer for a mock MQTT client object
     """
 
-    def init_mock_mqtt(client_id="", clean_session=True, userdata=None):
-        """
-        Pretend initializer for a mock MQTT client object
-        """
+    mock_mqtt = mock.Mock()
+    mock_mqtt.on_connect = None
+    mock_mqtt.on_connect_exec = False
+    mock_mqtt.on_disconnect = None
+    mock_mqtt.on_disconnect_exec = False
+    mock_mqtt.on_message = None
+    mock_mqtt.on_connect_rc = 0
+    mock_mqtt.on_disconnect_rc = 0
+    mock_mqtt.messages = Queue()
 
-        mock_mqtt = mock.Mock()
-        mock_mqtt.on_connect = None
-        mock_mqtt.on_disconnect = None
-        mock_mqtt.on_message = None
-        mock_mqtt.do_on_connect = False
-        mock_mqtt.do_on_disconnect = False
-        mock_mqtt.do_on_message = False
-        mock_mqtt.do_message = ""
+    def mqtt_connect(host, port=1883, keepalive=60, bind_address=""):
+        mock_mqtt.on_connect_exec = True
+        return 0
 
-        def mqtt_tls_set(ca_certs, certfile=None, keyfile=None,
-                         cert_reqs=ssl.CERT_REQUIRED,
-                         tls_version=ssl.PROTOCOL_TLSv1_2, ciphers=None):
-            return 0
+    def mqtt_disconnect():
+        mock_mqtt.on_disconnect_exec = True
+        return 0
 
-        def mqtt_connect(host, port=1883, keepalive=60, bind_address=""):
-            mock_mqtt.do_on_connect = True
-            return 0
+    def mqtt_loop(timeout=1.0, max_packets=1):
+        if mock_mqtt.on_connect_exec:
+            mock_mqtt.on_connect(mock_mqtt, None, None,
+                                 mock_mqtt.on_connect_rc)
+            mock_mqtt.on_connect_exec = False
+        elif mock_mqtt.on_disconnect_exec:
+            mock_mqtt.on_disconnect(None, None, mock_mqtt.on_disconnect_rc)
+            mock_mqtt.on_disconnect_exec = False
+        elif not mock_mqtt.messages.empty():
+            mock_mqtt.on_message(mock_mqtt, None, mock_mqtt.messages.get())
+        else:
+            sleep(0.25)
+        return 0
 
-        def mqtt_disconnect():
-            mock_mqtt.do_on_disconnect = True
-            return 0
+    mock_mqtt.tls_set.return_value = 0
+    mock_mqtt.connect.side_effect = mqtt_connect
+    mock_mqtt.disconnect.side_effect = mqtt_disconnect
+    mock_mqtt.loop.side_effect = mqtt_loop
+    mock_mqtt.publish.return_value = (0, 0)
+    mock_mqtt.username_pw_set.return_value = 0
 
-        def mqtt_loop(timeout=1.0, max_packets=1):
-            if mock_mqtt.do_on_connect:
-                rc = 0 if connect_succeed else -1
-                mock_mqtt.on_connect(mock_mqtt, None, None, rc)
-                mock_mqtt.do_on_connect = False
-            elif mock_mqtt.do_on_disconnect:
-                rc = 0 if disconnect_succeed else -1
-                mock_mqtt.on_disconnect(None, None, rc)
-                mock_mqtt.do_on_disconnect = False
-            elif mock_mqtt.do_on_message:
-                mock_mqtt.on_message(mock_mqtt, None, mock_mqtt.do_message)
-                mock_mqtt.do_on_message = False
-            return 0
+    return mock_mqtt
 
-        def mqtt_publish(topic, payload=None, qos=0, retain=False):
-            return (0, 0)
-
-        def mqtt_username_pw_set(username, password=None):
-            return 0
-
-        mock_mqtt.tls_set.side_effect = mqtt_tls_set
-        mock_mqtt.connect.side_effect = mqtt_connect
-        mock_mqtt.disconnect.side_effect = mqtt_disconnect
-        mock_mqtt.loop.side_effect = mqtt_loop
-        mock_mqtt.publish.side_effect = mqtt_publish
-        mock_mqtt.username_pw_set.side_effect = mqtt_username_pw_set
-
-        return mock_mqtt
-
-    # Return generated function to generate a Mock in place of the MQTT object
-    return init_mock_mqtt
-
-
-def setup_func(case_dir):
-    """
-    Setup each test case to run in a different directory
-    """
-
-    path = os.path.join(cwd, "testruns", case_dir)
-    if os.path.exists(path):
-        shutil.rmtree(path)
-    os.makedirs(path)
-
-    return path
