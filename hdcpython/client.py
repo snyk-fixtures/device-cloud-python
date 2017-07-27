@@ -276,7 +276,7 @@ class Client(object):
         return self.handler.queue_publish(log)
 
     def file_download(self, file_name, download_dest, blocking=False,
-                      timeout=0):
+                      callback=None, timeout=0):
         """
         Download a file from the Cloud to the device (C2D)
 
@@ -286,6 +286,9 @@ class Client(object):
           blocking                     Wait for file transfer to complete
                                        before returning. Otherwise return
                                        immediately.
+          callback                     Function to be executed as soon as file
+                                       transfer is complete. It will be passed
+                                       (client, file_name, status).
           timeout                      If blocking, maximum time to wait
                                        before returning
 
@@ -299,9 +302,10 @@ class Client(object):
         """
 
         return self.handler.request_download(file_name, download_dest, blocking,
-                                             timeout)
+                                             callback, timeout)
 
-    def file_upload(self, file_filter, blocking=False, timeout=0):
+    def file_upload(self, file_filter, blocking=False, callback=None,
+                    timeout=0):
         """
         Upload a file from the device to the Cloud (D2C)
 
@@ -312,6 +316,9 @@ class Client(object):
           blocking                     Wait for file transfer to complete
                                        before returning. Otherwise return
                                        immediately.
+          callback                     Function to be executed as soon as file
+                                       transfer is complete. It will be passed
+                                       (client, file_name, status).
           timeout                      If blocking, maximum time to wait
                                        before returning
 
@@ -324,7 +331,8 @@ class Client(object):
                                        transfer is still in progress.
         """
 
-        return self.handler.request_upload(file_filter, blocking, timeout)
+        return self.handler.request_upload(file_filter, blocking, callback,
+                                           timeout)
 
     def is_connected(self):
         """

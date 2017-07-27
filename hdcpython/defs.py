@@ -181,12 +181,19 @@ class FileTransfer(object):
     Holds information about pending file transfers
     """
 
-    def __init__(self, file_name, file_path, file_id=None, file_checksum=None):
+    def __init__(self, file_name, file_path, client, callback=None,
+                 file_id=None, file_checksum=None):
         self.file_name = file_name
         self.file_path = file_path
+        self.client = client
+        self.callback = callback
         self.file_id = file_id
         self.file_checksum = file_checksum
         self.status = None
+
+    def finish(self):
+        if self.callback:
+            self.callback(self.client, self.file_name, self.status)
 
 
 class Message(object):

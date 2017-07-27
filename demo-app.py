@@ -40,6 +40,12 @@ def method_1_callback(client, params, user_data):
     return (iot.STATUS_SUCCESS, "Return from callback")
 
 
+def file_download_callback(client, file_name, status):
+    # Callback when file download completes
+    client.info("Download %s Finished! Status: %s", file_name,
+                iot.status_string(status))
+
+
 def file_download(client, params, user_data):
     # Downloads a file to the Device
     file_name = None
@@ -49,8 +55,9 @@ def file_download(client, params, user_data):
         client.info("Downloading")
         client.event_publish("C2D File Transfer for {}".format(file_name))
         download_dest = os.path.join(os.path.abspath("download"), file_name)
-        result = client.file_download(file_name, download_dest, blocking=True,
-                                      timeout=15)
+        result = client.file_download(file_name, download_dest,
+                                      callback=file_download_callback,
+                                      blocking=True, timeout=15)
         if result == iot.STATUS_SUCCESS:
             message = "Downloaded!"
         else:
@@ -59,6 +66,12 @@ def file_download(client, params, user_data):
         return (result, message)
     else:
         return (iot.STATUS_BAD_PARAMETER, "No file name given")
+
+
+def file_upload_callback(client, file_name, status):
+    # Callback when file upload completes
+    client.info("Upload %s Finished! Status: %s", file_name,
+                iot.status_string(status))
 
 
 def file_upload(client, params, user_data):
@@ -71,7 +84,8 @@ def file_upload(client, params, user_data):
         client.event_publish("D2C File Transfer for {}".format(file_name))
         if not os.path.isabs(file_name):
             file_name = abspath(file_name)
-        result = client.file_upload(file_name, blocking=True, timeout=240)
+        result = client.file_upload(file_name, callback=file_upload_callback,
+                                    blocking=True, timeout=240)
         if result == iot.STATUS_SUCCESS:
             message = "Uploaded!"
         else:

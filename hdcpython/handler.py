@@ -372,57 +372,59 @@ class Handler(object):
         if not os.path.exists(download_dir) or not os.path.isdir(download_dir):
             os.makedirs(download_dir)
 
-        if status == constants.STATUS_SUCCESS:
-            # Secure or insecure HTTP request.
-            response = None
-            if self.config.validiate_cloud_cert is False:
-                url = "https://" + url
-                response = requests.get(url, stream=True, verify=False)
-            elif self.config.ca_bundle_file:
-                url = "https://" + url
-                cert_location = self.config.ca_bundle_file
-                response = requests.get(url, stream=True,
-                                        verify=cert_location)
-            else:
-                url = "http://" + url
-                response = requests.get(url, stream=True)
+        # Secure or insecure HTTP request.
+        response = None
+        if self.config.validiate_cloud_cert is False:
+            url = "https://" + url
+            response = requests.get(url, stream=True, verify=False)
+        elif self.config.ca_bundle_file:
+            url = "https://" + url
+            cert_location = self.config.ca_bundle_file
+            response = requests.get(url, stream=True,
+                                    verify=cert_location)
+        else:
+            url = "http://" + url
+            response = requests.get(url, stream=True)
 
-            if response.status_code == 200:
-                # Write to temporary file
-                with open(temp_path, "wb") as temp_file:
-                    for chunk in response.iter_content(512):
-                        temp_file.write(chunk)
-                status = constants.STATUS_SUCCESS
+        if response.status_code == 200:
+            # Write to temporary file
+            with open(temp_path, "wb") as temp_file:
+                for chunk in response.iter_content(512):
+                    temp_file.write(chunk)
+            status = constants.STATUS_SUCCESS
+        else:
+            # Request was unsuccessful
+            self.logger.error("Failed to download \"%s\" (download error)",
+                              download.file_name)
+            self.logger.error(".... %s", response.content)
+            status = constants.STATUS_FAILURE
+
+        if status == constants.STATUS_SUCCESS:
+            # Ensure the downloaded file matches the checksum sent by the
+            # Cloud.
+            checksum = 0
+            with open(temp_path, "rb") as temp_file:
+                for chunk in temp_file:
+                    checksum = crc32(chunk, checksum)
+                checksum = checksum & 0xffffffff
+            if checksum == download.file_checksum:
+                # Checksums match, move temporary file to real file position
+                os.rename(temp_path, download.file_path)
+                self.logger.info("Successfully downloaded \"%s\"",
+                                 download.file_name)
             else:
-                # Request was unsuccessful
-                self.logger.error("Failed to download \"%s\" (download error)",
+                # Checksums do not match, remove temporary file and fail
+                os.remove(temp_path)
+                self.logger.error("Failed to download \"%s\" "
+                                  "(checksums do not match)",
                                   download.file_name)
-                self.logger.error(".... %s", response.content)
                 status = constants.STATUS_FAILURE
 
-            if status == constants.STATUS_SUCCESS:
-                # Ensure the downloaded file matches the checksum sent by the
-                # Cloud.
-                checksum = 0
-                with open(temp_path, "rb") as temp_file:
-                    for chunk in temp_file:
-                        checksum = crc32(chunk, checksum)
-                    checksum = checksum & 0xffffffff
-                if checksum == download.file_checksum:
-                    # Checksums match, move temporary file to real file position
-                    os.rename(temp_path, download.file_path)
-                    self.logger.info("Successfully downloaded \"%s\"",
-                                     download.file_name)
-                else:
-                    # Checksums do not match, remove temporary file and fail
-                    os.remove(temp_path)
-                    self.logger.error("Failed to download \"%s\" "
-                                      "(checksums do not match)",
-                                      download.file_name)
-                    status = constants.STATUS_FAILURE
+        # Update file transfer status
+        download.status = status
 
-            # Update file transfer status
-            download.status = status
+        # Call callback if it exists
+        download.finish()
 
         return status
 
@@ -475,6 +477,9 @@ class Handler(object):
 
         # Update file transfer status
         upload.status = status
+
+        # Call callback if it exists
+        upload.finish()
 
         return status
 
@@ -792,7 +797,8 @@ class Handler(object):
         self.work_queue.put(work)
         return constants.STATUS_SUCCESS
 
-    def request_download(self, file_name, file_dest, blocking=False, timeout=0):
+    def request_download(self, file_name, file_dest, blocking=False,
+                         callback=None, timeout=0):
         """
         Request a C2D file transfer
         """
@@ -807,7 +813,8 @@ class Handler(object):
             file_dest = os.path.join(file_dest, file_name)
 
         # File Transfer object for tracking progress
-        transfer = defs.FileTransfer(file_name, file_dest)
+        transfer = defs.FileTransfer(file_name, file_dest, self.client,
+                                     callback=callback)
 
         # Generate and send message to request file transfer
         command = tr50.create_file_get(self.config.key, file_name)
@@ -829,7 +836,8 @@ class Handler(object):
 
         return status
 
-    def request_upload(self, file_filter, blocking=False, timeout=0):
+    def request_upload(self, file_filter, blocking=False, callback=None,
+                       timeout=0):
         """
         Request a D2C file transfer
         """
@@ -870,7 +878,9 @@ class Handler(object):
 
                     if checksum != 0:
                         # File Transfer object for tracking progress
-                        transfer = defs.FileTransfer(file_name, file_path)
+                        transfer = defs.FileTransfer(file_name, file_path,
+                                                     self.client,
+                                                     callback=callback)
 
                         # Generate and send message to request file transfer
                         command = tr50.create_file_put(self.config.key, file_name)
