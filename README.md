@@ -49,9 +49,11 @@ So far supports:
 - File Download (to a specified destination)
 - File Upload (supports unix style wildcards for uploading multiple files at
   once)
+- File Transfer callbacks
 - Secure connection with TLS/SSL (this includes MQTT over TLSv1.2 and also HTTPS
   file transfer)
 - Configuration files (see Configuration)
+- device_id uuid (Generates a unique device_id if one is not found)
 - Change thing definition (add "thing_def_key" field to configuration to
   immediately change the definition of your thing after connecting)
 - Example app (example of most APIs in use, but also still a work in progress)
@@ -67,4 +69,3 @@ Not yet supported:
 ------------------
 - Proxy support (may not be possible for paho)
 - Finalized APIs
-- Logging functions included in pydocs

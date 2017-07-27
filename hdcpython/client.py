@@ -20,6 +20,14 @@ from hdcpython.handler import Handler
 class Client(object):
     """
     This class is used by apps to connect to and communicate with the HDC Cloud
+
+    Logging Functions:
+        critical(message)
+        debug(message)
+        error(message)
+        info(message)
+        log(log_level, message)
+        warning(message)
     """
 
     def __init__(self, app_id, kwargs=None):
