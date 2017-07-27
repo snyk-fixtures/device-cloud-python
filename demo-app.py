@@ -145,8 +145,8 @@ if __name__ == "__main__":
                         "definition key")
     args = parser.parse_args(sys.argv[1:])
 
-    # Initialize client default called 'device_manager_demo'
-    app_id = "device_manager_demo"
+    # Initialize client default called 'python-demo-app'
+    app_id = "python-demo-app"
     if args.app_id:
         app_id = args.app_id
     client = iot.Client(app_id)
@@ -157,7 +157,7 @@ if __name__ == "__main__":
         client.config.thing_def_key = args.thing_definition
 
     # Use the demo-connect.cfg file inside the config directory
-    # (Default would be device_manager_demo-connect.cfg)
+    # (Default would be python-demo-app-connect.cfg)
     config_file = "demo-connect.cfg"
     if args.config_file:
         config_file = args.config_file
