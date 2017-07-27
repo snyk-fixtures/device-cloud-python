@@ -9,7 +9,6 @@ import uuid
 from hdcpython import defs
 from hdcpython.constants import DEFAULT_CONFIG_DIR
 from hdcpython.constants import DEFAULT_CONFIG_FILE
-from hdcpython.constants import DEFAULT_LOG_LEVEL
 from hdcpython.constants import DEFAULT_LOOP_TIME
 from hdcpython.constants import DEFAULT_MESSAGE_TIMEOUT
 from hdcpython.constants import DEFAULT_THREAD_COUNT
@@ -25,7 +24,9 @@ class Client(object):
 
     def __init__(self, app_id, kwargs=None):
         """
-        Called on initialization
+        Start configuration of client. Configuration file location and name can
+        be updated after this if necessary. MUST be followed by
+        client.initialize() before anything else can be done.
 
         Parameters:
           app_id                       ID of application that will be used to
@@ -37,19 +38,16 @@ class Client(object):
                                        overridden individually later.
         """
 
-        # Setup Config
+        # Setup default config structure and file location
         self.config = defs.Config()
-        self.config.app_id = app_id
-
-        # Set config defaults
-        self.config.config_dir = DEFAULT_CONFIG_DIR
-        self.config.config_file = DEFAULT_CONFIG_FILE.format(app_id)
-        self.config.log_level = DEFAULT_LOG_LEVEL
-        self.config.loop_time = DEFAULT_LOOP_TIME
-        self.config.message_timeout = DEFAULT_MESSAGE_TIMEOUT
-        self.config.thread_count = DEFAULT_THREAD_COUNT
-        self.cloud = defs.Config()
-        self.proxy = defs.Config()
+        default_config = {
+            "app_id":app_id,
+            "config_dir":DEFAULT_CONFIG_DIR,
+            "config_file":DEFAULT_CONFIG_FILE.format(app_id),
+            "cloud":{},
+            "proxy":{}
+        }
+        self.config.update(default_config)
 
         # Override config defaults with any passed values
         if kwargs:
@@ -59,13 +57,16 @@ class Client(object):
     def initialize(self):
         """
         Finish client setup by reading config files using any config values
-        already set, and initializing the client handler
+        already set, and initializing the client handler. This is required
+        before connection can be attempted.
 
         Returns:
-          STATUS_SUCCESS               Always
+          STATUS_SUCCESS               Configuration completed successfully
+          Exception                    Error in configuration
         """
 
-        # Read JSON from config file.
+        # Read JSON from config file. Does not overwrite any configuration set
+        # in application.
         kwargs = {}
         config_path = os.path.join(self.config.config_dir,
                                    self.config.config_file)
@@ -121,6 +122,14 @@ class Client(object):
         else:
             print "app_id or device_id not set. Required for key."
             raise KeyError("app_id or device_id not set. Required for key.")
+
+        # Final precedence config defaults
+        config_defaults = {
+            "loop_time":DEFAULT_LOOP_TIME,
+            "message_timeout":DEFAULT_MESSAGE_TIMEOUT,
+            "thread_count":DEFAULT_THREAD_COUNT
+        }
+        self.config.update(config_defaults, False)
 
         # Initialize handler
         self.handler = Handler(self.config, self)

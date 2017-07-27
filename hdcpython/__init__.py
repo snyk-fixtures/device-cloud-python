@@ -15,7 +15,6 @@ from hdcpython.handler import status_string
 
 from hdcpython.constants import DEFAULT_CONFIG_DIR
 from hdcpython.constants import DEFAULT_CONFIG_FILE
-from hdcpython.constants import DEFAULT_LOG_LEVEL
 from hdcpython.constants import DEFAULT_LOOP_TIME
 from hdcpython.constants import DEFAULT_MESSAGE_TIMEOUT
 from hdcpython.constants import DEFAULT_THREAD_COUNT
@@ -45,7 +44,7 @@ from hdcpython.constants import STATUS_FAILURE
 __all__ = ["Client",
            "status_string",
            "DEFAULT_CONFIG_DIR",
-           "DEFAULT_LOG_LEVEL",
+           "DEFAULT_CONFIG_FILE",
            "DEFAULT_LOOP_TIME",
            "DEFAULT_MESSAGE_TIMEOUT",
            "DEFAULT_RUNTIME_DIR",
