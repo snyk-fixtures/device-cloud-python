@@ -57,7 +57,8 @@ class Handler(object):
             self.logger = logging.getLogger(self.config.key)
         else:
             self.logger = logging.getLogger("APP NAME HERE")
-        log_formatter = logging.Formatter(constants.LOG_FORMAT)
+        log_formatter = logging.Formatter(constants.LOG_FORMAT,
+                                          datefmt=constants.LOG_TIME_FORMAT)
         log_handler = logging.StreamHandler()
         log_handler.setFormatter(log_formatter)
         self.logger.addHandler(log_handler)
@@ -73,8 +74,7 @@ class Handler(object):
             raise KeyError("Missing key or cloud token from configuration")
 
         # Print configuration
-        for key in self.config:
-            self.logger.debug("Config: %s %s", key, self.config[key])
+        self.logger.debug("CONFIG:\n%s", self.config)
 
         # Set up MQTT client
         self.mqtt = mqttlib.Client(self.config.key)
@@ -775,12 +775,12 @@ class Handler(object):
         Callback when MQTT Client receives a message
         """
 
-        self.logger.debug("Received message on topic \"%s\"", msg.topic)
-        self.logger.debug(".... %s", msg.payload)
+        message = defs.Message(msg.topic, json.loads(msg.payload))
+        self.logger.debug("Received message on topic \"%s\"\n%s", msg.topic,
+                          message)
 
         # Queue work to handle received message. Don't block main loop with this
         # task.
-        message = defs.Message(msg.topic, json.loads(msg.payload))
         work = defs.Work(constants.WORK_MESSAGE, message)
         self.queue_work(work)
 
@@ -955,9 +955,9 @@ class Handler(object):
                     msg.out_id = "{}-{}".format(topic_num, num+1)
 
                     self.reply_tracker.add_message(msg)
-                    self.logger.info("Sending %s-%d - %s", topic_num, num+1,
-                                     msg)
-                    self.logger.debug(".... %s", msg.command)
+                    self.logger.info("Sending %s-%d - %s\n%s", topic_num, num+1,
+                                     msg, json.dumps(msg.command, indent=2,
+                                                     sort_keys=True))
         finally:
             self.lock.release()
 

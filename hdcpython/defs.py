@@ -3,6 +3,7 @@ This module defines several helper classes for use in the hdcpython handler
 """
 
 import inspect
+import json
 import subprocess
 from datetime import datetime
 
@@ -170,6 +171,9 @@ class Config(dict):
     def __setattr__(self, attr, value):
         self.__setitem__(attr, value)
 
+    def __str__(self):
+        return json.dumps(self, indent=2, sort_keys=True)
+
     def update(self, other, overwrite=True):
         # Update self with values from other dict
         # Default behaviour is to overwrite all values, but optionally can keep
@@ -224,6 +228,10 @@ class Message(object):
     def __init__(self, topic, json_msg):
         self.topic = topic
         self.json = json_msg
+
+    def __str__(self):
+        return json.dumps(self.json, indent=2, sort_keys=True)
+
 
 
 class OutMessage(object):
