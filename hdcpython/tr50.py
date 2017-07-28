@@ -73,7 +73,7 @@ def create_alarm_publish(thing_key, key, state, message=None, timestamp=None,
     """
 
     kwargs = {
-        "thing_key":thing_key,
+        "thingKey":thing_key,
         "key":key,
         "state":state,
         "msg":message,
@@ -93,7 +93,7 @@ def create_attribute_current(thing_key, key, timestamp=None):
     """
 
     kwargs = {
-        "thing_key":thing_key,
+        "thingKey":thing_key,
         "key":key,
         "ts":timestamp
     }
@@ -108,7 +108,7 @@ def create_attribute_publish(thing_key, key, value, timestamp=None,
     """
 
     kwargs = {
-        "thing_key":thing_key,
+        "thingKey":thing_key,
         "key":key,
         "value":value,
         "ts":timestamp,
@@ -141,7 +141,7 @@ def create_file_get(thing_key, file_name):
     """
 
     kwargs = {
-        "thing_key":thing_key,
+        "thingKey":thing_key,
         "fileName":file_name
     }
     cmd = {"command":TR50Command.file_get}
@@ -155,7 +155,7 @@ def create_file_put(thing_key, file_name, public=False, crc32=None, tags=None,
     """
 
     kwargs = {
-        "thing_key":thing_key,
+        "thingKey":thing_key,
         "fileName":file_name,
         "public":public,
         "crc32":crc32,
@@ -178,7 +178,7 @@ def create_location_publish(thing_key, latitude, longitude, heading=None,
     """
 
     kwargs = {
-        "thing_key":thing_key,
+        "thingKey":thing_key,
         "lat":latitude,
         "lng":longitude,
         "heading":heading,
@@ -207,7 +207,7 @@ def create_log_publish(thing_key, message, timestamp=None, level=None,
     """
 
     kwargs = {
-        "thing_key":thing_key,
+        "thingKey":thing_key,
         "msg":message,
         "ts":timestamp,
         "level":level,
@@ -269,7 +269,7 @@ def create_property_publish(thing_key, key, value, timestamp=None, corr_id=None,
     """
 
     kwargs = {
-        "thing_key":thing_key,
+        "thingKey":thing_key,
         "key":key,
         "value":value,
         "ts":timestamp,
@@ -325,7 +325,7 @@ def generate_request(commands):
     for num, val in enumerate(command_list):
         request[str(num+1)] = val
 
-    return json.dumps(request)
+    return json.dumps(request, separators=(",", ":"))
 
 def translate_error_code(error_code):
     """
