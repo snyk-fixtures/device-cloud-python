@@ -312,15 +312,15 @@ class Client(object):
         return self.handler.request_download(file_name, download_dest, blocking,
                                              callback, timeout)
 
-    def file_upload(self, file_filter, blocking=False, callback=None,
-                    timeout=0):
+    def file_upload(self, file_path, upload_name=None, blocking=False,
+                    callback=None, timeout=0):
         """
         Upload a file from the device to the Cloud (D2C)
 
         Parameters:
-          file_filter                  Absolute path for uploading files.
-                                       Supports Unix style filename wildcards
-                                       for uploading multiple files.
+          file_path                    Absolute path for file to upload.
+          upload_name                  Name for file uploaded in Cloud.
+                                       Default is the file name on the device.
           blocking                     Wait for file transfer to complete
                                        before returning. Otherwise return
                                        immediately.
@@ -339,8 +339,8 @@ class Client(object):
                                        transfer is still in progress.
         """
 
-        return self.handler.request_upload(file_filter, blocking, callback,
-                                           timeout)
+        return self.handler.request_upload(file_path, upload_name, blocking,
+                                           callback, timeout)
 
     def is_connected(self):
         """

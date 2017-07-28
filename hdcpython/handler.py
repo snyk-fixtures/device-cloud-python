@@ -2,7 +2,6 @@
 This module handles all the underlying functionality of the Client
 """
 
-import glob
 import json
 import logging
 import os
@@ -437,7 +436,8 @@ class Handler(object):
 
         status = constants.STATUS_SUCCESS
 
-        self.logger.info("Uploading \"%s\"", upload.file_name)
+        self.logger.info("Uploading \"%s\" as \"%s\"",
+                         os.path.basename(upload.file_path), upload.file_name)
 
         # Start creating URL for file upload
         url = "{}/file/{}".format(self.config.cloud.host, upload.file_id)
@@ -472,7 +472,7 @@ class Handler(object):
         else:
             # File does not exist
             self.logger.error("Cannot find file \"%s\". Upload failed.",
-                              upload.file_name)
+                              upload.file_path)
             status = constants.STATUS_NOT_FOUND
 
         # Update file transfer status
@@ -836,8 +836,8 @@ class Handler(object):
 
         return status
 
-    def request_upload(self, file_filter, blocking=False, callback=None,
-                       timeout=0):
+    def request_upload(self, file_path, upload_name=None, blocking=False,
+                       callback=None, timeout=0):
         """
         Request a D2C file transfer
         """
@@ -847,69 +847,63 @@ class Handler(object):
         end_time = current_time + timedelta(seconds=timeout)
         transfer = None
 
-        self.logger.info("Request upload of %s", file_filter)
+        self.logger.info("Request upload of %s", file_path)
 
         # Path must be absolute
-        if not os.path.isabs(file_filter):
-            self.logger.error("Path must be absolute \"%s\"", file_filter)
+        if not os.path.isabs(file_path):
+            self.logger.error("Path must be absolute \"%s\"", file_path)
             status = constants.STATUS_NOT_FOUND
 
         if status == constants.STATUS_SUCCESS:
-            # Get a list of all matching files to upload
-            files = glob.glob(file_filter)
-
-            if len(files) == 0:
-                # No files to upload
-                self.logger.error("Cannot find any files to upload. "
-                                  "Upload cancelled.")
+            # Check if file exists
+            if not os.path.isfile(file_path):
+                # No file to upload
+                self.logger.error("Cannot find file %s. "
+                                  "Upload cancelled.", file_path)
                 status = constants.STATUS_NOT_FOUND
-
             else:
-                transfers = []
-                for file_path in files:
-                    file_name = os.path.basename(file_path)
+                transfer = None
+                file_name = os.path.basename(file_path)
+                if not upload_name:
+                    upload_name = file_name
 
-                    # Get file crc32 checksum
-                    checksum = 0
-                    with open(file_path, "rb") as up_file:
-                        for chunk in up_file:
-                            checksum = crc32(chunk, checksum)
-                    checksum = checksum & 0xffffffff
+                # Get file crc32 checksum
+                checksum = 0
+                with open(file_path, "rb") as up_file:
+                    for chunk in up_file:
+                        checksum = crc32(chunk, checksum)
+                checksum = checksum & 0xffffffff
 
-                    if checksum != 0:
-                        # File Transfer object for tracking progress
-                        transfer = defs.FileTransfer(file_name, file_path,
-                                                     self.client,
-                                                     callback=callback)
+                if checksum != 0:
+                    # File Transfer object for tracking progress
+                    transfer = defs.FileTransfer(upload_name, file_path,
+                                                 self.client,
+                                                 callback=callback)
 
-                        # Generate and send message to request file transfer
-                        command = tr50.create_file_put(self.config.key, file_name)
-                        message_desc = "Upload {}".format(file_name)
-                        message = defs.OutMessage(command, message_desc,
-                                                  data=transfer)
-                        status = self.send(message)
-                        transfers.append(transfer)
-                    else:
-                        self.logger.error("Upload request failed. Failed to "
-                                          "retrieve checksum for \"%s\".",
-                                          file_name)
-                        status = constants.STATUS_FAILURE
-                        break
+                    # Generate and send message to request file transfer
+                    command = tr50.create_file_put(self.config.key, upload_name)
+                    message_desc = "Upload {} as {}".format(file_name,
+                                                            upload_name)
+                    message = defs.OutMessage(command, message_desc,
+                                              data=transfer)
+                    status = self.send(message)
+                else:
+                    self.logger.error("Upload request failed. Failed to "
+                                      "retrieve checksum for \"%s\".",
+                                      file_name)
+                    status = constants.STATUS_FAILURE
 
                 # If blocking is set, wait for result of file transfer
-                if transfers and status == constants.STATUS_SUCCESS and blocking:
+                if status == constants.STATUS_SUCCESS and blocking:
                     while ((timeout == 0 or current_time < end_time) and
-                           len(transfers) != 0) and self.is_connected():
-                        if transfers[0].status is not None:
-                            transfers.pop(0)
-                        else:
-                            sleep(1)
+                           self.is_connected() and transfer.status is None):
+                        sleep(1)
                         current_time = datetime.utcnow()
 
-                    if len(transfers) != 0:
+                    if transfer.status is None:
                         status = constants.STATUS_TIMED_OUT
                     else:
-                        status = constants.STATUS_SUCCESS
+                        status = transfer.status
 
         return status
 

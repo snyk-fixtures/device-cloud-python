@@ -47,8 +47,7 @@ So far supports:
 - Actions (both function callbacks and console commands. Known as methods on
   Cloud side)
 - File Download (to a specified destination)
-- File Upload (supports unix style wildcards for uploading multiple files at
-  once)
+- File Upload (with option to change file name on Cloud side)
 - File Transfer callbacks
 - Secure connection with TLS/SSL (this includes MQTT over TLSv1.2 and also HTTPS
   file transfer)
