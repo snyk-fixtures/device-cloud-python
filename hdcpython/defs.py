@@ -2,6 +2,7 @@
 This module defines several helper classes for use in the hdcpython handler
 """
 
+import inspect
 import subprocess
 from datetime import datetime
 
@@ -22,12 +23,30 @@ class Action(object):
         string = "Action {} --> Callback {}"
         return string.format(self.name, self.callback.__name__)
 
-    def execute(self, params):
+    def execute(self, request):
         """
         Execute callback
         """
 
-        return self.callback(self.client, params, self.user_data)
+        # Determine the callback prototype that we have
+        signature = inspect.getargspec(self.callback)
+        args = []
+        arglen = len(signature.args)
+
+        # Build the arguments to pass based on the protoype
+        if arglen >= 1:
+            args.append(self.client)
+
+        if arglen >= 2:
+            args.append(request.params)
+
+        if arglen >= 3:
+            args.append(self.user_data)
+
+        if arglen >= 4:
+            args.append(request)
+
+        return self.callback(*args)
 
 
 class ActionCommand(Action):
@@ -116,7 +135,7 @@ class Callbacks(dict):
             raise KeyError("Action \"{}\" does not have a callback".format(
                 action_request.name))
         else:
-            result = self[action_request.name].execute(action_request.params)
+            result = self[action_request.name].execute(action_request)
 
         return result
 
