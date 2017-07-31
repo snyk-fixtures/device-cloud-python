@@ -61,24 +61,25 @@ class ActionCommand(Action):
     def __str__(self):
         return "Action {} --> Command \"{}\"".format(self.name, self.command)
 
-    def execute(self, params):
+    def execute(self, request):
         """
         Execute command
         """
 
         # Append parameters as command line arguments
         final_command = [self.command]
-        if params:
-            for key in params:
-                if params[key] is True:
+        if request.params:
+            for key in request.params:
+                if request.params[key] is True:
                     # Value is True, just append flag
                     final_command.append("--{}".format(key))
-                elif params[key] is False:
+                elif request.params[key] is False:
                     # Value is False, do not append flag
                     pass
                 else:
                     # Append --param=value
-                    final_command.append("--{}={}".format(key, params[key]))
+                    final_command.append("--{}={}".format(key,
+                                                          request.params[key]))
 
         # Execute command with arguments and wait for result
         proc = subprocess.Popen(final_command, shell=False,
