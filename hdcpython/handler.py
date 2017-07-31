@@ -386,38 +386,36 @@ class Handler(object):
             response = requests.get(url, stream=True)
 
         if response.status_code == 200:
-            # Write to temporary file
+            # Write to temporary file, while simultaneously calculating checksum
+            checksum = 0
             with open(temp_path, "wb") as temp_file:
                 for chunk in response.iter_content(512):
                     temp_file.write(chunk)
-            status = constants.STATUS_SUCCESS
+                    checksum = crc32(chunk, checksum)
+            checksum &= 0xffffffff
+
+            # Ensure the downloaded file matches the checksum sent by the
+            # Cloud.
+            if checksum == download.file_checksum:
+                # Checksums match, move temporary file to real file position
+                os.rename(temp_path, download.file_path)
+                self.logger.info("Successfully downloaded \"%s\"",
+                                 download.file_name)
+                status = constants.STATUS_SUCCESS
+            else:
+                # Checksums do not match, remove temporary file and fail
+                self.logger.error("Failed to download \"%s\" "
+                                  "(checksums do not match)",
+                                  download.file_name)
+                os.remove(temp_path)
+                status = constants.STATUS_FAILURE
+
         else:
             # Request was unsuccessful
             self.logger.error("Failed to download \"%s\" (download error)",
                               download.file_name)
             self.logger.error(".... %s", response.content)
             status = constants.STATUS_FAILURE
-
-        if status == constants.STATUS_SUCCESS:
-            # Ensure the downloaded file matches the checksum sent by the
-            # Cloud.
-            checksum = 0
-            with open(temp_path, "rb") as temp_file:
-                for chunk in temp_file:
-                    checksum = crc32(chunk, checksum)
-                checksum = checksum & 0xffffffff
-            if checksum == download.file_checksum:
-                # Checksums match, move temporary file to real file position
-                os.rename(temp_path, download.file_path)
-                self.logger.info("Successfully downloaded \"%s\"",
-                                 download.file_name)
-            else:
-                # Checksums do not match, remove temporary file and fail
-                os.remove(temp_path)
-                self.logger.error("Failed to download \"%s\" "
-                                  "(checksums do not match)",
-                                  download.file_name)
-                status = constants.STATUS_FAILURE
 
         # Update file transfer status
         download.status = status
