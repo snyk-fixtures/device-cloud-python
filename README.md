@@ -62,6 +62,7 @@ So far supports:
 - pytest implementation start. Run `pytest -v .` to run unit tests.
   `pytest --cov-report=html --cov=hdcpython -v .` Will generate a directory
   containing an HTML report of coverage.
+- Websockets (setting the port to 443 will use websockets to send MQTT packets)
 
 
 Not yet supported:

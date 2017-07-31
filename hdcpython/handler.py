@@ -77,7 +77,10 @@ class Handler(object):
         self.logger.debug("CONFIG:\n%s", self.config)
 
         # Set up MQTT client
-        self.mqtt = mqttlib.Client(self.config.key)
+        if self.config.cloud.port == 443:
+            self.mqtt = mqttlib.Client(self.config.key, transport="websockets")
+        else:
+            self.mqtt = mqttlib.Client(self.config.key)
         self.mqtt.on_connect = self.on_connect
         self.mqtt.on_disconnect = self.on_disconnect
         self.mqtt.on_message = self.on_message
