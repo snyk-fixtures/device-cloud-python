@@ -762,9 +762,12 @@ class Handler(object):
 
         self.logger.info("MQTT disconnected %d", rc)
         self.state = constants.STATE_DISCONNECTED
+
+        cur_thread = threading.current_thread()
         # Wait for worker threads to finish.
         for thread in self.worker_threads:
-            thread.join()
+            if thread != cur_thread:
+                thread.join()
         self.worker_threads = []
 
     def on_message(self, mqtt, userdata, msg):
