@@ -34,6 +34,11 @@ class Action(object):
         args = []
         arglen = len(signature.args)
 
+        # If there is a "self" parameter (ie. for class methods as a callback),
+        # decrement the number of args so as to supply the correct amount
+        if inspect.ismethod(self.callback):
+            arglen -= 1
+
         # Build the arguments to pass based on the protoype
         if arglen >= 1:
             args.append(self.client)
