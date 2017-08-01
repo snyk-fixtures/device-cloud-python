@@ -885,7 +885,8 @@ class Handler(object):
                                                  callback=callback)
 
                     # Generate and send message to request file transfer
-                    command = tr50.create_file_put(self.config.key, upload_name)
+                    command = tr50.create_file_put(self.config.key, upload_name,
+                                                   crc32=checksum)
                     message_desc = "Upload {} as {}".format(file_name,
                                                             upload_name)
                     message = defs.OutMessage(command, message_desc,
