@@ -5,3 +5,4 @@ download/
 *.cache/
 *htmlcov/
 *testruns/
+runtime/

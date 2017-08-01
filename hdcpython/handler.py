@@ -372,7 +372,11 @@ class Handler(object):
 
         # Ensure download directory exists
         if not os.path.exists(download_dir) or not os.path.isdir(download_dir):
-            os.makedirs(download_dir)
+            try:
+                os.makedirs(download_dir)
+            except OSError as err:
+                print err
+                status = constants.STATUS_BAD_PARAMETER
 
         # Secure or insecure HTTP request.
         response = None

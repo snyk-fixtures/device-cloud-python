@@ -40,9 +40,11 @@ from hdcpython.constants import STATUS_TRY_AGAIN
 from hdcpython.constants import STATUS_NOT_SUPPORTED
 from hdcpython.constants import STATUS_FAILURE
 
+import hdcpython.ota_handler as ota
 
 __all__ = ["Client",
            "status_string",
+           "ota",
            "DEFAULT_CONFIG_DIR",
            "DEFAULT_CONFIG_FILE",
            "DEFAULT_LOOP_TIME",

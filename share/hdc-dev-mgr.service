@@ -1,0 +1,15 @@
+# This is an example systemd unit file for the Wind River Helix Device Cloud
+# Python-based Device Manager. See share/readme.md for more information.
+
+[Unit]
+Description=Helix Device Cloud Python-based Device Manager
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/path/to/apps/device_manager/
+ExecStart=/usr/bin/python /path/to/apps/device-manager/device_manager.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
