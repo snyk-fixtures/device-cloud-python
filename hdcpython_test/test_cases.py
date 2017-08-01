@@ -742,3 +742,112 @@ class ConfigWriteReadDeviceID(unittest.TestCase):
     def setUp(self):
         # Configuration to be 'read' from config file
         self.config_args = helpers.config_file_default()
+
+class HandleActionExecCallbackSuccess(unittest.TestCase):
+    @mock.patch("hdcpython.client.open")
+    @mock.patch("hdcpython.client.os.path.exists")
+    @mock.patch("hdcpython.handler.sleep")
+    @mock.patch("hdcpython.defs.inspect")
+    @mock.patch("hdcpython.handler.mqttlib.Client")
+    def runTest(self, mock_mqtt, mock_inspect, mock_sleep, mock_exists,
+                mock_open):
+        # Set up mocks
+        mock_exists.side_effect = [True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_read = mock_open.return_value.__enter__.return_value.read
+        mock_read.side_effect = read_strings
+        mock_inspect.getargspec.return_value.args.__len__.return_value = 3
+        mock_inspect.ismethod.return_value = False
+        mock_mqtt.return_value = helpers.init_mock_mqtt()
+
+        # Initialize client
+        kwargs = {"loop_time":1, "thread_count":1}
+        self.client = hdcpython.Client("testing-client", kwargs)
+        self.client.initialize()
+
+        # Set up action callback
+        mqtt = self.client.handler.mqtt
+        params = {"some_param":521, "some_other_param":6234}
+        user_data = "User Data"
+        callback = mock.Mock(return_value=(0, "I did it!"))
+        action = hdcpython.defs.Action("some_action", callback, self.client, user_data)
+        self.client.handler.callbacks.add_action(action)
+
+        # Connect to Cloud
+        assert self.client.connect(timeout=5) == hdcpython.STATUS_SUCCESS
+
+        thing_key = mock_mqtt.call_args_list[0][0][0]
+        assert thing_key == "{}-testing-client".format(helpers.uuid)
+
+        # Set up and 'receive' a notification from Cloud
+        notify_payload = {"sessionId":"thisdoesntreallyneedtobehere",
+                          "thingKey":thing_key}
+        message_1 = mock.Mock()
+        message_1.payload = json.dumps(notify_payload)
+        message_1.topic = "notify/mailbox_activity"
+        mqtt.messages.put(message_1)
+        sleep(1)
+        #TODO Make a better check for action handling
+
+        # Published mailbox check
+        mqtt.publish.assert_called()
+        args = mqtt.publish.call_args_list[0][0]
+        assert args[0] == "api/0001"
+        assert args[2] == 1
+        jload = json.loads(args[1])
+        assert jload["1"]["command"] == "mailbox.check"
+        callback.assert_not_called()
+
+        # Set up and 'receive' reply from Cloud
+        exec_payload = {"1":{"success":True,
+                             "params":{"messages":[{"command":"method.exec",
+                                                    "id":"impretendingtobeamailid",
+                                                    "params":{"method":"some_action",
+                                                              "thingDefKey":"testingthingdef",
+                                                              "params":params},
+                                                    "thingKey":thing_key}]}}}
+        message_2 = mock.Mock()
+        message_2.payload = json.dumps(exec_payload)
+        message_2.topic = "reply/0001"
+        mqtt.messages.put(message_2)
+        sleep(1)
+        #TODO Make a better check for action handling
+
+        # Called callback
+        callback.assert_called()
+        args = callback.call_args_list[0][0]
+        assert args[0] is self.client
+        assert args[1] == params
+        assert args[2] is user_data
+
+        # Published result of callback
+        assert mqtt.publish.call_count == 2
+        args = mqtt.publish.call_args_list[1][0]
+        assert args[0] == "api/0002"
+        assert args[2] == 1
+        jload = json.loads(args[1])
+        assert jload["1"]["command"] == "mailbox.ack"
+        assert jload["1"]["params"]["errorCode"] == 0
+        assert jload["1"]["params"]["errorMessage"] == "I did it!"
+        assert jload["1"]["params"]["id"] == "impretendingtobeamailid"
+        assert len(self.client.handler.reply_tracker) == 1
+
+        # Set up and 'receive' reply from Cloud
+        ack_payload = {"1":{"success":True}}
+        message_3 = mock.Mock()
+        message_3.payload = json.dumps(ack_payload)
+        message_3.topic = "reply/0002"
+        mqtt.messages.put(message_3)
+        sleep(1)
+        #TODO Make a better check for action handling
+        assert len(self.client.handler.reply_tracker) == 0
+
+    def setUp(self):
+        # Configuration to be 'read' from config file
+        self.config_args = helpers.config_file_default()
+
+    def tearDown(self):
+        # Ensure threads have stopped
+        self.client.handler.state = hdcpython.constants.STATE_DISCONNECTED
+        if self.client.handler.main_thread:
+            self.client.handler.main_thread.join()
