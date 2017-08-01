@@ -39,6 +39,14 @@ calling `client.initialize()`. This is also where the device_id is stored, so
 multiple apps can share a single configuration directory to make use of the same
 device_id.
 
+Device Manager:
+---------------
+The included device_manager.py app provides similar functionality to the old
+HDC device manager application. Basic functions, such as file I/O, are available as methods on the cloud. In addition, a basic OTA implementation is included
+which is compatible with the HDC OTA package format. To run the device manager
+as a service, the `share` directory contains service files for systemd and
+init.d along with a readme on how to use them.
+
 So far supports:
 ----------------
 - Documented user APIs (can be obtained by running `pydoc hdcpython`)
