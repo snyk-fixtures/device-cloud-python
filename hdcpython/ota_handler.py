@@ -97,6 +97,8 @@ class OTAHandler(object):
         package_dir = os.path.join(self._runtime_dir, OTA_PACKAGEDIR)
 
         if params:
+            error_notified = False
+
             # 1. Download Package
             client.log(iot.LOGINFO, "Downloading Package...")
             client.event_publish("OTA: Downloading Package...")
@@ -106,61 +108,79 @@ class OTAHandler(object):
             # 2. Unzip Package
             if status == iot.STATUS_SUCCESS:
                 client.log(iot.LOGINFO, "Download Phase Done!")
+                client.event_publish("OTA: Download Successful!")
 
                 client.log(iot.LOGINFO, "Unzipping Package...")
                 client.event_publish("OTA: Unzipping Package...")
                 status = self._package_unzip(package_name, package_dir)
-            else:
+            elif not error_notified:
+                error_notified = True
                 client.log(iot.LOGERROR, "Download Failed!")
+                client.event_publish("OTA: Download Failed!")
 
             # 3. Read Update Data from JSON File
             if status == iot.STATUS_SUCCESS:
                 client.log(iot.LOGINFO, "Unzip Complete!")
+                client.event_publish("OTA: Package Unzip Successful!")
 
                 client.log(iot.LOGINFO, "Reading Update Data...")
                 client.event_publish("OTA: Reading Update Data...")
                 status, update_data = self._read_update_json(package_dir)
-            else:
+            elif not error_notified:
+                error_notified = True
                 client.log(iot.LOGERROR, "Unzip Failed!")
+                client.event_publish("OTA: Package Unzip Failed!")
 
             # 4. Run Pre-Install
             if status == iot.STATUS_SUCCESS:
                 client.log(iot.LOGINFO, "Data Read Successful!")
+                client.event_publish("OTA: Update Data Read Successfully!")
 
                 client.log(iot.LOGINFO, "Running Pre-Install...")
                 client.event_publish("OTA: Running Pre-Install...")
                 client.alarm_publish(ALARM_NAME, ALARM_PRE_INSTALL)
                 status = self._execute(update_data['pre_install'], package_dir)
-            else:
+            elif not error_notified:
+                error_notified = True
                 client.log(iot.LOGERROR, "Data Read Failed!")
+                client.event_publish("OTA: Failed to Read Update Data!")
 
             # 5. Run Install
             if status in (iot.STATUS_SUCCESS, iot.STATUS_NOT_FOUND):
                 client.log(iot.LOGINFO, "Pre-Install Complete!")
+                client.event_publish("OTA: Pre-Install Successful!")
 
                 client.log(iot.LOGINFO, "Running Install...")
                 client.event_publish("OTA: Running Install...")
                 client.alarm_publish(ALARM_NAME, ALARM_INSTALL)
                 status = self._execute(update_data['install'], package_dir)
-            else:
+            elif not error_notified:
+                error_notified = True
                 client.log(iot.LOGERROR, "Pre-Install Failed!")
+                client.event_publish("OTA: Pre-Install Failed!")
 
             # 6. Run Post-Install
             if status == iot.STATUS_SUCCESS:
                 client.log(iot.LOGINFO, "Install Complete!")
+                client.event_publish("OTA: Install Successful!")
 
                 client.log(iot.LOGINFO, "Running Post-Install...")
                 client.event_publish("OTA: Running Post-Install...")
                 client.alarm_publish(ALARM_NAME, ALARM_POST_INSTALL)
                 status = self._execute(update_data['post_install'], package_dir)
-            else:
+            elif not error_notified:
+                error_notified = True
                 client.log(iot.LOGERROR, "Install Failed!")
+                client.event_publish("OTA: Install Failed!")
 
             if status in (iot.STATUS_SUCCESS, iot.STATUS_NOT_FOUND):
                 client.log(iot.LOGINFO, "Post-Install Complete!")
+                client.event_publish("OTA: Post-Install Successful!")
                 status = iot.STATUS_SUCCESS
-            else:
+            elif not error_notified:
+                error_notified = True
                 client.log(iot.LOGERROR, "Post-Install Failed!")
+                client.event_publish("OTA: Post-Install Failed!")
 
         # 7. Report Final Status
         if status == iot.STATUS_SUCCESS:
