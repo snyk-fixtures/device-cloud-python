@@ -200,9 +200,9 @@ class Handler(object):
                 self.mqtt.tls_set(self.config.ca_bundle_file,
                                   tls_version=ssl.PROTOCOL_TLSv1_2)
 
-            # Start an insecure connection if not validiate_cloud_cert
-            self.mqtt.tls_insecure_set(self.config.validiate_cloud_cert
-                                       is False)
+                # Start an insecure connection if not validiate_cloud_cert
+                self.mqtt.tls_insecure_set(self.config.validiate_cloud_cert
+                                           is False)
 
             # Start MQTT connection
             try:
@@ -765,7 +765,8 @@ class Handler(object):
         Callback when MQTT Client disconnects from Cloud
         """
 
-        self.logger.info("MQTT disconnected %d", rc)
+        self.logger.info("MQTT disconnected %d %s", rc,
+                         mqttlib.connack_string(rc))
         self.state = constants.STATE_DISCONNECTED
 
         cur_thread = threading.current_thread()
