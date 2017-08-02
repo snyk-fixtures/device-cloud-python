@@ -5,6 +5,7 @@ import os
 import unittest
 from binascii import crc32
 import mock
+import re
 
 from time import sleep
 
@@ -948,3 +949,276 @@ class HandlePublishAllTypes(unittest.TestCase):
         self.client.handler.state = hdcpython.constants.STATE_DISCONNECTED
         if self.client.handler.main_thread:
             self.client.handler.main_thread.join()
+
+class OTAExecute(unittest.TestCase):
+    @mock.patch("os.path.isdir")
+    @mock.patch("os.system")
+    def runTest(self, mock_system, mock_isdir):
+        test_cmd = "echo 'Hello'"
+        mock_system.return_value = 0
+
+        self.ota = hdcpython.ota_handler.OTAHandler();
+        result = self.ota._execute(test_cmd)
+
+        assert result == hdcpython.STATUS_SUCCESS
+        mock_system.assert_called_once_with(test_cmd)
+
+class OTAExecuteBadCommand(unittest.TestCase):
+    @mock.patch("os.path.isdir")
+    @mock.patch("os.system")
+    def runTest(self, mock_system, mock_isdir):
+        test_cmd = "eacho 'Hello'"
+        mock_system.return_value = 127
+
+        self.ota = hdcpython.ota_handler.OTAHandler();
+        result = self.ota._execute(test_cmd)
+
+        assert result == hdcpython.STATUS_EXECUTION_ERROR
+        mock_system.assert_called_once_with(test_cmd)
+
+class OTAExecuteNoCommand(unittest.TestCase):
+    @mock.patch("os.path.isdir")
+    @mock.patch("os.system")
+    def runTest(self, mock_system, mock_isdir):
+        test_cmd = None
+        mock_system.return_value = -1
+
+        self.ota = hdcpython.ota_handler.OTAHandler();
+        result = self.ota._execute(test_cmd)
+
+        assert result == hdcpython.STATUS_NOT_FOUND
+        mock_system.assert_not_called()
+
+class OTAExecuteBadWorkingDir(unittest.TestCase):
+    @mock.patch("os.path.isdir")
+    @mock.patch("os.system")
+    def runTest(self, mock_system, mock_isdir):
+        mock_system.return_value = 0
+        mock_isdir.return_value = False
+        test_cmd = "echo 'Hello'"
+
+        self.ota = hdcpython.ota_handler.OTAHandler();
+        result = self.ota._execute(test_cmd, ".....not_a_real_dir.....")
+
+        assert result == hdcpython.STATUS_SUCCESS
+        mock_system.assert_called_once_with(test_cmd)
+
+class OTAExecuteWorkingDir(unittest.TestCase):
+    @mock.patch("os.path.isdir")
+    @mock.patch("os.system")
+    def runTest(self, mock_system, mock_isdir):
+        mock_system.return_value = 0
+        mock_isdir.return_value = True
+
+        self.ota = hdcpython.ota_handler.OTAHandler();
+        result = self.ota._execute("echo 'Hello'", "../")
+
+        full_cmd = mock_system.call_args[0][0]
+        pat = re.compile("cd \\.\\.\\/(;|( &)) echo 'Hello'")
+        assert pat.match(full_cmd) != None
+        assert result == hdcpython.STATUS_SUCCESS
+        mock_system.assert_called_once()
+
+class OTAPackageDownload(unittest.TestCase):
+    @mock.patch("hdcpython.client.Client.file_download")
+    def runTest(self, mock_download):
+        mock_download.return_value = hdcpython.STATUS_SUCCESS
+
+        self.client = hdcpython.Client("testing-client")
+        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.ota._runtime_dir = ""
+        result = self.ota._package_download(self.client, "fake.tar.gz")
+        assert result == hdcpython.STATUS_SUCCESS
+
+class OTAPackageDownloadNoClient(unittest.TestCase):
+    @mock.patch("hdcpython.client.Client.file_download")
+    def runTest(self, mock_download):
+        mock_download.return_value = hdcpython.STATUS_SUCCESS
+
+        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.ota._runtime_dir = ""
+        result = self.ota._package_download(None, "fake.tar.gz")
+        assert result == hdcpython.STATUS_BAD_PARAMETER
+
+class OTAPackageDownloadBadFile(unittest.TestCase):
+    @mock.patch("hdcpython.client.Client.file_download")
+    def runTest(self, mock_download):
+        mock_download.return_value = hdcpython.STATUS_FAILURE
+
+        self.client = hdcpython.Client("testing-client")
+        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.ota._runtime_dir = ""
+        result = self.ota._package_download(self.client, "fake.tar.gz")
+        assert result == hdcpython.STATUS_FAILURE
+
+class OTAPackageUnzipOther(unittest.TestCase):
+    @mock.patch("os.path.isfile")
+    def runTest(self, mock_isfile):
+        mock_isfile.return_value = True
+
+        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.ota._runtime_dir = ""
+
+        result = self.ota._package_unzip("aaaa.rar", "bbbb")
+        assert result == hdcpython.STATUS_NOT_SUPPORTED
+
+class OTAPackageUnzipTar(unittest.TestCase):
+    @mock.patch("os.path.isfile")
+    @mock.patch("tarfile.open")
+    @mock.patch("tarfile.TarFile.extractall")
+    @mock.patch("tarfile.TarFile.close")
+    def runTest(self, mock_close, mock_extract, mock_open, mock_isfile):
+        mock_isfile.return_value = True
+
+        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.ota._runtime_dir = ""
+
+        result = self.ota._package_unzip("aaaa.tar.gz", "bbbb")
+        assert result == hdcpython.STATUS_SUCCESS
+
+class OTAPackageUnzipZip(unittest.TestCase):
+    @mock.patch("os.path.isfile")
+    @mock.patch("zipfile.ZipFile")
+    @mock.patch("zipfile.ZipFile.extractall")
+    @mock.patch("zipfile.ZipFile.close")
+    def runTest(self, mock_close, mock_extract, mock_open, mock_isfile):
+        mock_isfile.return_value = True
+
+        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.ota._runtime_dir = ""
+
+        result = self.ota._package_unzip("aaaa.zip", "bbbb")
+        assert result == hdcpython.STATUS_SUCCESS
+
+class OTAPackageUnzipOpenException(unittest.TestCase):
+    @mock.patch("os.path.isfile")
+    @mock.patch("tarfile.open")
+    @mock.patch("tarfile.TarFile")
+    def runTest(self, mock_tar, mock_open, mock_isfile):
+        mock_isfile.return_value = True
+
+        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.ota._runtime_dir = ""
+
+        mock_open.side_effect = IOError
+        result = self.ota._package_unzip("aaaa.tar.gz", "bbbb")
+        assert result == hdcpython.STATUS_FILE_OPEN_FAILED
+
+        mock_open.side_effect = OSError
+        result = self.ota._package_unzip("aaaa.tar.gz", "bbbb")
+        assert result == hdcpython.STATUS_FILE_OPEN_FAILED
+
+class OTAPackageUnzipExtractException(unittest.TestCase):
+    @mock.patch("os.path.isfile")
+    @mock.patch("tarfile.open")
+    @mock.patch("tarfile.TarFile")
+    def runTest(self, mock_tar, mock_open, mock_isfile):
+        mock_isfile.return_value = True
+        mock_open.return_value = mock_tar
+
+        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.ota._runtime_dir = ""
+
+        mock_tar.extractall.side_effect = IOError
+        result = self.ota._package_unzip("aaaa.tar.gz", "bbbb")
+        assert result == hdcpython.STATUS_IO_ERROR
+
+        mock_tar.extractall.side_effect = OSError
+        result = self.ota._package_unzip("aaaa.tar.gz", "bbbb")
+        assert result == hdcpython.STATUS_IO_ERROR
+
+class OTAReadUpdateJSON(unittest.TestCase):
+    @mock.patch("json.load")
+    @mock.patch("os.path.isfile")
+    @mock.patch("__builtin__.open")
+    def runTest(self, mock_open, mock_isfile, mock_json):
+        mock_isfile.return_value = True
+
+        self.ota = hdcpython.ota_handler.OTAHandler()
+        result = self.ota._read_update_json("fake")
+        assert result[0] == hdcpython.STATUS_SUCCESS
+        assert result[1] != None
+
+class OTAReadUpdateJSONBadFormat(unittest.TestCase):
+    @mock.patch("json.load")
+    @mock.patch("os.path.isfile")
+    @mock.patch("__builtin__.open")
+    def runTest(self, mock_open, mock_isfile, mock_json):
+        mock_json.side_effect = ValueError
+        mock_isfile.return_value = True
+
+        self.ota = hdcpython.ota_handler.OTAHandler()
+        result = self.ota._read_update_json("fake")
+        assert result[0] == hdcpython.STATUS_IO_ERROR
+        assert result[1] == None
+
+class OTAReadUpdateJSONNonExistant(unittest.TestCase):
+    @mock.patch("os.path.isfile")
+    def runTest(self, mock_isfile):
+        mock_isfile.return_value = False
+
+        self.ota = hdcpython.ota_handler.OTAHandler()
+        result = self.ota._read_update_json("")
+        assert result[0] == hdcpython.STATUS_BAD_PARAMETER
+        assert result[1] == None
+
+class OTAUpdateCallback(unittest.TestCase):
+    @mock.patch("os.path.isfile")
+    @mock.patch("__builtin__.open")
+    @mock.patch("threading.Thread.start")
+    def runTest(self, mock_start, mock_open, mock_isfile):
+        mock_isfile.return_value = False
+
+        self.client = hdcpython.Client("testing-client")
+        self.ota = hdcpython.ota_handler.OTAHandler()
+
+        result = self.ota.update_callback(self.client, {}, ["aaaa"])
+        assert result[0] == hdcpython.STATUS_SUCCESS
+
+class OTAUpdateCallbackInProgress(unittest.TestCase):
+    @mock.patch("os.path.isfile")
+    @mock.patch("__builtin__.open")
+    @mock.patch("threading.Thread.start")
+    def runTest(self, mock_start, mock_open, mock_isfile):
+        mock_isfile.return_value = True
+
+        self.client = hdcpython.Client("testing-client")
+        self.ota = hdcpython.ota_handler.OTAHandler()
+
+        result = self.ota.update_callback(self.client, {}, ["aaaa"])
+        assert result[0] == hdcpython.STATUS_FAILURE
+
+class OTAUpdateSoftware(unittest.TestCase):
+
+    @mock.patch("hdcpython.Client")
+    def setUp(self, mock_client):
+        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.client = hdcpython.Client("testing-client")
+        self.params = {"package": "fake"}
+        self.update_data = {"pre_install": "pre", \
+                            "install": "install", \
+                            "post_install": "post", \
+                            "err_action": "err"}
+    
+    @mock.patch("os.remove")
+    @mock.patch("os.path")
+    @mock.patch("hdcpython.ota_handler.OTAHandler._execute")
+    @mock.patch("hdcpython.ota_handler.OTAHandler._read_update_json")
+    @mock.patch("hdcpython.ota_handler.OTAHandler._package_unzip")
+    @mock.patch("hdcpython.ota_handler.OTAHandler._package_download")
+    def runTest(self, mock_dl, mock_unzip, mock_read, mock_execute, mock_path, mock_remove):
+        mock_path.isdir.return_value = False
+        mock_path.isfile.return_value = False
+        mock_dl.return_value = hdcpython.STATUS_SUCCESS
+        mock_unzip.return_value = hdcpython.STATUS_SUCCESS
+        mock_read.return_value = (hdcpython.STATUS_SUCCESS, self.update_data)
+        mock_execute.return_value = hdcpython.STATUS_SUCCESS
+
+        self.ota._update_software(self.client, self.params)
+
+        mock_dl.assert_called_once()
+        mock_unzip.assert_called_once()
+        mock_read.assert_called_once()
+        assert mock_execute.call_count == 3
+        assert mock.call(hdcpython.LOGERROR, "OTA Failed!") not in self.client.log.call_args_list
+        assert mock.call(hdcpython.LOGINFO, "OTA Successful!") in self.client.log.call_args_list
