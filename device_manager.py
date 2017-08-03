@@ -172,6 +172,7 @@ def file_download(client, params, user_data):
     """
     file_name = None
     file_dest = None
+    result = None
     if params:
         file_name = params.get("file_name")
         file_dest = params.get("file_dest")
@@ -182,13 +183,26 @@ def file_download(client, params, user_data):
         if not file_dest.startswith('~'):
             if not file_dest.startswith('/'):
                 file_dest = abspath(os.path.join(user_data[0], file_dest))
-            client.log(iot.LOGINFO, "Downloading")
-            result = client.file_download(file_name, file_dest, blocking=True, \
-                                          timeout=15)
-            if result == iot.STATUS_SUCCESS:
-                message = ""
-            else:
-                message = iot.status_string(result)
+
+            try:
+                if not os.path.isdir(file_dest):
+                    os.makedirs(file_dest)
+            except (OSError, IOError) as e:
+                result = iot.STATUS_IO_ERROR
+                message = ("Destination directory does not exist and could not "
+                           "be created!")
+                client.log(iot.LOGERROR, message)
+                print e
+
+            if result == None:
+                client.log(iot.LOGINFO, "Downloading")
+                result = client.file_download(file_name, file_dest, \
+                                              blocking=True, timeout=15)
+                if result == iot.STATUS_SUCCESS:
+                    message = ""
+                else:
+                    message = iot.status_string(result)
+
         else:
             message = "Paths cannot use '~' to reference a home directory"
             result = iot.STATUS_BAD_PARAMETER
@@ -265,8 +279,25 @@ if __name__ == "__main__":
     config = config_load()
     runtime_dir = config.runtime_dir
 
-    if not os.path.isdir(runtime_dir):
-        os.mkdir(runtime_dir)
+    upload_dir = os.path.join(runtime_dir, "upload")
+    download_dir = os.path.join(runtime_dir, "download")
+
+    try:
+        if not os.path.isdir(runtime_dir):
+            os.mkdir(runtime_dir)
+
+        if not os.path.isdir(upload_dir):
+            os.mkdir(upload_dir)
+
+        if not os.path.isdir(download_dir):
+            os.mkdir(download_dir)
+
+    except (OSError, IOError) as e:
+        print e
+        client.log(iot.LOGERROR, ("Could not create one or more runtime "
+                                  "directories! Did you run the device manager "
+                                  "with sufficient priviliges?"))
+
 
     # Setup an OTA Handler
     ota = iot.ota.OTAHandler()

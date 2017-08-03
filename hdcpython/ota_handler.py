@@ -225,13 +225,17 @@ class OTAHandler(object):
         status = iot.STATUS_FAILURE
 
         if client:
+            out_dir = os.path.join(self._runtime_dir, "download")
+            if not os.path.isdir(out_dir):
+                os.makedirs(out_dir)
+
             out_file = os.path.join(self._runtime_dir, "download", file_name)
             if os.path.isfile(out_file):
                 os.remove(out_file)
 
             if file_name:
-                status = client.file_download(file_name, out_file, blocking=True, \
-                                              timeout=15)
+                status = client.file_download(file_name, out_file, \
+                                              blocking=True, timeout=15)
         else:
             status = iot.STATUS_BAD_PARAMETER
 
