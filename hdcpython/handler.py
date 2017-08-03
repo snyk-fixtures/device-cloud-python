@@ -883,25 +883,19 @@ class Handler(object):
                         checksum = crc32(chunk, checksum)
                 checksum = checksum & 0xffffffff
 
-                if checksum != 0:
-                    # File Transfer object for tracking progress
-                    transfer = defs.FileTransfer(upload_name, file_path,
-                                                 self.client,
-                                                 callback=callback)
+                # File Transfer object for tracking progress
+                transfer = defs.FileTransfer(upload_name, file_path,
+                                             self.client,
+                                             callback=callback)
 
-                    # Generate and send message to request file transfer
-                    command = tr50.create_file_put(self.config.key, upload_name,
-                                                   crc32=checksum)
-                    message_desc = "Upload {} as {}".format(file_name,
-                                                            upload_name)
-                    message = defs.OutMessage(command, message_desc,
-                                              data=transfer)
-                    status = self.send(message)
-                else:
-                    self.logger.error("Upload request failed. Failed to "
-                                      "retrieve checksum for \"%s\".",
-                                      file_name)
-                    status = constants.STATUS_FAILURE
+                # Generate and send message to request file transfer
+                command = tr50.create_file_put(self.config.key, upload_name,
+                                               crc32=checksum)
+                message_desc = "Upload {} as {}".format(file_name,
+                                                        upload_name)
+                message = defs.OutMessage(command, message_desc,
+                                          data=transfer)
+                status = self.send(message)
 
                 # If blocking is set, wait for result of file transfer
                 if status == constants.STATUS_SUCCESS and blocking:
