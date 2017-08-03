@@ -141,6 +141,16 @@ class Handler(object):
 
         return status
 
+    def action_progress_update(self, request_id, message):
+        """
+        Update message for action (method) request in Cloud
+        """
+
+        cmd = tr50.create_mailbox_update(request_id, message)
+        message = defs.OutMessage(cmd, "Update Action Progress "
+                                  "{} \"{}\"".format(request_id, message))
+        return self.send(message)
+
     def action_register_callback(self, action_name, callback_function,
                                  user_data=None):
         """

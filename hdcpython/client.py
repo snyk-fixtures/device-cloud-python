@@ -160,6 +160,25 @@ class Client(object):
 
         return STATUS_SUCCESS
 
+    def action_progress_update(self, request_id, message):
+        """
+        Update message for an action request from the Cloud
+
+        Parameters:
+          request_id                   If action_request.request_id was
+                                       retreived from an action callback, it can
+                                       be used here
+          message                      New message for Cloud request
+
+        Returns:
+          STATUS_SUCCESS               Sent progress update for action request
+          STATUS_FAILURE               Failed to update progress of action
+                                       request
+        """
+
+        return self.handler.action_progress_update(request_id, message)
+
+
     def action_deregister(self, action_name):
         """
         Dissociates a Cloud action action from any command or callback
@@ -184,9 +203,12 @@ class Client(object):
           callback_function            function to execute when triggered by
                                        action. Callback function must take
                                        parameters of the form (client,
-                                       parameters, user_data). The callback
-                                       function must also return status_code, or
-                                       (status_code, status_message)
+                                       parameters, user_data[, action_request])
+                                       where action_request is optional, but
+                                       contains the request_id for later use.
+                                       The callback function must also return
+                                       status_code, or (status_code,
+                                       status_message) in a tuple.
 
         Returns:
           STATUS_EXISTS                Action with that name already exists
