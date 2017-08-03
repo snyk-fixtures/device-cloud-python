@@ -6,7 +6,7 @@
 
 ## Using the Root Certificates File
  **This file is intended for use on Windows systems where there is no
- ca-certificates.crt (or equivalent) file **
+ ca-certificates.crt (or equivalent) file**
 
  To use HDC over SSL/TLS on Windows, a certificate file is needed as there is
  not one that is available by default. `cacert.pem` is a root certificate store
@@ -14,12 +14,22 @@
  support. In your `iot-connect.cfg` file, simply specify `ca_bundle_file` as the path to cacert.pem`. You can then use the HDC agent via SSL by changing the
  connection port to the SSL port.
 
-## Using the HDC Device Manager with Systemd
+## Running the HDC Device Manager as a Service
+Prior to using either the systemd or init.d files to setup the device manager
+as a service (as described below), you must first make sure that you have the
+dependencies installed in the correct place. These modules should be in the
+system Python packages folder, not your local one. To do this, you can run:
+`sudo pip install --target=/usr/lib/python2.7/dist-packages/ /path/to/wr-iot-python`
+
+### Using the HDC Device Manager with Systemd
  `hdc-dev-mgr.service` is an example systemd unit file that will start the HDC
  Python Device Manager at boot and restart it if it crashes. To use it:
  
  1. Update the paths in the file to point to your installation (for the most
-    part, just change the parts that say `/path/to/`)
+    part, just change the parts that say `/path/to/`). *Note: if you are using
+    /var/lib/iot as your runtime directory, you will need to run the device
+    manager as the `iot` user in order to have write permissions To do this, 
+    add `User=iot` to the `[Service]` section of `hdc-dev-mgr.service`.*
  2. Copy the file to the systemd unit file directory. On Ubuntu, this is
     `/etc/systemd/system/`. You will need root access to do this.
  3. Enable the service unit in systemd by running
@@ -29,7 +39,7 @@
  the service. `systemctl status` will indicate if the service is running or not.
  In addition, the service will run automatically when your system starts.
 
-## Using the HDC Device Manager with init.d
+### Using the HDC Device Manager with init.d
  `hdc-dev-mgr.sh` is an example init.d script that will start the HDC Python
  Device Manager at boot. To use it:
  
