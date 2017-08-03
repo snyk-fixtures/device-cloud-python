@@ -40,7 +40,8 @@ class Client(object):
           app_id                       ID of application that will be used to
                                        generate a key. Also used as part of
                                        default configuration file
-                                       [APP_ID]-connect.cfg
+                                       {APP_ID}-connect.cfg. Maximum 27
+                                       characters.
           kwargs                       Optional dict to override any
                                        configuration values. These can also be
                                        overridden individually later.
@@ -130,6 +131,13 @@ class Client(object):
         else:
             print "app_id or device_id not set. Required for key."
             raise KeyError("app_id or device_id not set. Required for key.")
+
+        if len(self.config.key) > 64:
+            print("Key exceeds 64 bytes. Please specify an app_id under {} "
+                  "bytes in length".format(64-len(self.config.device_id)))
+            raise KeyError("Key exceeds 64 bytes. Please specify an app_id "
+                           "under {} bytes in length".format(
+                               64-len(self.config.device_id)))
 
         # Final precedence config defaults
         config_defaults = {
