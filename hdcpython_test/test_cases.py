@@ -1189,7 +1189,10 @@ class OTAUpdateCallbackInProgress(unittest.TestCase):
         assert result[0] == hdcpython.STATUS_FAILURE
 
 class OTAUpdateSoftware(unittest.TestCase):
-
+    """
+    Test "suite" that will run success and failure cases on the main
+    "_update_software" method.
+    """
     @mock.patch("hdcpython.Client")
     def setUp(self, mock_client):
         self.ota = hdcpython.ota_handler.OTAHandler()
@@ -1207,18 +1210,164 @@ class OTAUpdateSoftware(unittest.TestCase):
     @mock.patch("hdcpython.ota_handler.OTAHandler._package_unzip")
     @mock.patch("hdcpython.ota_handler.OTAHandler._package_download")
     def runTest(self, mock_dl, mock_unzip, mock_read, mock_execute, mock_path, mock_remove):
-        mock_path.isdir.return_value = False
-        mock_path.isfile.return_value = False
-        mock_dl.return_value = hdcpython.STATUS_SUCCESS
-        mock_unzip.return_value = hdcpython.STATUS_SUCCESS
-        mock_read.return_value = (hdcpython.STATUS_SUCCESS, self.update_data)
-        mock_execute.return_value = hdcpython.STATUS_SUCCESS
+        # Store mocks for tests
+        self.mock_dl = mock_dl
+        self.mock_unzip = mock_unzip
+        self.mock_read = mock_read
+        self.mock_execute = mock_execute
+        self.mock_path = mock_path
+        self.mock_remove = mock_remove
+
+        # Run Tests
+        self.successCase()
+        self.downloadFailCase()
+        self.unzipFailCase()
+        self.dataReadFailCase()
+        self.preInstallFailCase()
+        self.installFailCase()
+        self.postInstallFailCase()
+        self.preInstallNoneCase()
+        self.postInstallNoneCase()
+
+    def resetMocks(self):
+        self.mock_dl.reset_mock()
+        self.mock_unzip.reset_mock()
+        self.mock_read.reset_mock()
+        self.mock_execute.reset_mock()
+        self.mock_path.reset_mock()
+        self.mock_remove.reset_mock()
+        self.client.reset_mock()
+
+        self.mock_execute.side_effect = None
+
+        self.mock_path.isdir.return_value = False
+        self.mock_path.isfile.return_value = False
+        self.mock_dl.return_value = hdcpython.STATUS_SUCCESS
+        self.mock_unzip.return_value = hdcpython.STATUS_SUCCESS
+        self.mock_read.return_value = (hdcpython.STATUS_SUCCESS, self.update_data)
+        self.mock_execute.return_value = hdcpython.STATUS_SUCCESS
+
+    def successCase(self):
+        self.resetMocks()
 
         self.ota._update_software(self.client, self.params)
 
-        mock_dl.assert_called_once()
-        mock_unzip.assert_called_once()
-        mock_read.assert_called_once()
-        assert mock_execute.call_count == 3
+        self.mock_dl.assert_called_once()
+        self.mock_unzip.assert_called_once()
+        self.mock_read.assert_called_once()
+        assert self.mock_execute.call_count == 3
         assert mock.call(hdcpython.LOGERROR, "OTA Failed!") not in self.client.log.call_args_list
         assert mock.call(hdcpython.LOGINFO, "OTA Successful!") in self.client.log.call_args_list
+    
+    def downloadFailCase(self):
+        self.resetMocks()
+        self.mock_dl.return_value = hdcpython.STATUS_FAILURE
+
+        self.ota._update_software(self.client, self.params)
+
+        self.mock_dl.assert_called_once()
+        self.mock_unzip.assert_not_called()
+        self.mock_read.assert_not_called()
+        assert self.mock_execute.call_count == 0
+        assert mock.call(hdcpython.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
+        assert mock.call(hdcpython.LOGERROR, "Download Failed!") in self.client.log.call_args_list
+        assert mock.call(hdcpython.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
+
+    def unzipFailCase(self):
+        self.resetMocks()
+        self.mock_unzip.return_value = hdcpython.STATUS_IO_ERROR
+
+        self.ota._update_software(self.client, self.params)
+
+        self.mock_dl.assert_called_once()
+        self.mock_unzip.assert_called_once()
+        self.mock_read.assert_not_called()
+        assert self.mock_execute.call_count == 0
+        assert mock.call(hdcpython.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
+        assert mock.call(hdcpython.LOGERROR, "Unzip Failed!") in self.client.log.call_args_list
+        assert mock.call(hdcpython.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
+        
+    def dataReadFailCase(self):
+        self.resetMocks()
+        self.mock_read.return_value = (hdcpython.STATUS_FAILURE, "")
+
+        self.ota._update_software(self.client, self.params)
+
+        self.mock_dl.assert_called_once()
+        self.mock_unzip.assert_called_once()
+        self.mock_read.assert_called_once()
+        assert self.mock_execute.call_count == 0
+        assert mock.call(hdcpython.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
+        assert mock.call(hdcpython.LOGERROR, "Data Read Failed!") in self.client.log.call_args_list
+        assert mock.call(hdcpython.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
+        
+    def preInstallFailCase(self):
+        self.resetMocks()
+        self.mock_execute.return_value = None
+        self.mock_execute.side_effect = [hdcpython.STATUS_EXECUTION_ERROR, hdcpython.STATUS_SUCCESS, hdcpython.STATUS_SUCCESS]
+
+        self.ota._update_software(self.client, self.params)
+
+        self.mock_dl.assert_called_once()
+        self.mock_unzip.assert_called_once()
+        self.mock_read.assert_called_once()
+        assert self.mock_execute.call_count == 1
+        assert mock.call(hdcpython.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
+        assert mock.call(hdcpython.LOGERROR, "Pre-Install Failed!") in self.client.log.call_args_list
+        assert mock.call(hdcpython.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
+        
+    def installFailCase(self):
+        self.resetMocks()
+        self.mock_execute.side_effect = [hdcpython.STATUS_SUCCESS, hdcpython.STATUS_EXECUTION_ERROR, hdcpython.STATUS_SUCCESS]
+
+        self.ota._update_software(self.client, self.params)
+
+        self.mock_dl.assert_called_once()
+        self.mock_unzip.assert_called_once()
+        self.mock_read.assert_called_once()
+        assert self.mock_execute.call_count == 2
+        assert mock.call(hdcpython.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
+        assert mock.call(hdcpython.LOGERROR, "Install Failed!") in self.client.log.call_args_list
+        assert mock.call(hdcpython.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
+        
+    def postInstallFailCase(self):
+        self.resetMocks()
+        self.mock_execute.side_effect = [hdcpython.STATUS_SUCCESS, hdcpython.STATUS_SUCCESS, hdcpython.STATUS_EXECUTION_ERROR]
+
+        self.ota._update_software(self.client, self.params)
+
+        self.mock_dl.assert_called_once()
+        self.mock_unzip.assert_called_once()
+        self.mock_read.assert_called_once()
+        assert self.mock_execute.call_count == 3
+        assert mock.call(hdcpython.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
+        assert mock.call(hdcpython.LOGERROR, "Post-Install Failed!") in self.client.log.call_args_list
+        assert mock.call(hdcpython.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
+        
+    def preInstallNoneCase(self):
+        self.resetMocks()
+        self.mock_execute.side_effect = [hdcpython.STATUS_NOT_FOUND, hdcpython.STATUS_SUCCESS, hdcpython.STATUS_SUCCESS]
+
+        self.ota._update_software(self.client, self.params)
+
+        self.mock_dl.assert_called_once()
+        self.mock_unzip.assert_called_once()
+        self.mock_read.assert_called_once()
+        assert self.mock_execute.call_count == 3
+        assert mock.call(hdcpython.LOGINFO, "OTA Successful!") in self.client.log.call_args_list
+        assert mock.call(hdcpython.LOGERROR, "Pre-Install Failed!") not in self.client.log.call_args_list
+        assert mock.call(hdcpython.LOGERROR, "OTA Failed!") not in self.client.log.call_args_list
+
+    def postInstallNoneCase(self):
+        self.resetMocks()
+        self.mock_execute.side_effect = [hdcpython.STATUS_SUCCESS, hdcpython.STATUS_SUCCESS, hdcpython.STATUS_NOT_FOUND]
+
+        self.ota._update_software(self.client, self.params)
+
+        self.mock_dl.assert_called_once()
+        self.mock_unzip.assert_called_once()
+        self.mock_read.assert_called_once()
+        assert self.mock_execute.call_count == 3
+        assert mock.call(hdcpython.LOGINFO, "OTA Successful!") in self.client.log.call_args_list
+        assert mock.call(hdcpython.LOGERROR, "Post-Install Failed!") not in self.client.log.call_args_list
+        assert mock.call(hdcpython.LOGERROR, "OTA Failed!") not in self.client.log.call_args_list
