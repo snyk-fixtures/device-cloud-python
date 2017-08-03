@@ -224,7 +224,7 @@ def file_upload(client, params, user_data):
         if "dest_name" in params:
             dest_name = params.get("dest_name")
         else:
-            dest_name = file_name
+            dest_name = None
 
     if file_name:
         if not file_name.startswith('~'):
