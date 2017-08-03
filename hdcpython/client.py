@@ -9,6 +9,7 @@ import uuid
 from hdcpython import defs
 from hdcpython.constants import DEFAULT_CONFIG_DIR
 from hdcpython.constants import DEFAULT_CONFIG_FILE
+from hdcpython.constants import DEFAULT_KEEP_ALIVE
 from hdcpython.constants import DEFAULT_LOOP_TIME
 from hdcpython.constants import DEFAULT_MESSAGE_TIMEOUT
 from hdcpython.constants import DEFAULT_THREAD_COUNT
@@ -141,6 +142,7 @@ class Client(object):
 
         # Final precedence config defaults
         config_defaults = {
+            "keep_alive":DEFAULT_KEEP_ALIVE,
             "loop_time":DEFAULT_LOOP_TIME,
             "message_timeout":DEFAULT_MESSAGE_TIMEOUT,
             "thread_count":DEFAULT_THREAD_COUNT
@@ -371,6 +373,17 @@ class Client(object):
 
         return self.handler.request_upload(file_path, upload_name, blocking,
                                            callback, timeout)
+
+    def is_alive(self):
+        """
+        Return whether or not the Client has exited
+
+        Returns:
+          True                         Client is running
+          False                        Client is not running
+        """
+
+        return not self.handler.to_quit
 
     def is_connected(self):
         """

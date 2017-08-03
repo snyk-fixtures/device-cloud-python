@@ -70,7 +70,12 @@ So far supports:
 - pytest implementation start. Run `pytest -v .` to run unit tests.
   `pytest --cov-report=html --cov=hdcpython -v .` Will generate a directory
   containing an HTML report of coverage.
-- Websockets (setting the port to 443 will use websockets to send MQTT packets)
+- Websockets (setting the port to 443 will use websockets to send MQTT packets.
+  This does not work on Windows)
+- Connection loss handling (Publishes made while offline will be cached and sent
+  when connection is re-established. Now has a keep_alive configuration for how
+  long the Client should remain disconnected before exiting, 0 is forever.)
+
 
 
 Not yet supported:

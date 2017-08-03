@@ -15,6 +15,7 @@ from hdcpython.handler import status_string
 
 from hdcpython.constants import DEFAULT_CONFIG_DIR
 from hdcpython.constants import DEFAULT_CONFIG_FILE
+from hdcpython.constants import DEFAULT_KEEP_ALIVE
 from hdcpython.constants import DEFAULT_LOOP_TIME
 from hdcpython.constants import DEFAULT_MESSAGE_TIMEOUT
 from hdcpython.constants import DEFAULT_THREAD_COUNT
@@ -47,6 +48,7 @@ __all__ = ["Client",
            "ota",
            "DEFAULT_CONFIG_DIR",
            "DEFAULT_CONFIG_FILE",
+           "DEFAULT_KEEP_ALIVE",
            "DEFAULT_LOOP_TIME",
            "DEFAULT_MESSAGE_TIMEOUT",
            "DEFAULT_RUNTIME_DIR",

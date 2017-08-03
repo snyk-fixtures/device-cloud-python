@@ -263,6 +263,7 @@ class OutTracker(dict):
 
     def __init__(self):
         super(OutTracker, self).__init__()
+        self.mid_tracker = {}
 
     def add_message(self, message):
         """
@@ -270,6 +271,13 @@ class OutTracker(dict):
         """
 
         self[message.out_id] = message
+
+    def add_mid(self, mid, topic):
+        """
+        Add an MID with the topic it will send on
+        """
+
+        self.mid_tracker[mid] = topic
 
     def pop_message(self, topic_num, cmd_num):
         """
@@ -280,9 +288,16 @@ class OutTracker(dict):
         try:
             message = self.pop(out_id)
         except KeyError:
-            raise KeyError("Message {} not found. May have already timed "
-                           "out".format(out_id))
+            raise KeyError("Message {} not found. May be a duplicate reply or "
+                           "have already timed out".format(out_id))
         return message
+
+    def pop_mid(self, mid):
+        """
+        Retrieve the topic an MID is sending on
+        """
+
+        return self.mid_tracker.pop(mid)
 
     def time_out(self, current_time, max_time):
         """

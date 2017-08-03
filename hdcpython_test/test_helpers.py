@@ -46,7 +46,6 @@ def init_mock_mqtt():
     mock_mqtt.on_connect = None
     mock_mqtt.on_connect_exec = False
     mock_mqtt.on_disconnect = None
-    mock_mqtt.on_disconnect_exec = False
     mock_mqtt.on_message = None
     mock_mqtt.on_connect_rc = 0
     mock_mqtt.on_disconnect_rc = 0
@@ -57,7 +56,8 @@ def init_mock_mqtt():
         return 0
 
     def mqtt_disconnect():
-        mock_mqtt.on_disconnect_exec = True
+        if mock_mqtt.on_disconnect:
+            mock_mqtt.on_disconnect(None, None, mock_mqtt.on_disconnect_rc)
         return 0
 
     def mqtt_loop(timeout=1.0, max_packets=1):
@@ -65,9 +65,6 @@ def init_mock_mqtt():
             mock_mqtt.on_connect(mock_mqtt, None, None,
                                  mock_mqtt.on_connect_rc)
             mock_mqtt.on_connect_exec = False
-        elif mock_mqtt.on_disconnect_exec:
-            mock_mqtt.on_disconnect(None, None, mock_mqtt.on_disconnect_rc)
-            mock_mqtt.on_disconnect_exec = False
         elif not mock_mqtt.messages.empty():
             mock_mqtt.on_message(mock_mqtt, None, mock_mqtt.messages.get())
         else:

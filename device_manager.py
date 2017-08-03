@@ -346,7 +346,7 @@ if __name__ == "__main__":
     client.attribute_publish("architecture", platform.machine())
     client.attribute_publish("hostname", platform.node())
 
-    while running and client.is_connected():
+    while running and client.is_alive():
         # Wrap sleep with an exception handler to fix SIGINT handling on Windows
         try:
             sleep(1)

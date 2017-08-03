@@ -295,6 +295,7 @@ class ClientConnectFailure(unittest.TestCase):
         assert self.client.connect(timeout=5) == hdcpython.STATUS_FAILURE
         mqtt.connect.assert_called_once_with("api.notarealcloudhost.com",
                                              8883, 60)
+        assert self.client.is_alive() is False
         assert self.client.is_connected() is False
 
     def setUp(self):
@@ -303,7 +304,7 @@ class ClientConnectFailure(unittest.TestCase):
 
     def tearDown(self):
         # Ensure threads have stopped
-        self.client.handler.state = hdcpython.constants.STATE_DISCONNECTED
+        self.client.handler.to_quit = True
         if self.client.handler.main_thread:
             self.client.handler.main_thread.join()
 
@@ -341,7 +342,7 @@ class ClientConnectSuccess(unittest.TestCase):
 
     def tearDown(self):
         # Ensure threads have stopped
-        self.client.handler.state = hdcpython.constants.STATE_DISCONNECTED
+        self.client.handler.to_quit = True
         if self.client.handler.main_thread:
             self.client.handler.main_thread.join()
 
@@ -369,14 +370,22 @@ class ClientDisconnectFailure(unittest.TestCase):
         assert self.client.connect(timeout=5) == hdcpython.STATUS_SUCCESS
         mqtt.connect.assert_called_once_with("api.notarealcloudhost.com",
                                              8883, 60)
+        assert self.client.is_alive() is True
         assert self.client.is_connected() is True
         assert self.client.disconnect() == hdcpython.STATUS_SUCCESS
         mqtt.disconnect.assert_called_once()
+        assert self.client.is_alive() is False
         assert self.client.is_connected() is False
 
     def setUp(self):
         # Configuration to be 'read' from config file
         self.config_args = helpers.config_file_default()
+
+    def tearDown(self):
+        # Ensure threads have stopped
+        self.client.handler.to_quit = True
+        if self.client.handler.main_thread:
+            self.client.handler.main_thread.join()
 
 class ClientEventPublish(unittest.TestCase):
     @mock.patch("hdcpython.client.open")
@@ -486,7 +495,7 @@ class ClientFileDownloadAsyncSuccess(unittest.TestCase):
 
     def tearDown(self):
         # Ensure threads have stopped
-        self.client.handler.state = hdcpython.constants.STATE_DISCONNECTED
+        self.client.handler.to_quit = True
         if self.client.handler.main_thread:
             self.client.handler.main_thread.join()
 
@@ -568,7 +577,7 @@ class ClientFileUploadAsyncSuccess(unittest.TestCase):
 
     def tearDown(self):
         # Ensure threads have stopped
-        self.client.handler.state = hdcpython.constants.STATE_DISCONNECTED
+        self.client.handler.to_quit = True
         if self.client.handler.main_thread:
             self.client.handler.main_thread.join()
 
@@ -695,7 +704,7 @@ class ConfigReadDefaults(unittest.TestCase):
         assert self.client.config.cloud.token == "abcdefghijklm"
         assert self.client.config.config_dir == "."
         assert self.client.config.config_file == "testing-client-connect.cfg"
-        assert self.client.config.loop_time == 5
+        assert self.client.config.loop_time == 1
         assert self.client.config.message_timeout == 15
         assert self.client.config.thing_def_key is None
         assert self.client.config.thread_count == 3
@@ -849,7 +858,7 @@ class HandleActionExecCallbackSuccess(unittest.TestCase):
 
     def tearDown(self):
         # Ensure threads have stopped
-        self.client.handler.state = hdcpython.constants.STATE_DISCONNECTED
+        self.client.handler.to_quit = True
         if self.client.handler.main_thread:
             self.client.handler.main_thread.join()
 
@@ -946,7 +955,7 @@ class HandlePublishAllTypes(unittest.TestCase):
 
     def tearDown(self):
         # Ensure threads have stopped
-        self.client.handler.state = hdcpython.constants.STATE_DISCONNECTED
+        self.client.handler.to_quit = True
         if self.client.handler.main_thread:
             self.client.handler.main_thread.join()
 
@@ -1202,7 +1211,7 @@ class OTAUpdateSoftware(unittest.TestCase):
                             "install": "install", \
                             "post_install": "post", \
                             "err_action": "err"}
-    
+
     @mock.patch("os.remove")
     @mock.patch("os.path")
     @mock.patch("hdcpython.ota_handler.OTAHandler._execute")
@@ -1258,7 +1267,7 @@ class OTAUpdateSoftware(unittest.TestCase):
         assert self.mock_execute.call_count == 3
         assert mock.call(hdcpython.LOGERROR, "OTA Failed!") not in self.client.log.call_args_list
         assert mock.call(hdcpython.LOGINFO, "OTA Successful!") in self.client.log.call_args_list
-    
+
     def downloadFailCase(self):
         self.resetMocks()
         self.mock_dl.return_value = hdcpython.STATUS_FAILURE
@@ -1286,7 +1295,7 @@ class OTAUpdateSoftware(unittest.TestCase):
         assert mock.call(hdcpython.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
         assert mock.call(hdcpython.LOGERROR, "Unzip Failed!") in self.client.log.call_args_list
         assert mock.call(hdcpython.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
-        
+
     def dataReadFailCase(self):
         self.resetMocks()
         self.mock_read.return_value = (hdcpython.STATUS_FAILURE, "")
@@ -1300,7 +1309,7 @@ class OTAUpdateSoftware(unittest.TestCase):
         assert mock.call(hdcpython.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
         assert mock.call(hdcpython.LOGERROR, "Data Read Failed!") in self.client.log.call_args_list
         assert mock.call(hdcpython.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
-        
+
     def preInstallFailCase(self):
         self.resetMocks()
         self.mock_execute.return_value = None
@@ -1315,7 +1324,7 @@ class OTAUpdateSoftware(unittest.TestCase):
         assert mock.call(hdcpython.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
         assert mock.call(hdcpython.LOGERROR, "Pre-Install Failed!") in self.client.log.call_args_list
         assert mock.call(hdcpython.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
-        
+
     def installFailCase(self):
         self.resetMocks()
         self.mock_execute.side_effect = [hdcpython.STATUS_SUCCESS, hdcpython.STATUS_EXECUTION_ERROR, hdcpython.STATUS_SUCCESS]
@@ -1329,7 +1338,7 @@ class OTAUpdateSoftware(unittest.TestCase):
         assert mock.call(hdcpython.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
         assert mock.call(hdcpython.LOGERROR, "Install Failed!") in self.client.log.call_args_list
         assert mock.call(hdcpython.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
-        
+
     def postInstallFailCase(self):
         self.resetMocks()
         self.mock_execute.side_effect = [hdcpython.STATUS_SUCCESS, hdcpython.STATUS_SUCCESS, hdcpython.STATUS_EXECUTION_ERROR]
@@ -1343,7 +1352,7 @@ class OTAUpdateSoftware(unittest.TestCase):
         assert mock.call(hdcpython.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
         assert mock.call(hdcpython.LOGERROR, "Post-Install Failed!") in self.client.log.call_args_list
         assert mock.call(hdcpython.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
-        
+
     def preInstallNoneCase(self):
         self.resetMocks()
         self.mock_execute.side_effect = [hdcpython.STATUS_NOT_FOUND, hdcpython.STATUS_SUCCESS, hdcpython.STATUS_SUCCESS]

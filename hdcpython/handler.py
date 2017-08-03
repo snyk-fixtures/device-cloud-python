@@ -84,6 +84,7 @@ class Handler(object):
         self.mqtt.on_connect = self.on_connect
         self.mqtt.on_disconnect = self.on_disconnect
         self.mqtt.on_message = self.on_message
+        self.mqtt.on_publish = self.on_publish
         self.mqtt.username_pw_set(self.config.key, self.config.cloud.token)
 
         # Dict to associate action names with callback functions and any user
@@ -92,6 +93,9 @@ class Handler(object):
 
         # Connection state of the Client
         self.state = constants.STATE_DISCONNECTED
+
+        # Track last time the app was connected so keep alive can time out
+        self.last_connected = datetime.utcnow()
 
         # Lock for thread safety
         self.lock = threading.Lock()
@@ -106,6 +110,9 @@ class Handler(object):
 
         # Counter to allow every message to be sent on a unique topic
         self.topic_counter = 1
+
+        # Flag for notifying client to exit
+        self.to_quit = True
 
         # Thread trackers. Main thread for handling MQTT loop, and worker
         # threads for everything else.
@@ -192,6 +199,7 @@ class Handler(object):
         Connect to MQTT and start main thread
         """
 
+        self.to_quit = False
         status = constants.STATUS_FAILURE
         result = -1
 
@@ -245,9 +253,23 @@ class Handler(object):
         if self.state == constants.STATE_CONNECTED:
             # Connected Successfully
             status = constants.STATUS_SUCCESS
+
+            # Start worker threads if we have successfully connected
+            for _ in range(self.config.thread_count):
+                self.worker_threads.append(threading.Thread(
+                    target=self.handle_work_loop))
+            for thread in self.worker_threads:
+                thread.start()
+
+            # If a thing definition is defined in the config, switch this thing
+            # to that thing definition
+            if self.config.thing_def_key:
+                self._thing_def_change(self.config.thing_def_key)
+
         else:
             # Not connected. Stop main loop.
             self.logger.error("Failed to connect")
+            self.to_quit = True
             self.state = constants.STATE_DISCONNECTED
             if self.main_thread:
                 self.main_thread.join()
@@ -264,37 +286,28 @@ class Handler(object):
         current_time = datetime.utcnow()
         end_time = current_time + timedelta(seconds=timeout)
 
-        #TODO: to_quit flag for faster exit
-
         # Wait for pending work that has not been dealt with
+        self.logger.info("Disconnecting...")
         while ((timeout == 0 or current_time < end_time) and
                not self.work_queue.empty()):
             sleep(1)
             current_time = datetime.utcnow()
 
-        # Optionally wait for any outstanding replies. Any that timeout will be
-        # removed so that this loop can end.
-        if wait_for_replies:
+        # Optionally wait for any outstanding replies. Any that time out will
+        # be removed so that this loop can end.
+        if wait_for_replies and self.is_connected():
             self.logger.info("Waiting for replies...")
             while ((timeout == 0 or current_time < end_time) and
                    len(self.reply_tracker) != 0):
                 sleep(1)
                 current_time = datetime.utcnow()
 
-        # Disconnect MQTT and wait for main thread, which in turn waits for
-        # worker threads
-        self.logger.info("Disconnecting...")
-        self.mqtt.disconnect()
-        while ((timeout == 0 or current_time < end_time) and
-               self.state == constants.STATE_CONNECTED):
-            sleep(1)
-            current_time = datetime.utcnow()
-
-        self.state = constants.STATE_DISCONNECTED
+        self.to_quit = True
         #TODO: Kill any hanging threads
-        if self.main_thread:
-            self.main_thread.join()
-            self.main_thread = None
+        if threading.current_thread() not in self.worker_threads:
+            if self.main_thread:
+                self.main_thread.join()
+                self.main_thread = None
 
         return constants.STATUS_SUCCESS
 
@@ -529,7 +542,8 @@ class Handler(object):
                     sent_message = self.reply_tracker.pop_message(topic_num,
                                                                   command_num)
                 except KeyError as error:
-                    raise error
+                    self.logger.error(error.message)
+                    continue
                 finally:
                     self.lock.release()
                 sent_command_type = sent_message.command.get("command")
@@ -673,7 +687,7 @@ class Handler(object):
         """
 
         # Continuously loop while connected
-        while self.is_connected():
+        while not self.to_quit:
             work = None
             try:
                 work = self.work_queue.get(timeout=self.config.loop_time)
@@ -712,8 +726,28 @@ class Handler(object):
         """
 
         # Continuously loop while connected or connecting
-        while (self.state == constants.STATE_CONNECTED or
-               self.state == constants.STATE_CONNECTING):
+        while not self.to_quit:
+
+            # If disconnected, attempt to reestablish connection
+            if self.state == constants.STATE_DISCONNECTED:
+                max_time = self.config.keep_alive
+                elapsed_time = (datetime.utcnow() -
+                                self.last_connected).total_seconds()
+                if max_time == 0 or elapsed_time < max_time:
+                    try:
+                        result = self.mqtt.reconnect()
+                        if result == 0:
+                            self.logger.debug("Reconnecting...")
+                            self.state = constants.STATE_CONNECTING
+                    except Exception as e:
+                        sleep(self.config.loop_time)
+                else:
+                    self.logger.error("No connection after %d seconds, "
+                                      "exiting...",
+                                      self.config.keep_alive)
+                    self.to_quit = True
+                    break
+
             self.mqtt.loop(timeout=self.config.loop_time)
             current_time = datetime.utcnow()
 
@@ -736,6 +770,14 @@ class Handler(object):
                 work = defs.Work(constants.WORK_PUBLISH, None)
                 self.work_queue.put(work)
 
+        # Disconnect MQTT
+        self.mqtt.disconnect()
+
+        # Wait for worker threads to finish.
+        for thread in self.worker_threads:
+            thread.join()
+        self.worker_threads = []
+
         # On disconnect, show all timed out messages
         if self.no_reply:
             self.logger.error("These messages never received a reply:")
@@ -756,35 +798,19 @@ class Handler(object):
             self.state = constants.STATE_CONNECTED
         else:
             self.state = constants.STATE_DISCONNECTED
-
-        # Start worker threads if we have successfully connected
-        if self.state == constants.STATE_CONNECTED:
-            for _ in range(self.config.thread_count):
-                self.worker_threads.append(threading.Thread(
-                    target=self.handle_work_loop))
-            for thread in self.worker_threads:
-                thread.start()
-
-            # If a thing definition is defined in the config, switch this thing
-            # to that thing definition
-            if self.config.thing_def_key:
-                self._thing_def_change(self.config.thing_def_key)
+            self.last_connected = datetime.utcnow()
 
     def on_disconnect(self, mqtt, userdata, rc):
         """
         Callback when MQTT Client disconnects from Cloud
         """
 
-        self.logger.info("MQTT disconnected %d %s", rc,
-                         mqttlib.connack_string(rc))
+        if self.to_quit:
+            self.logger.info("MQTT disconnected")
+        else:
+            self.logger.error("MQTT connection lost. Attempting to reconnect...")
+            self.last_connected = datetime.utcnow()
         self.state = constants.STATE_DISCONNECTED
-
-        cur_thread = threading.current_thread()
-        # Wait for worker threads to finish.
-        for thread in self.worker_threads:
-            if thread != cur_thread:
-                thread.join()
-        self.worker_threads = []
 
     def on_message(self, mqtt, userdata, msg):
         """
@@ -799,6 +825,14 @@ class Handler(object):
         # task.
         work = defs.Work(constants.WORK_MESSAGE, message)
         self.queue_work(work)
+
+    def on_publish(self, mqtt, userdata, mid):
+        """
+        Notify that a message has been published
+        """
+
+        topic_num = self.reply_tracker.pop_mid(mid)
+        self.logger.debug("MQTT sent %s", topic_num)
 
     def queue_publish(self, pub):
         """
@@ -910,7 +944,7 @@ class Handler(object):
                 # If blocking is set, wait for result of file transfer
                 if status == constants.STATUS_SUCCESS and blocking:
                     while ((timeout == 0 or current_time < end_time) and
-                           self.is_connected() and transfer.status is None):
+                           not self.to_quit and transfer.status is None):
                         sleep(1)
                         current_time = datetime.utcnow()
 
@@ -950,25 +984,25 @@ class Handler(object):
             result, mid = self.mqtt.publish("api/{}".format(topic_num),
                                             payload, 1)
 
-            if result == 0:
-                status = constants.STATUS_SUCCESS
+            # Track the topic this message will send on
+            self.reply_tracker.add_mid(mid, topic_num)
 
-                # Track outgoing messages
-                current_time = datetime.utcnow()
+            # Current timestamp for message timeouts
+            current_time = datetime.utcnow()
 
-                # Track each message
-                #for i in range(len(message_list)):
-                for num, msg in enumerate(message_list):
+            # Track each message
+            for num, msg in enumerate(message_list):
+                # Add timestamps and ids
+                msg.timestamp = current_time
+                msg.timestamp = current_time
+                msg.out_id = "{}-{}".format(topic_num, num+1)
 
-                    # Add timestamps and ids
-                    msg.timestamp = current_time
-                    msg.timestamp = current_time
-                    msg.out_id = "{}-{}".format(topic_num, num+1)
+                self.reply_tracker.add_message(msg)
+                self.logger.info("MQTT queued %s-%d - %s\n%s", topic_num, num+1,
+                                 msg, json.dumps(msg.command, indent=2,
+                                                 sort_keys=True))
+            status = constants.STATUS_SUCCESS
 
-                    self.reply_tracker.add_message(msg)
-                    self.logger.info("Sending %s-%d - %s\n%s", topic_num, num+1,
-                                     msg, json.dumps(msg.command, indent=2,
-                                                     sort_keys=True))
         finally:
             self.lock.release()
 

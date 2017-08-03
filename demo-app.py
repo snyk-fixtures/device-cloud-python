@@ -195,7 +195,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     counter = 0
-    while running and client.is_connected():
+    while running and client.is_alive():
         sleep(1)
         counter += 1
         if counter >= TELEMINTERVAL:
