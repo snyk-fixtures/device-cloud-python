@@ -82,3 +82,7 @@ Not yet supported:
 ------------------
 - Proxy support (may not be possible for paho)
 - Finalized APIs
+
+Publishing:
+-----------
+*See `PUBLISHING.md` for instructions on uploading the module to Pypi*
