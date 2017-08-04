@@ -37,12 +37,12 @@ class Client(object):
         client.initialize() before anything else can be done.
 
         Parameters:
-          app_id                       ID of application that will be used to
+          app_id              (string) ID of application that will be used to
                                        generate a key. Also used as part of
                                        default configuration file
                                        {APP_ID}-connect.cfg. Maximum 27
                                        characters.
-          kwargs                       Optional dict to override any
+          kwargs                (dict) Optional dict to override any
                                        configuration values. These can also be
                                        overridden individually later.
         """
@@ -165,10 +165,10 @@ class Client(object):
         Update message for an action request from the Cloud
 
         Parameters:
-          request_id                   If action_request.request_id was
+          request_id          (string) If action_request.request_id was
                                        retreived from an action callback, it can
                                        be used here
-          message                      New message for Cloud request
+          message             (string) New message for Cloud request
 
         Returns:
           STATUS_SUCCESS               Sent progress update for action request
@@ -184,7 +184,7 @@ class Client(object):
         Dissociates a Cloud action action from any command or callback
 
         Parameters:
-          action_name                  action to deregister
+          action_name         (string) Action to deregister
 
         Returns:
           STATUS_NOT_FOUND             No action with that name registered
@@ -199,8 +199,8 @@ class Client(object):
         Associate a callback function with an action in the Cloud
 
         Parameters:
-          action_name                  action to register
-          callback_function            function to execute when triggered by
+          action_name         (string) Action to register
+          callback_function     (func) Function to execute when triggered by
                                        action. Callback function must take
                                        parameters of the form (client,
                                        parameters, user_data[, action_request])
@@ -224,8 +224,8 @@ class Client(object):
         Associate a console command with an action in the Cloud
 
         Parameters:
-          action_name                  action to register
-          command                      console command to execute when
+          action_name         (string) Action to register
+          command             (string) Console command to execute when
                                        triggered by action
         Returns:
           STATUS_EXISTS                Action with that name already exists
@@ -239,9 +239,9 @@ class Client(object):
         Publish an alarm to the Cloud
 
         Parameters:
-          alarm_name                   name of alarm to publish
-          state                        state of publish
-          message                      optional message to accompany alarm
+          alarm_name          (string) Name of alarm to publish
+          state                  (int) State of publish
+          message             (string) Optional message to accompany alarm
 
         Returns:
           STATUS_SUCCESS               Alarm has been queued for publishing
@@ -257,8 +257,8 @@ class Client(object):
         Publish string telemetry to the Cloud
 
         Parameters:
-          attribute_name               name of attribute to publish to
-          value                        value to publish
+          attribute_name      (string) Name of attribute to publish to
+          value               (string) Value to publish
 
         Returns:
           STATUS_SUCCESS               Attribute has been queued for publishing
@@ -272,7 +272,7 @@ class Client(object):
         Connect the Client to the Cloud
 
         Parameters:
-          timeout                      maximum time to try to connect
+          timeout             (number) Maximum time to try to connect
 
         Returns:
           STATUS_FAILURE               Failed to connect to Cloud
@@ -287,10 +287,10 @@ class Client(object):
         End Client connection to the Cloud
 
         Parameters:
-          wait_for_replies             When True, wait for any pending replies to
+          wait_for_replies      (bool) When True, wait for any pending replies to
                                        be received or time out before
                                        disconnecting
-          timeout                      Maximum time to wait before returning
+          timeout             (number) Maximum time to wait before returning
 
         Returns:
           STATUS_SUCCESS               Successfully disconnected
@@ -304,7 +304,7 @@ class Client(object):
         Publishes an event message to the Cloud
 
         Parameters:
-          message                      Message to publish
+          message             (string) Message to publish
 
         Returns:
           STATUS_SUCCESS               Event has been queued for publishing
@@ -319,15 +319,15 @@ class Client(object):
         Download a file from the Cloud to the device (C2D)
 
         Parameters:
-          file_name                    File in Cloud to download
-          download_dest                Destination for downloaded file
-          blocking                     Wait for file transfer to complete
+          file_name           (string) File in Cloud to download
+          download_dest       (string) Destination for downloaded file
+          blocking              (bool) Wait for file transfer to complete
                                        before returning. Otherwise return
                                        immediately.
-          callback                     Function to be executed as soon as file
+          callback              (func) Function to be executed as soon as file
                                        transfer is complete. It will be passed
                                        (client, file_name, status).
-          timeout                      If blocking, maximum time to wait
+          timeout             (number) If blocking, maximum time to wait
                                        before returning
 
         Returns:
@@ -348,16 +348,16 @@ class Client(object):
         Upload a file from the device to the Cloud (D2C)
 
         Parameters:
-          file_path                    Absolute path for file to upload.
-          upload_name                  Name for file uploaded in Cloud.
+          file_path           (string) Absolute path for file to upload.
+          upload_name         (string) Name for file uploaded in Cloud.
                                        Default is the file name on the device.
-          blocking                     Wait for file transfer to complete
+          blocking              (bool) Wait for file transfer to complete
                                        before returning. Otherwise return
                                        immediately.
-          callback                     Function to be executed as soon as file
+          callback              (func) Function to be executed as soon as file
                                        transfer is complete. It will be passed
                                        (client, file_name, status).
-          timeout                      If blocking, maximum time to wait
+          timeout             (number) If blocking, maximum time to wait
                                        before returning
 
         Returns:
@@ -400,13 +400,13 @@ class Client(object):
         Publish a location metric to the Cloud
 
         Parameters:
-          latitude                     latitude coordinate
-          longitude                    longitude coordinate
-          heading                      heading
-          altitude                     altitude
-          speed                        speed
-          accuracy                     accuracy of fix
-          fix_type                     fix type
+          latitude            (number) Latitude coordinate
+          longitude           (number) Longitude coordinate
+          heading             (number) Heading
+          altitude            (number) Altitude
+          speed               (number) Speed
+          accuracy            (number) Accuracy of fix
+          fix_type            (string) Fix type
 
         Returns:
           STATUS_SUCCESS               Location has been queued for publishing
@@ -422,8 +422,8 @@ class Client(object):
         Publish telemetry to the Cloud
 
         Parameters:
-          telemetry_name               name of property to publish to
-          value                        value to publish
+          telemetry_name      (string) Name of property to publish to
+          value               (number) Value to publish
 
         Returns:
           STATUS_SUCCESS               Telemetry has been queued for publishing
