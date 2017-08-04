@@ -14,8 +14,6 @@ DEFAULT_CONFIG_FILE = "{}-connect.cfg"
 DEFAULT_KEEP_ALIVE = 300
 # Default loop time for MQTT in seconds
 DEFAULT_LOOP_TIME = 1
-# Default number of seconds to receive a reply
-DEFAULT_MESSAGE_TIMEOUT = 15
 # Default number of worker threads
 DEFAULT_THREAD_COUNT = 3
 

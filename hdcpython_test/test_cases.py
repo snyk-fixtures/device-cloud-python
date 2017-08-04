@@ -704,8 +704,8 @@ class ConfigReadDefaults(unittest.TestCase):
         assert self.client.config.cloud.token == "abcdefghijklm"
         assert self.client.config.config_dir == "."
         assert self.client.config.config_file == "testing-client-connect.cfg"
+        assert self.client.config.keep_alive == 300
         assert self.client.config.loop_time == 1
-        assert self.client.config.message_timeout == 15
         assert self.client.config.thing_def_key is None
         assert self.client.config.thread_count == 3
 

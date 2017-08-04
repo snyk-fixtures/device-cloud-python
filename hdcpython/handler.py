@@ -293,8 +293,7 @@ class Handler(object):
             sleep(1)
             current_time = datetime.utcnow()
 
-        # Optionally wait for any outstanding replies. Any that time out will
-        # be removed so that this loop can end.
+        # Optionally wait for any outstanding replies.
         if wait_for_replies and self.is_connected():
             self.logger.info("Waiting for replies...")
             while ((timeout == 0 or current_time < end_time) and
@@ -749,21 +748,6 @@ class Handler(object):
                     break
 
             self.mqtt.loop(timeout=self.config.loop_time)
-            current_time = datetime.utcnow()
-
-            self.lock.acquire()
-            try:
-                # Check if any messages have timed out with no reply
-                max_timeout = self.config.message_timeout
-                removed = self.reply_tracker.time_out(current_time, max_timeout)
-
-                # Log any timed out messages
-                if len(removed) > 0:
-                    self.logger.error("Message(s) timed out:")
-                for remove in removed:
-                    self.logger.error(".... %s", remove.description)
-            finally:
-                self.lock.release()
 
             # Make a work item to publish anything that's pending
             if not self.publish_queue.empty():
@@ -778,11 +762,11 @@ class Handler(object):
             thread.join()
         self.worker_threads = []
 
-        # On disconnect, show all timed out messages
-        if self.no_reply:
+        # On disconnect, show all messages that never received replies
+        if len(self.reply_tracker) > 0:
             self.logger.error("These messages never received a reply:")
-            for message in self.no_reply:
-                self.logger.error(".... %s - %s", message.out_id,
+            for mid, message in self.reply_tracker.items():
+                self.logger.error(".... %s - %s", mid,
                                   message.description)
 
         return constants.STATUS_SUCCESS
@@ -987,13 +971,12 @@ class Handler(object):
             # Track the topic this message will send on
             self.reply_tracker.add_mid(mid, topic_num)
 
-            # Current timestamp for message timeouts
+            # Current timestamp to mark when message was sent
             current_time = datetime.utcnow()
 
             # Track each message
             for num, msg in enumerate(message_list):
                 # Add timestamps and ids
-                msg.timestamp = current_time
                 msg.timestamp = current_time
                 msg.out_id = "{}-{}".format(topic_num, num+1)
 

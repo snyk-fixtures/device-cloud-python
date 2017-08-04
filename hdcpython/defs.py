@@ -288,8 +288,8 @@ class OutTracker(dict):
         try:
             message = self.pop(out_id)
         except KeyError:
-            raise KeyError("Message {} not found. May be a duplicate reply or "
-                           "have already timed out".format(out_id))
+            raise KeyError("Message {} not found. May be a duplicate "
+                           "reply".format(out_id))
         return message
 
     def pop_mid(self, mid):
@@ -298,23 +298,6 @@ class OutTracker(dict):
         """
 
         return self.mid_tracker.pop(mid)
-
-    def time_out(self, current_time, max_time):
-        """
-        Remove and return a list of all messages that have timed out
-        """
-
-        to_remove = []
-        for out_id in self:
-            message = self[out_id]
-            if (current_time - message.timestamp).total_seconds() > max_time:
-                to_remove.append(out_id)
-
-        removed = []
-        for out_id in to_remove:
-            removed.append(self.pop_message(*(out_id.split("-"))))
-
-        return removed
 
 
 class Publish(object):

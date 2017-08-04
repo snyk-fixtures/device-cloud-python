@@ -17,7 +17,6 @@ from hdcpython.constants import DEFAULT_CONFIG_DIR
 from hdcpython.constants import DEFAULT_CONFIG_FILE
 from hdcpython.constants import DEFAULT_KEEP_ALIVE
 from hdcpython.constants import DEFAULT_LOOP_TIME
-from hdcpython.constants import DEFAULT_MESSAGE_TIMEOUT
 from hdcpython.constants import DEFAULT_THREAD_COUNT
 
 from hdcpython.constants import STATUS_SUCCESS
@@ -50,7 +49,6 @@ __all__ = ["Client",
            "DEFAULT_CONFIG_FILE",
            "DEFAULT_KEEP_ALIVE",
            "DEFAULT_LOOP_TIME",
-           "DEFAULT_MESSAGE_TIMEOUT",
            "DEFAULT_RUNTIME_DIR",
            "DEFAULT_THREAD_COUNT",
            "LOGCRITICAL",

@@ -11,7 +11,6 @@ from hdcpython.constants import DEFAULT_CONFIG_DIR
 from hdcpython.constants import DEFAULT_CONFIG_FILE
 from hdcpython.constants import DEFAULT_KEEP_ALIVE
 from hdcpython.constants import DEFAULT_LOOP_TIME
-from hdcpython.constants import DEFAULT_MESSAGE_TIMEOUT
 from hdcpython.constants import DEFAULT_THREAD_COUNT
 from hdcpython.constants import STATUS_SUCCESS
 from hdcpython.constants import WORK_PUBLISH
@@ -144,7 +143,6 @@ class Client(object):
         config_defaults = {
             "keep_alive":DEFAULT_KEEP_ALIVE,
             "loop_time":DEFAULT_LOOP_TIME,
-            "message_timeout":DEFAULT_MESSAGE_TIMEOUT,
             "thread_count":DEFAULT_THREAD_COUNT
         }
         self.config.update(config_defaults, False)
