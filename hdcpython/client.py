@@ -99,7 +99,7 @@ class Client(object):
         if os.path.exists(device_id_path):
             try:
                 with open(device_id_path, "r") as id_file:
-                    self.config.device_id = id_file.read()
+                    self.config.device_id = id_file.read().strip()
             except:
                 print "Failed to read device_id"
                 raise IOError("Failed to read device_id")
