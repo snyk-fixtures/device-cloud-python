@@ -593,6 +593,167 @@ class ClientFileUploadAsyncSuccess(unittest.TestCase):
         if self.client.handler.main_thread:
             self.client.handler.main_thread.join()
 
+class ClientInitFailFindConfig(unittest.TestCase):
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
+    def runTest(self, mock_exists, mock_open):
+        # Set up mocks
+        mock_exists.side_effect = [False]
+
+        # Initialize client (with a different configuration file)
+        self.client = helix.Client("testing-client")
+        self.client.config.config_dir = "some/other/directory"
+        self.client.config.config_file = "someotherfile.cfg"
+        excepted = False
+        try:
+            self.client.initialize()
+        except IOError:
+            excepted = True
+
+        # Check that the 'file' failed to be found
+        assert excepted is True
+
+    def setUp(self):
+        # Configuration to be 'read' from config file
+        self.config_args = helpers.config_file_default()
+
+class ClientInitFailReadConfig(unittest.TestCase):
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
+    def runTest(self, mock_exists, mock_open):
+        # Set up mocks
+        mock_exists.side_effect = [True]
+        mock_read = mock_open.return_value.__enter__.return_value.read
+        mock_read.side_effect = [IOError]
+
+        # Initialize client (with a different configuration file)
+        self.client = helix.Client("testing-client")
+        self.client.config.config_dir = "some/other/directory"
+        self.client.config.config_file = "someotherfile.cfg"
+        excepted = False
+        try:
+            self.client.initialize()
+        except IOError:
+            excepted = True
+
+        # Check that the 'file' failed to be read correctly
+        assert excepted is True
+
+    def setUp(self):
+        # Configuration to be 'read' from config file
+        self.config_args = helpers.config_file_default()
+
+class ClientInitFailReadDevId(unittest.TestCase):
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
+    def runTest(self, mock_exists, mock_open):
+        # Set up mocks
+        mock_exists.side_effects = [True, True]
+        read_strings = [json.dumps(self.config_args), IOError]
+        mock_read = mock_open.return_value.__enter__.return_value.read
+        mock_read.side_effect = read_strings
+
+        # Initialize client (with a different configuration file)
+        self.client = helix.Client("testing-client")
+        self.client.config.config_dir = "some/other/directory"
+        self.client.config.config_file = "someotherfile.cfg"
+        excepted = False
+        try:
+            self.client.initialize()
+        except IOError:
+            excepted = True
+
+        # Check that the 'file' failed to be read correctly
+        assert excepted is True
+
+    def setUp(self):
+        # Configuration to be 'read' from config file
+        self.config_args = helpers.config_file_default()
+
+class ClientInitFailWriteDevId(unittest.TestCase):
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
+    def runTest(self, mock_exists, mock_open):
+        # Set up mocks
+        mock_exists.side_effect = [True, False]
+        read_strings = [json.dumps(self.config_args)]
+        mock_read = mock_open.return_value.__enter__.return_value.read
+        mock_write = mock_open.return_value.__enter__.return_value.write
+        mock_read.side_effect = read_strings
+        mock_write.side_effect = [IOError]
+
+        # Initialize client
+        self.client = helix.Client("testing-client")
+        excepted = False
+        try:
+            self.client.initialize()
+        except IOError:
+            excepted = True
+
+        # Check that the 'file' failed to be written correctly
+        mock_write.assert_called()
+        assert excepted is True
+
+    def setUp(self):
+        # Configuration to be 'read' from config file
+        self.config_args = helpers.config_file_default()
+
+class ClientInitMissingAppId(unittest.TestCase):
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
+    def runTest(self, mock_exists, mock_open):
+        # Set up mocks
+        mock_exists.side_effect = [True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_read = mock_open.return_value.__enter__.return_value.read
+        mock_read.side_effect = read_strings
+
+        # Initialize client (with a different configuration file)
+        self.client = helix.Client("")
+        self.client.config.config_dir = "some/other/directory"
+        self.client.config.config_file = "someotherfile.cfg"
+        excepted = False
+        try:
+            self.client.initialize()
+        except KeyError:
+            excepted = True
+
+        # Check that the app_id was not acceptable
+        assert excepted is True
+        assert "key" not in self.client.config
+
+    def setUp(self):
+        # Configuration to be 'read' from config file
+        self.config_args = helpers.config_file_default()
+
+class ClientInitOverlengthAppId(unittest.TestCase):
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
+    def runTest(self, mock_exists, mock_open):
+        # Set up mocks
+        mock_exists.side_effect = [True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_read = mock_open.return_value.__enter__.return_value.read
+        mock_read.side_effect = read_strings
+
+        # Initialize client (with a different configuration file)
+        self.client = helix.Client("this-app-id-is-surely-way-too-long-to-be-used-in-a-64-byte-key")
+        self.client.config.config_dir = "some/other/directory"
+        self.client.config.config_file = "someotherfile.cfg"
+        excepted = False
+        try:
+            self.client.initialize()
+        except KeyError:
+            excepted = True
+
+        # Check that the key was too long
+        assert excepted is True
+        assert len(self.client.config.key) > 64
+
+    def setUp(self):
+        # Configuration to be 'read' from config file
+        self.config_args = helpers.config_file_default()
+
 class ClientLocationPublish(unittest.TestCase):
     @mock.patch("__builtin__.open")
     @mock.patch("os.path.exists")
@@ -660,6 +821,99 @@ class ClientTelemetryPublish(unittest.TestCase):
         # Configuration to be 'read' from config file
         self.config_args = helpers.config_file_default()
 
+class ConfigMissingHost(unittest.TestCase):
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
+    def runTest(self, mock_exists, mock_open):
+        # Set up mocks
+        mock_exists.side_effect = [True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_read = mock_open.return_value.__enter__.return_value.read
+        mock_read.side_effect = read_strings
+
+        # Initialize client (with a different configuration file)
+        self.client = helix.Client("testing-client")
+        self.client.config.config_dir = "some/other/directory"
+        self.client.config.config_file = "someotherfile.cfg"
+        excepted = False
+        try:
+            self.client.initialize()
+        except KeyError:
+            excepted = True
+
+        # Check that the config was parsed with errors
+        assert excepted is True
+        assert "host" not in self.client.config.cloud
+        assert "port" in self.client.config.cloud
+        assert "token" in self.client.config.cloud
+
+    def setUp(self):
+        # Configuration to be 'read' from config file
+        self.config_args = helpers.config_file_default()
+        del self.config_args["cloud"]["host"]
+
+class ConfigMissingPort(unittest.TestCase):
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
+    def runTest(self, mock_exists, mock_open):
+        # Set up mocks
+        mock_exists.side_effect = [True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_read = mock_open.return_value.__enter__.return_value.read
+        mock_read.side_effect = read_strings
+
+        # Initialize client (with a different configuration file)
+        self.client = helix.Client("testing-client")
+        self.client.config.config_dir = "some/other/directory"
+        self.client.config.config_file = "someotherfile.cfg"
+        excepted = False
+        try:
+            self.client.initialize()
+        except KeyError:
+            excepted = True
+
+        # Check that the config was parsed with errors
+        assert excepted is True
+        assert "host" in self.client.config.cloud
+        assert "port" not in self.client.config.cloud
+        assert "token" in self.client.config.cloud
+
+    def setUp(self):
+        # Configuration to be 'read' from config file
+        self.config_args = helpers.config_file_default()
+        del self.config_args["cloud"]["port"]
+
+class ConfigMissingToken(unittest.TestCase):
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
+    def runTest(self, mock_exists, mock_open):
+        # Set up mocks
+        mock_exists.side_effect = [True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_read = mock_open.return_value.__enter__.return_value.read
+        mock_read.side_effect = read_strings
+
+        # Initialize client (with a different configuration file)
+        self.client = helix.Client("testing-client")
+        self.client.config.config_dir = "some/other/directory"
+        self.client.config.config_file = "someotherfile.cfg"
+        excepted = False
+        try:
+            self.client.initialize()
+        except KeyError:
+            excepted = True
+
+        # Check that the config was parsed with errors
+        assert excepted is True
+        assert "host" in self.client.config.cloud
+        assert "port" in self.client.config.cloud
+        assert "token" not in self.client.config.cloud
+
+    def setUp(self):
+        # Configuration to be 'read' from config file
+        self.config_args = helpers.config_file_default()
+        del self.config_args["cloud"]["token"]
+
 class ConfigReadFile(unittest.TestCase):
     @mock.patch("__builtin__.open")
     @mock.patch("os.path.exists")
@@ -676,7 +930,7 @@ class ConfigReadFile(unittest.TestCase):
         self.client.config.config_file = "someotherfile.cfg"
         self.client.initialize()
 
-        # Checkt that the 'file' was read and parsed correctly
+        # Check that the 'file' was read and parsed correctly
         mock_open.assert_any_call("some/other/directory/device_id", "r")
         mock_open.assert_any_call("some/other/directory/someotherfile.cfg", "r")
         assert mock_read.call_count == 2
@@ -977,6 +1231,58 @@ class HandlePublishAllTypes(unittest.TestCase):
         self.client.handler.to_quit = True
         if self.client.handler.main_thread:
             self.client.handler.main_thread.join()
+
+class HandlerInitMissingKey(unittest.TestCase):
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
+    @mock.patch("time.sleep")
+    @mock.patch("paho.mqtt.client.Client")
+    def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
+        # Initialize handler directly to pass invalid config
+        config = helix._core.defs.Config()
+        config.update(self.config_args)
+        totally_a_client = "No, really."
+        excepted = False
+        try:
+            handler = helix._core.handler.Handler(config, totally_a_client)
+        except KeyError:
+            excepted = True
+
+        # Check that the key is missing
+        assert excepted is True
+
+    def setUp(self):
+        # Configuration to be 'read' from config file
+        self.config_args = helpers.config_file_default()
+
+
+class HandlerInitWebsockets(unittest.TestCase):
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
+    @mock.patch("time.sleep")
+    @mock.patch("paho.mqtt.client.Client")
+    def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
+        # Set up mocks
+        mock_exists.side_effect = [True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_read = mock_open.return_value.__enter__.return_value.read
+        mock_read.side_effect = read_strings
+        mock_mqtt.return_value = helpers.init_mock_mqtt()
+
+        # Initialize client (with a different configuration file)
+        self.client = helix.Client("testing-client")
+        self.client.config.config_dir = "some/other/directory"
+        self.client.config.config_file = "someotherfile.cfg"
+        self.client.initialize()
+        mqtt = self.client.handler.mqtt
+
+        # Check that websockets was set
+        mock_mqtt.called_with("testing-client", transport="websockets")
+
+    def setUp(self):
+        # Configuration to be 'read' from config file
+        self.config_args = helpers.config_file_default()
+        self.config_args["cloud"]["port"] = 443
 
 class OTAExecute(unittest.TestCase):
     @mock.patch("os.path.isdir")
