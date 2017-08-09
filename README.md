@@ -17,6 +17,7 @@ Requirements:
 - Python 2.7.9 or later
 - paho-mqtt
 - requests
+- websocket-client
 
 (The last two can be obtained with `sudo pip install` and the package name, or 
 by running `pip install .`, which will install the module and its dependencies)
@@ -41,11 +42,12 @@ device_id.
 
 Device Manager:
 ---------------
-The included device_manager.py app provides similar functionality to the old
-HDC device manager application. Basic functions, such as file I/O, are available as methods on the cloud. In addition, a basic OTA implementation is included
-which is compatible with the HDC OTA package format. To run the device manager
-as a service, the `share` directory contains service files for systemd and
-init.d along with a readme on how to use them.
+The included device_manager.py app provides similar functionality to the old HDC
+device manager application. Basic functions, such as file I/O, are available as
+methods on the cloud. In addition, a basic OTA implementation is included which
+is compatible with the HDC OTA package format. To run the device manager as a
+service, the `share` directory contains service files for systemd and init.d
+along with a readme on how to use them.
 
 So far supports:
 ----------------
@@ -63,20 +65,32 @@ So far supports:
 - device_id uuid (Generates a unique device_id if one is not found)
 - Change thing definition (add "thing_def_key" field to configuration to
   immediately change the definition of your thing after connecting)
-- Example app (example of most APIs in use, but also still a work in progress)
+- Example apps (example of most APIs in use, but also still a work in progress)
 - Logging to console with optional logging to a specified file
 - Event message publishing
 - Alarm publishing
 - pytest implementation start. Run `pytest -v .` to run unit tests.
   `pytest --cov-report=html --cov=hdcpython -v .` Will generate a directory
   containing an HTML report of coverage.
-- Websockets (setting the port to 443 will use websockets to send MQTT packets.
-  This does not work on Windows)
+- Websockets (setting the port to 443 will use websockets to send MQTT packets)
 - Connection loss handling (Publishes made while offline will be cached and sent
   when connection is re-established. Now has a keep_alive configuration for how
   long the Client should remain disconnected before exiting, 0 is forever.)
+- Websocket relay (Relay class used for remote login. Implemented on device
+  manager for future implementation of a Cloud-side remote login server. The
+  remote-access action starts the relay. The url parameter is the location for
+  the websocket to connect to, host is the location for the local socket to
+  connect to, and protocol is the port for the local socket (ie. 23 for Telnet).
+  Telnet server on host must be started before executing the remote-access
+  action.)
 
-
+Issues:
+-------
+- MQTT over websockets on Windows does not work.
+- Remote login on Windows cannot parse backspace. Don't make any typos.
+- Windows has no native cert bundle for SSL. The -connect.cfg file must be
+  updated to point at wr-iot-python/share/cacert.pem to use SSL
+- SSL cert bundle is called ca-bundle.crt, not ca-certificates.crt on CentOS.
 
 Not yet supported:
 ------------------

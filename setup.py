@@ -7,10 +7,11 @@ setup(
 	description='Python library for Wind River\'s Helix Device Cloud',
 	author='Wind River Systems',
 	author_email='',
-	packages=['hdcpython', 'hdcosal'],
+	packages=['hdcpython', 'hdcosal', 'hdcrelay'],
 	install_requires=[
-		'paho-mqtt', 
-		'requests'
+		'paho-mqtt',
+		'requests',
+		'websocket-client'
 		],
 	maintainer='Paul Barrette',
 	maintainer_email='paul.barrette@windriver.com',

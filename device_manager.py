@@ -19,8 +19,10 @@ import uuid
 
 import hdcosal as osal
 import hdcpython as iot
+from hdcrelay import Relay
 
 running = True
+relay = None
 
 def sighandler(signum, frame):
     """
@@ -304,6 +306,23 @@ def quit_me():
     running = False
     return (iot.STATUS_SUCCESS, "")
 
+def remote_access(client, params):
+    """
+    Start relay which will attempt to connect to a Cloud service and a local
+    service and securely tunnel information between the two. Used primarily for
+    Telnet.
+    """
+    global relay
+    url = params["url"]
+    host = params["host"]
+    protocol = int(params["protocol"])
+    if relay and relay.running:
+        return (iot.STATUS_EXISTS, "Already started remote access!")
+    else:
+        secure = client.config.validate_cloud_cert is not False
+        relay = Relay(url, host, protocol, secure=secure, log_func=client.info)
+        relay.start()
+        return (iot.STATUS_SUCCESS, "")
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, sighandler)
@@ -355,6 +374,9 @@ if __name__ == "__main__":
     action_register_conditional(client, "reboot_device", device_reboot, \
                                 config.actions_enabled.reboot_device)
 
+    action_register_conditional(client, "remote-access", remote_access, \
+                                config.actions_enabled.remote_login)
+
     action_register_conditional(client, "decommission_device", \
                                 device_decommission, \
                                 config.actions_enabled.decommission_device, \
@@ -388,6 +410,11 @@ if __name__ == "__main__":
         except IOError as err:
             if err.errno != errno.EINTR:
                 raise
+
+    # Stop remote access
+    if relay and relay.running:
+        relay.stop()
+        relay = None
 
     # Wait for any OTA operations to finish
     if ota.is_running():
