@@ -1,8 +1,9 @@
 from setuptools import setup
+from hdcpython import constants
 
 setup(
 	name='hdcpython',
-	version='0.0.1',
+	version=constants.API_VERSION,
 	description='Python library for Wind River\'s Helix Device Cloud',
 	author='Wind River Systems',
 	author_email='',

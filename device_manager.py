@@ -263,6 +263,21 @@ def method_not_implemented():
     return (iot.STATUS_NOT_SUPPORTED, \
             "This method is disabled by its iot.cfg setting")
 
+def publish_platform_info(client):
+    """
+    Function to publish information about the current platform (device) to the
+    cloud as attributes.
+    """
+    client.log(iot.LOGINFO, "Publishing platform Info")
+
+    client.attribute_publish("os_name", osal.os_name())
+    client.attribute_publish("os_version", osal.os_version())
+    client.attribute_publish("architecture", platform.machine())
+    client.attribute_publish("hostname", platform.node())
+    client.attribute_publish("kernel", osal.os_kernel())
+    client.attribute_publish("hdc_version", iot.constants.API_VERSION)
+    
+
 def quit_me():
     """
     Callback for the "quit" method which exits the device manager app.
@@ -346,11 +361,7 @@ if __name__ == "__main__":
     ack_messages(client, os.path.join(runtime_dir, "message_ids"))
 
     # Publish system details
-    client.log(iot.LOGINFO, "Publishing platform: " + sys.platform)
-    pstring = "{} {}".format(platform.system(), platform.release())
-    client.attribute_publish("platform", pstring)
-    client.attribute_publish("architecture", platform.machine())
-    client.attribute_publish("hostname", platform.node())
+    publish_platform_info(client)
 
     while running and client.is_alive():
         # Wrap sleep with an exception handler to fix SIGINT handling on Windows
