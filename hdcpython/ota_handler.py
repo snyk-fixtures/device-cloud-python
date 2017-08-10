@@ -235,7 +235,13 @@ class OTAHandler(object):
 
             if file_name:
                 status = client.file_download(file_name, out_file, \
-                                              blocking=True, timeout=15)
+                                              blocking=True, timeout=15, \
+                                              file_global=True)
+                if status == iot.STATUS_FAILURE:
+                    status = client.file_download(file_name, out_file, \
+                                                  blocking=True, timeout=15, \
+                                                  file_global=False)
+
         else:
             status = iot.STATUS_BAD_PARAMETER
 
