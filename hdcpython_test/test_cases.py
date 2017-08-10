@@ -1181,8 +1181,8 @@ class OTAUpdateCallback(unittest.TestCase):
         self.client = hdcpython.Client("testing-client")
         self.ota = hdcpython.ota_handler.OTAHandler()
 
-        result = self.ota.update_callback(self.client, {}, ["aaaa"])
-        assert result[0] == hdcpython.STATUS_SUCCESS
+        result = self.ota.update_callback(self.client, {}, ["aaaa"], None)
+        assert result[0] == hdcpython.STATUS_INVOKED
 
 class OTAUpdateCallbackInProgress(unittest.TestCase):
     @mock.patch("os.path.isfile")
@@ -1194,7 +1194,7 @@ class OTAUpdateCallbackInProgress(unittest.TestCase):
         self.client = hdcpython.Client("testing-client")
         self.ota = hdcpython.ota_handler.OTAHandler()
 
-        result = self.ota.update_callback(self.client, {}, ["aaaa"])
+        result = self.ota.update_callback(self.client, {}, ["aaaa"], None)
         assert result[0] == hdcpython.STATUS_FAILURE
 
 class OTAUpdateSoftware(unittest.TestCase):
@@ -1211,6 +1211,8 @@ class OTAUpdateSoftware(unittest.TestCase):
                             "install": "install", \
                             "post_install": "post", \
                             "err_action": "err"}
+        self.request = mock.Mock()
+        self.request.message_id = 1234
 
     @mock.patch("os.remove")
     @mock.patch("os.path")
@@ -1259,7 +1261,7 @@ class OTAUpdateSoftware(unittest.TestCase):
     def successCase(self):
         self.resetMocks()
 
-        self.ota._update_software(self.client, self.params)
+        self.ota._update_software(self.client, self.params, self.request)
 
         self.mock_dl.assert_called_once()
         self.mock_unzip.assert_called_once()
@@ -1272,7 +1274,7 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.resetMocks()
         self.mock_dl.return_value = hdcpython.STATUS_FAILURE
 
-        self.ota._update_software(self.client, self.params)
+        self.ota._update_software(self.client, self.params, self.request)
 
         self.mock_dl.assert_called_once()
         self.mock_unzip.assert_not_called()
@@ -1286,7 +1288,7 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.resetMocks()
         self.mock_unzip.return_value = hdcpython.STATUS_IO_ERROR
 
-        self.ota._update_software(self.client, self.params)
+        self.ota._update_software(self.client, self.params, self.request)
 
         self.mock_dl.assert_called_once()
         self.mock_unzip.assert_called_once()
@@ -1300,7 +1302,7 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.resetMocks()
         self.mock_read.return_value = (hdcpython.STATUS_FAILURE, "")
 
-        self.ota._update_software(self.client, self.params)
+        self.ota._update_software(self.client, self.params, self.request)
 
         self.mock_dl.assert_called_once()
         self.mock_unzip.assert_called_once()
@@ -1315,7 +1317,7 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_execute.return_value = None
         self.mock_execute.side_effect = [hdcpython.STATUS_EXECUTION_ERROR, hdcpython.STATUS_SUCCESS, hdcpython.STATUS_SUCCESS]
 
-        self.ota._update_software(self.client, self.params)
+        self.ota._update_software(self.client, self.params, self.request)
 
         self.mock_dl.assert_called_once()
         self.mock_unzip.assert_called_once()
@@ -1329,7 +1331,7 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.resetMocks()
         self.mock_execute.side_effect = [hdcpython.STATUS_SUCCESS, hdcpython.STATUS_EXECUTION_ERROR, hdcpython.STATUS_SUCCESS]
 
-        self.ota._update_software(self.client, self.params)
+        self.ota._update_software(self.client, self.params, self.request)
 
         self.mock_dl.assert_called_once()
         self.mock_unzip.assert_called_once()
@@ -1343,7 +1345,7 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.resetMocks()
         self.mock_execute.side_effect = [hdcpython.STATUS_SUCCESS, hdcpython.STATUS_SUCCESS, hdcpython.STATUS_EXECUTION_ERROR]
 
-        self.ota._update_software(self.client, self.params)
+        self.ota._update_software(self.client, self.params, self.request)
 
         self.mock_dl.assert_called_once()
         self.mock_unzip.assert_called_once()
@@ -1357,7 +1359,7 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.resetMocks()
         self.mock_execute.side_effect = [hdcpython.STATUS_NOT_FOUND, hdcpython.STATUS_SUCCESS, hdcpython.STATUS_SUCCESS]
 
-        self.ota._update_software(self.client, self.params)
+        self.ota._update_software(self.client, self.params, self.request)
 
         self.mock_dl.assert_called_once()
         self.mock_unzip.assert_called_once()
@@ -1371,7 +1373,7 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.resetMocks()
         self.mock_execute.side_effect = [hdcpython.STATUS_SUCCESS, hdcpython.STATUS_SUCCESS, hdcpython.STATUS_NOT_FOUND]
 
-        self.ota._update_software(self.client, self.params)
+        self.ota._update_software(self.client, self.params, self.request)
 
         self.mock_dl.assert_called_once()
         self.mock_unzip.assert_called_once()

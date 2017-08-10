@@ -160,6 +160,28 @@ class Client(object):
 
         return STATUS_SUCCESS
 
+    def action_acknowledge(self, request_id, error_code=0, error_message=""):
+        """
+        Send an acknowledgement for an action request
+        
+        Parameters:
+          request_id          (string) If action_request.request_id was
+                                       retreived from an action callback, it can
+                                       be used here
+          error_code             (int) Error code produced by the action
+          error_message       (string) Error message to accompany the error code
+
+        Returns:
+          STATUS_SUCCESS               Sent acknowledgement for action request
+          STATUS_FAILURE               Failed to send acknowledgement of action
+                                       request
+        """
+
+        return self.handler.action_acknowledge(request_id, 
+                                               error_code, 
+                                               error_message)
+
+
     def action_progress_update(self, request_id, message):
         """
         Update message for an action request from the Cloud

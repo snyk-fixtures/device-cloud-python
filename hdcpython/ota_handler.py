@@ -53,7 +53,7 @@ class OTAHandler(object):
         if self._update_thread and self._update_thread.is_alive():
             self._update_thread.join()
 
-    def update_callback(self, client, params, user_data):
+    def update_callback(self, client, params, user_data, request):
         """
         Callback to be registered as an action in the client. This will lock the
         updater until the current update is complete, or return an error if
@@ -70,10 +70,11 @@ class OTAHandler(object):
 
             # Run the updating in the background to block the main thread
             self._update_thread = threading.Thread(target=self._update_software,
-                                                   args=(client, params))
+                                                   args=(client, params, 
+                                                         request))
             self._update_thread.start()
 
-            result = (iot.STATUS_SUCCESS, "")
+            result = (iot.STATUS_INVOKED, "Software Update Started (Invoked)")
         else:
             result = (iot.STATUS_FAILURE, \
                       "Software update already in progress!")
@@ -81,7 +82,7 @@ class OTAHandler(object):
         return result
 
     ## Private Methods ##
-    def _update_software(self, client, params):
+    def _update_software(self, client, params, request):
         """
         Main method that will run in a new thread and perform all the software
         updates
@@ -187,6 +188,7 @@ class OTAHandler(object):
             client.log(iot.LOGINFO, "OTA Successful!")
             client.event_publish("OTA: Update Successful!")
             client.alarm_publish(ALARM_NAME, ALARM_COMPLETE)
+            status_string = ""
         else:
             if update_data and 'error_action' in update_data and \
                update_data['error_action']:
@@ -198,6 +200,10 @@ class OTAHandler(object):
             client.log(iot.LOGERROR, "OTA Failed!")
             client.event_publish("OTA: Update Failed!")
             client.alarm_publish(ALARM_NAME, ALARM_FAILED)
+            status_string = iot.status_string(status)
+
+        client.action_acknowledge(request.request_id, 
+                                  status, status_string)
 
         # Cleanup
         if os.path.isdir(package_dir):

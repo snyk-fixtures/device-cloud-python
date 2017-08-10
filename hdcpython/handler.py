@@ -148,6 +148,18 @@ class Handler(object):
 
         return status
 
+    def action_acknowledge(self, request_id, error_code, error_message):
+        """
+        Send acknowledgement for action (method) request by the cloud
+        """
+
+        cmd = tr50.create_mailbox_ack(request_id, error_code, error_message)
+        message = defs.OutMessage(cmd, "Action Acknowledge "
+                                        "{} {}: \"{}\"".format(request_id,
+                                                                error_code,
+                                                                error_message))
+        return self.send(message)
+
     def action_progress_update(self, request_id, message):
         """
         Update message for action (method) request in Cloud
