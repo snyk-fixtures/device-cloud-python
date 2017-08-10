@@ -5,6 +5,7 @@ functions that are different on different operating systems.
 
 import os
 import platform
+import subprocess
 import sys
 
 # Constants
@@ -48,7 +49,8 @@ def os_name():
     name = "Unknown"
     if LINUX:
         distro = platform.linux_distribution()
-        name = "{} ({})".format(distro[0], platform.system())
+        plat = subprocess.check_output(["uname", "-o"])[:-1]
+        name = "{} ({})".format(distro[0], plat)
     elif WIN32:
         name = platform.system()
     return name

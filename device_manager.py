@@ -15,6 +15,7 @@ import platform
 import signal
 import sys
 from time import sleep
+import uuid
 
 import hdcosal as osal
 import hdcpython as iot
@@ -255,6 +256,23 @@ def file_upload(client, params, user_data):
 
     return (result, message)
 
+def get_adapter_mac():
+    """
+    Returns the MAC address for the current network adapter
+    """
+    rmac = uuid.getnode()
+
+    # Check if valid MAC or a fake one before proceeding
+    if (rmac >> 40)%2:
+        mac = "00:00:00:00:00:00"
+    else:
+        # Convert MAC into typical hex notation
+        mac = hex(rmac).replace('0x', '')[:-1].upper().rjust(12, '0')
+        for i in range(0, 5):
+            ii = 2*(i+1)+i
+            mac = mac[:ii] + ":" + mac[ii:]
+    return mac
+
 def method_not_implemented():
     """
     Callback for disabled methods that simply tells the cloud that the requested
@@ -276,6 +294,7 @@ def publish_platform_info(client):
     client.attribute_publish("hostname", platform.node())
     client.attribute_publish("kernel", osal.os_kernel())
     client.attribute_publish("hdc_version", iot.constants.API_VERSION)
+    client.attribute_publish("mac_address", get_adapter_mac())
 
 def quit_me():
     """
