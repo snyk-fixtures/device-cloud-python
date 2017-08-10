@@ -835,7 +835,7 @@ class Handler(object):
         return constants.STATUS_SUCCESS
 
     def request_download(self, file_name, file_dest, blocking=False,
-                         callback=None, timeout=0):
+                         callback=None, timeout=0, file_global=False):
         """
         Request a C2D file transfer
         """
@@ -854,7 +854,7 @@ class Handler(object):
                                      callback=callback)
 
         # Generate and send message to request file transfer
-        command = tr50.create_file_get(self.config.key, file_name)
+        command = tr50.create_file_get(self.config.key, file_name, file_global)
         message = defs.OutMessage(command, "Download {}".format(file_name),
                                   data=transfer)
         status = self.send(message)
@@ -874,7 +874,7 @@ class Handler(object):
         return status
 
     def request_upload(self, file_path, upload_name=None, blocking=False,
-                       callback=None, timeout=0):
+                       callback=None, timeout=0, file_global=False):
         """
         Request a D2C file transfer
         """
@@ -918,7 +918,8 @@ class Handler(object):
 
                 # Generate and send message to request file transfer
                 command = tr50.create_file_put(self.config.key, upload_name,
-                                               crc32=checksum)
+                                               crc32=checksum,
+                                               file_global=file_global)
                 message_desc = "Upload {} as {}".format(file_name,
                                                         upload_name)
                 message = defs.OutMessage(command, message_desc,

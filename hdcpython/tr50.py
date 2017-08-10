@@ -135,21 +135,23 @@ def create_diag_ping():
     cmd = {"command":TR50Command.diag_ping}
     return cmd
 
-def create_file_get(thing_key, file_name):
+def create_file_get(thing_key, file_name, file_global=False):
     """
     Generate a TR50 JSON request for getting a file from the Cloud
     """
 
     kwargs = {
         "thingKey":thing_key,
-        "fileName":file_name
+        "fileName":file_name,
+        "global":file_global
     }
     cmd = {"command":TR50Command.file_get}
     cmd["params"] = _generate_params(kwargs)
     return cmd
 
 def create_file_put(thing_key, file_name, public=False, crc32=None, tags=None,
-                    sec_tags=None, ttl=None, log_complete=None):
+                    sec_tags=None, ttl=None, log_complete=None,
+                    file_global=False):
     """
     Generate a TR50 JSON request for putting a file in the Cloud
     """
@@ -162,7 +164,8 @@ def create_file_put(thing_key, file_name, public=False, crc32=None, tags=None,
         "tags":tags,
         "secTags":sec_tags,
         "ttl":ttl,
-        "logComplete":log_complete
+        "logComplete":log_complete,
+        "global":file_global
     }
     cmd = {"command":TR50Command.file_put}
     cmd["params"] = _generate_params(kwargs)

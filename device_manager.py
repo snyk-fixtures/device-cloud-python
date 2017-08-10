@@ -179,6 +179,8 @@ def file_download(client, params, user_data):
         if not file_dest:
             file_dest = abspath(os.path.join(user_data[0], "download"))
 
+        file_global = params.get("global", False)
+
     if file_name:
         if not file_dest.startswith('~'):
             if not file_dest.startswith('/'):
@@ -197,7 +199,8 @@ def file_download(client, params, user_data):
             if result == None:
                 client.log(iot.LOGINFO, "Downloading")
                 result = client.file_download(file_name, file_dest, \
-                                              blocking=True, timeout=15)
+                                              blocking=True, timeout=15, \
+                                              file_global=file_global)
                 if result == iot.STATUS_SUCCESS:
                     message = ""
                 else:
@@ -226,6 +229,8 @@ def file_upload(client, params, user_data):
         else:
             dest_name = None
 
+        file_global = params.get("global", False)
+
     if file_name:
         if not file_name.startswith('~'):
             if not file_name.startswith('/'):
@@ -233,7 +238,8 @@ def file_upload(client, params, user_data):
                                     file_name))
             client.log(iot.LOGINFO, "Uploading {}".format(file_name))
             result = client.file_upload(file_name, upload_name=dest_name, \
-                                        blocking=True, timeout=240)
+                                        blocking=True, timeout=240, \
+                                        file_global=file_global)
             if result == iot.STATUS_SUCCESS:
                 message = ""
                 if user_data[1] and file_name.startswith(user_data[0]):

@@ -314,7 +314,7 @@ class Client(object):
         return self.handler.queue_publish(log)
 
     def file_download(self, file_name, download_dest, blocking=False,
-                      callback=None, timeout=0):
+                      callback=None, timeout=0, file_global=False):
         """
         Download a file from the Cloud to the device (C2D)
 
@@ -329,6 +329,9 @@ class Client(object):
                                        (client, file_name, status).
           timeout             (number) If blocking, maximum time to wait
                                        before returning
+          file_global                  Flag that indicates whether or not the
+                                       file to download is in the global file
+                                       store or the thing's file store
 
         Returns:
           STATUS_FAILURE               Failed to download file.
@@ -340,10 +343,10 @@ class Client(object):
         """
 
         return self.handler.request_download(file_name, download_dest, blocking,
-                                             callback, timeout)
+                                             callback, timeout, file_global)
 
     def file_upload(self, file_path, upload_name=None, blocking=False,
-                    callback=None, timeout=0):
+                    callback=None, timeout=0, file_global=False):
         """
         Upload a file from the device to the Cloud (D2C)
 
@@ -359,6 +362,9 @@ class Client(object):
                                        (client, file_name, status).
           timeout             (number) If blocking, maximum time to wait
                                        before returning
+          file_global                  Flag that indicates whether or not the
+                                       file should be uploaded to the global
+                                       file store or the thing's file store
 
         Returns:
           STATUS_FAILURE               Failed to upload file.
@@ -370,7 +376,7 @@ class Client(object):
         """
 
         return self.handler.request_upload(file_path, upload_name, blocking,
-                                           callback, timeout)
+                                           callback, timeout, file_global)
 
     def is_alive(self):
         """
