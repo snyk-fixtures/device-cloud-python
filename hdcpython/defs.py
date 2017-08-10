@@ -192,7 +192,7 @@ class Config(dict):
                     self[key] = Config()
                 if isinstance(self[key], Config):
                     self[key].update(value, overwrite)
-                elif override:
+                elif overwrite:
                     self[key] = Config()
                     self[key].update(value, overwrite)
 
@@ -221,6 +221,9 @@ class FileTransfer(object):
         self.status = None
 
     def finish(self):
+        """
+        Run the completion callback associated with this file transfer
+        """
         if self.callback:
             self.callback(self.client, self.file_name, self.status)
 

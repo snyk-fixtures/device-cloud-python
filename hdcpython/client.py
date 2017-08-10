@@ -163,7 +163,7 @@ class Client(object):
     def action_acknowledge(self, request_id, error_code=0, error_message=""):
         """
         Send an acknowledgement for an action request
-        
+
         Parameters:
           request_id          (string) If action_request.request_id was
                                        retreived from an action callback, it can
@@ -177,8 +177,8 @@ class Client(object):
                                        request
         """
 
-        return self.handler.action_acknowledge(request_id, 
-                                               error_code, 
+        return self.handler.action_acknowledge(request_id,
+                                               error_code,
                                                error_message)
 
 
@@ -309,8 +309,8 @@ class Client(object):
         End Client connection to the Cloud
 
         Parameters:
-          wait_for_replies      (bool) When True, wait for any pending replies to
-                                       be received or time out before
+          wait_for_replies      (bool) When True, wait for any pending replies
+                                       to be received or time out before
                                        disconnecting
           timeout             (number) Maximum time to wait before returning
 

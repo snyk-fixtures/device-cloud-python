@@ -155,9 +155,9 @@ class Handler(object):
 
         cmd = tr50.create_mailbox_ack(request_id, error_code, error_message)
         message = defs.OutMessage(cmd, "Action Acknowledge "
-                                        "{} {}: \"{}\"".format(request_id,
-                                                                error_code,
-                                                                error_message))
+                                       "{} {}: \"{}\"".format(request_id,
+                                                              error_code,
+                                                              error_message))
         return self.send(message)
 
     def action_progress_update(self, request_id, message):
@@ -750,7 +750,7 @@ class Handler(object):
                         if result == 0:
                             self.logger.debug("Reconnecting...")
                             self.state = constants.STATE_CONNECTING
-                    except Exception as e:
+                    except Exception:
                         sleep(self.config.loop_time)
                 else:
                     self.logger.error("No connection after %d seconds, "

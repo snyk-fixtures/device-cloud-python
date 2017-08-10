@@ -64,13 +64,13 @@ class OTAHandler(object):
         self._runtime_dir = user_data[0]
 
         if not os.path.isfile(os.path.join(self._runtime_dir, OTA_LOCKFILE)):
-            
+
             # Create an empty lockfile
             open(os.path.join(self._runtime_dir, OTA_LOCKFILE), 'a').close()
 
             # Run the updating in the background to block the main thread
             self._update_thread = threading.Thread(target=self._update_software,
-                                                   args=(client, params, 
+                                                   args=(client, params,
                                                          request))
             self._update_thread.start()
 
@@ -202,7 +202,7 @@ class OTAHandler(object):
             client.alarm_publish(ALARM_NAME, ALARM_FAILED)
             status_string = iot.status_string(status)
 
-        client.action_acknowledge(request.request_id, 
+        client.action_acknowledge(request.request_id,
                                   status, status_string)
 
         # Cleanup

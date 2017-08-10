@@ -196,7 +196,7 @@ def file_download(client, params, user_data):
                 client.log(iot.LOGERROR, message)
                 print e
 
-            if result == None:
+            if result is None:
                 client.log(iot.LOGINFO, "Downloading")
                 result = client.file_download(file_name, file_dest, \
                                               blocking=True, timeout=15, \
@@ -276,7 +276,6 @@ def publish_platform_info(client):
     client.attribute_publish("hostname", platform.node())
     client.attribute_publish("kernel", osal.os_kernel())
     client.attribute_publish("hdc_version", iot.constants.API_VERSION)
-    
 
 def quit_me():
     """
