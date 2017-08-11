@@ -6,3 +6,4 @@ download/
 *htmlcov/
 *testruns/
 runtime/
+build/

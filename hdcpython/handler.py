@@ -608,7 +608,10 @@ class Handler(object):
                         work = defs.Work(constants.WORK_DOWNLOAD, file_transfer)
                         self.queue_work(work)
                     else:
-                        sent_message.data.status = constants.STATUS_FAILURE
+                        if -90008 in reply.get("errorCodes", []):
+                            sent_message.data.status = constants.STATUS_NOT_FOUND
+                        else:
+                            sent_message.data.status = constants.STATUS_FAILURE
 
                 elif sent_command_type == TR50Command.file_put:
                     # Received a reply for a file upload request
