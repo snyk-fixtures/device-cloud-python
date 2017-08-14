@@ -5,6 +5,7 @@ Simple app that demonstrates the telemetry APIs in the HDC Python library
 """
 
 import argparse
+import errno
 import random
 import signal
 import sys
@@ -111,7 +112,12 @@ if __name__ == "__main__":
 
     counter = 0
     while running and client.is_alive():
-        sleep(1)
+        # Wrap sleep with an exception handler to fix SIGINT handling on Windows
+        try:
+            sleep(1)
+        except IOError as err:
+            if err.errno != errno.EINTR:
+                raise
         counter += 1
         if counter >= TELEMINTERVAL:
             if sending_telemetry:
