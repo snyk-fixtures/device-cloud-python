@@ -145,7 +145,7 @@ class OTAHandler(object):
                     client.log(iot.LOGINFO, "No Pre-Install specified! "
                                             "Continuing.")
                     client.event_publish("OTA: No Pre-Install specified! "
-                                            "Continuing.")
+                                         "Continuing.")
                 else:
                     status = self._execute(update_data['pre_install'], \
                                            package_dir)
@@ -182,7 +182,7 @@ class OTAHandler(object):
                     client.log(iot.LOGINFO, "No Post-Install specified! "
                                             "Continuing.")
                     client.event_publish("OTA: No Post-Install specified! "
-                                            "Continuing.")
+                                         "Continuing.")
                 else:
                     status = self._execute(update_data['post_install'], \
                                            package_dir)
