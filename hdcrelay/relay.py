@@ -112,22 +112,38 @@ class Relay(object):
         """
 
         if not self.running:
+            self.running = True
+
             sslopt = {}
             if not self.secure:
                 sslopt["cert_reqs"] = ssl.CERT_NONE
 
             # Connect websocket to Cloud
             self.wsock = websocket.WebSocket(sslopt=sslopt)
-            self.wsock.connect(self.wsock_host)
+            try:
+                self.wsock.connect(self.wsock_host)
+            except ssl.SSLError as error:
+                self.running = False
+                self.wsock.close()
+                self.wsock = None
+                log_msg = "Failed to open Websocket"
+                if self.log:
+                    self.log(log_msg)
+                else:
+                    print log_msg
+                raise error
+
             log_msg = "Websocket Opened"
             if self.log:
                 self.log(log_msg)
             else:
                 print log_msg
 
-            self.running = True
             self.thread = threading.Thread(target=self.loop)
             self.thread.start()
+
+        else:
+            raise RuntimeError("Relay is already running!")
 
     def stop(self):
         """

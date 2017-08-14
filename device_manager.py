@@ -321,8 +321,12 @@ def remote_access(client, params):
     else:
         secure = client.config.validate_cloud_cert is not False
         relay = Relay(url, host, protocol, secure=secure, log_func=client.info)
-        relay.start()
-        return (iot.STATUS_SUCCESS, "")
+        try:
+            result = relay.start()
+            return (iot.STATUS_SUCCESS, "")
+        except Exception as error:
+            client.error(str(error))
+            return (iot.STATUS_FAILURE, str(error))
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, sighandler)

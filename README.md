@@ -91,6 +91,9 @@ Issues:
 - Windows has no native cert bundle for SSL. The -connect.cfg file must be
   updated to point at wr-iot-python/share/cacert.pem to use SSL
 - SSL cert bundle is called ca-bundle.crt, not ca-certificates.crt on CentOS.
+- Current remote login test server has a self-signed certificate.
+  validate_cloud_cert must be set to false in iot-connect.cfg in order to
+  connect successfully.
 
 Not yet supported:
 ------------------
