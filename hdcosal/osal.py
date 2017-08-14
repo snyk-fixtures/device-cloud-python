@@ -10,6 +10,8 @@ import sys
 
 # Constants
 NOT_SUPPORTED = -20
+EXECUTION_FAILURE = -21
+BAD_PARAMETER = -22
 
 # Setup platform info statics
 WIN32 = sys.platform.startswith('win32')
@@ -77,3 +79,24 @@ def os_kernel():
     elif WIN32:
         ker = platform.version()
     return ker
+
+def execl(*args):
+    """
+    Replaces the current process with a new instance of the specified
+    executable. This function will only return if there is an issue starting the
+    new instance, in which case it will return false. Otherwise, it will not
+    return.
+    """
+    retval = EXECUTION_FAILURE
+    if len(args) < 2:
+        return retval
+
+    if POSIX:
+        os.execvp(args[0], args)
+    elif WIN32:
+        os.execvp(sys.executable, args)
+    else:
+        retval = NOT_SUPPORTED
+
+
+    return retval

@@ -70,7 +70,7 @@ def agent_reset(client, params, user_data, request):
 
     user_data[1].join()
     client.disconnect(wait_for_replies=True)
-    os.execl("device_manager.py", "")
+    osal.execl("python", "device_manager.py")
 
     # If this return is hit, then the device manager did not restart properly
     return (iot.STATUS_FAILURE, "Device Manager Failed to Restart!")

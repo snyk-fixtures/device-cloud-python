@@ -9,8 +9,11 @@ from hdcosal.osal import system_shutdown
 from hdcosal.osal import os_name
 from hdcosal.osal import os_version
 from hdcosal.osal import os_kernel
+from hdcosal.osal import execl
 
 from hdcosal.osal import NOT_SUPPORTED
+from hdcosal.osal import EXECUTION_FAILURE
+from hdcosal.osal import BAD_PARAMETER
 
 from hdcosal.osal import LINUX
 from hdcosal.osal import WIN32
