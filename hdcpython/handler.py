@@ -251,8 +251,8 @@ class Handler(object):
                 self.mqtt.tls_set(self.config.ca_bundle_file,
                                   tls_version=ssl.PROTOCOL_TLSv1_2)
 
-                # Start an insecure connection if not validiate_cloud_cert
-                self.mqtt.tls_insecure_set(self.config.validiate_cloud_cert
+                # Start an insecure connection if not validate_cloud_cert
+                self.mqtt.tls_insecure_set(self.config.validate_cloud_cert
                                            is False)
 
             # Start MQTT connection
@@ -442,7 +442,7 @@ class Handler(object):
 
         # Secure or insecure HTTP request.
         response = None
-        if self.config.validiate_cloud_cert is False:
+        if self.config.validate_cloud_cert is False:
             url = "https://" + url
             response = requests.get(url, stream=True, verify=False)
         elif self.config.ca_bundle_file:
@@ -514,7 +514,7 @@ class Handler(object):
             # If file exists attempt upload
             with open(upload.file_path, "rb") as up_file:
                 # Secure or insecure HTTP Post
-                if self.config.validiate_cloud_cert is False:
+                if self.config.validate_cloud_cert is False:
                     url = "https://" + url
                     response = requests.post(url, data=up_file,
                                              verify=False)
