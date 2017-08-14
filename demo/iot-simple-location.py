@@ -1,0 +1,135 @@
+#!/usr/bin/env python
+
+"""
+Simple app that demonstrates the location APIs in the HDC Python library
+"""
+
+import argparse
+import math
+import random
+import signal
+import sys
+from time import sleep
+
+import hdcpython as iot
+
+running = True
+sending_location = False
+
+# Second intervals between telemetry
+TELEMINTERVAL = 4
+
+# Initial location data.
+heading = random.uniform(0, 360)
+speed = 10.0
+pos_lat = 45.351603
+pos_long = -75.918713
+
+def sighandler(signum, frame):
+    """
+    Signal handler for exiting app
+    """
+    global running
+    if signum == signal.SIGINT:
+        print "Received SIGINT, stopping application..."
+        running = False
+
+def toggle_loc():
+    """
+    Turns Location on or off (callback)
+    """
+    global sending_location
+    sending_location = not sending_location
+    client.info("%s sending location", "Now" if sending_location \
+                else "No longer")
+    return (iot.STATUS_SUCCESS, "Turned On" if sending_location \
+            else "Turned Off")
+
+def quit_me():
+    """
+    Quits application (callback)
+    """
+    global running
+    running = False
+    return (iot.STATUS_SUCCESS, "")
+
+if __name__ == "__main__":
+    signal.signal(signal.SIGINT, sighandler)
+
+    # Parse command line arguments for easy customization
+    parser = argparse.ArgumentParser(description="Demo app for Python HDC "
+                                     "location APIs")
+    parser.add_argument("-i", "--app_id", help="Custom app id")
+    parser.add_argument("-c", "--config_dir", help="Custom config directory")
+    parser.add_argument("-f", "--config_file", help="Custom config file name "
+                        "(in config directory)")
+    parser.add_argument("-d", "--thing_definition", help="Custom thing "
+                        "definition key")
+    args = parser.parse_args(sys.argv[1:])
+
+    # Initialize client default called 'python-demo-app'
+    app_id = "iot-simple-location-py"
+    if args.app_id:
+        app_id = args.app_id
+    client = iot.Client(app_id)
+
+    # Ensure this thing is using the args.thing_definition definition
+    # This can alternatively be set in the configuration file
+    if args.thing_definition:
+        client.config.thing_def_key = args.thing_definition
+    else:
+        client.config.thing_def_key = "iot_simple_location"
+
+    # Use the demo-connect.cfg file inside the config directory
+    # (Default would be python-demo-app-connect.cfg)
+    config_file = "demo-connect.cfg"
+    if args.config_file:
+        config_file = args.config_file
+    client.config.config_file = config_file
+
+    # Look for device_id and demo-connect.cfg in this directory
+    # (This is already default behaviour)
+    config_dir = "."
+    if args.config_dir:
+        config_dir = args.config_dir
+    client.config.config_dir = config_dir
+
+    # Finish configuration and initialize client
+    client.initialize()
+
+    # Set action callbacks
+    client.action_register_callback("toggle_location", toggle_loc)
+    client.action_register_callback("quit", quit_me)
+
+    # Connect to Cloud
+    if client.connect(timeout=10) != iot.STATUS_SUCCESS:
+        client.error("Failed")
+        sys.exit(1)
+
+    counter = 0
+    while running and client.is_alive():
+        sleep(1)
+        counter += 1
+        if counter >= TELEMINTERVAL:
+            if sending_location:
+                # Randomly generate location data
+                speed = round(random.uniform(0, 100), 2)
+                heading += round(random.random() * 20, 2) - 10
+                if heading > 360:
+                    heading -= 360
+                if heading < 0:
+                    heading += 360
+                pos_lat += round((speed * math.cos(math.radians(heading))) \
+                                  * 0.001, 2)
+                pos_long += round((speed * math.sin(math.radians(heading))) \
+                                   * 0.001, 2)
+
+                client.log(iot.LOGINFO, "Publishing Location")
+                client.location_publish(pos_lat, pos_long, heading=heading,
+                                        speed=speed)
+
+            # Reset counter after sending telemetry
+            counter = 0
+
+    client.disconnect(wait_for_replies=True)
+
