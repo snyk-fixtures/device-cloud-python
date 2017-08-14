@@ -20,3 +20,20 @@ from hdcosal.osal import WIN32
 from hdcosal.osal import MACOS
 from hdcosal.osal import POSIX
 from hdcosal.osal import OTHER
+
+__all__ = [
+	   "LINUX",
+	   "WIN32",
+	   "MACOS",
+	   "POSIX",
+	   "OTHER",
+	   "NOT_SUPPORTED",
+	   "EXECUTION_FAILURE",
+	   "BAD_PARAMETER",
+	   "execl",
+	   "os_kernel",
+	   "os_name",
+	   "os_version",
+	   "system_reboot",
+	   "system_shutdown"
+	   ]

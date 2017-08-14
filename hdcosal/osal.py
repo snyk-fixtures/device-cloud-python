@@ -21,28 +21,36 @@ POSIX = LINUX or MACOS
 OTHER = not POSIX and not WIN32
 
 # Define Functions
-def system_reboot(delay=0, force=True):
+def execl(*args):
     """
-    Reboot the system.
+    Replaces the current process with a new instance of the specified
+    executable. This function will only return if there is an issue starting the
+    new instance, in which case it will return false. Otherwise, it will not
+    return.
     """
-    return system_shutdown(delay=delay, reboot=True, force=force)
+    retval = EXECUTION_FAILURE
+    if len(args) < 2:
+        retval = BAD_PARAMETER
 
-def system_shutdown(delay=0, reboot=False, force=True):
-    """
-    Run the system shutdown command. Can be used to reboot the system.
-    """
-    command = "shutdown "
     if POSIX:
-        command += "-r " if reboot else "-h "
-        command += "now " if delay == 0 else "+{} ".format(delay)
+        os.execvp(args[0], args)
     elif WIN32:
-        command += "/r " if reboot else "/s "
-        command += "/t {} ".format(delay*60)
-        command += "/f" if force else ""
+        os.execvp(sys.executable, args)
     else:
-        return NOT_SUPPORTED
+        retval = NOT_SUPPORTED
 
-    return os.system(command)
+    return retval
+
+def os_kernel():
+    """
+    Get the operating system's kernel version
+    """
+    ker = "Unknown"
+    if LINUX:
+        ker = platform.release()
+    elif WIN32:
+        ker = platform.version()
+    return ker
 
 def os_name():
     """
@@ -69,34 +77,25 @@ def os_version():
         ver = platform.release()
     return ver
 
-def os_kernel():
+def system_reboot(delay=0, force=True):
     """
-    Get the operating system's kernel version
+    Reboot the system.
     """
-    ker = "Unknown"
-    if LINUX:
-        ker = platform.release()
-    elif WIN32:
-        ker = platform.version()
-    return ker
+    return system_shutdown(delay=delay, reboot=True, force=force)
 
-def execl(*args):
+def system_shutdown(delay=0, reboot=False, force=True):
     """
-    Replaces the current process with a new instance of the specified
-    executable. This function will only return if there is an issue starting the
-    new instance, in which case it will return false. Otherwise, it will not
-    return.
+    Run the system shutdown command. Can be used to reboot the system.
     """
-    retval = EXECUTION_FAILURE
-    if len(args) < 2:
-        return retval
-
+    command = "shutdown "
     if POSIX:
-        os.execvp(args[0], args)
+        command += "-r " if reboot else "-h "
+        command += "now " if delay == 0 else "+{} ".format(delay)
     elif WIN32:
-        os.execvp(sys.executable, args)
+        command += "/r " if reboot else "/s "
+        command += "/t {} ".format(delay*60)
+        command += "/f" if force else ""
     else:
-        retval = NOT_SUPPORTED
+        return NOT_SUPPORTED
 
-
-    return retval
+    return os.system(command)
