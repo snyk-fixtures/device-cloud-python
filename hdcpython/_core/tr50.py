@@ -5,7 +5,7 @@ Client application
 
 import json
 
-from hdcpython import constants
+from hdcpython._core import constants
 
 
 CLOUD_ERROR_CODES = {

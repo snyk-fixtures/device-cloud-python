@@ -12,7 +12,7 @@ import tarfile
 import threading
 import zipfile
 
-import hdcosal as osal
+from hdcpython import osal
 import hdcpython as iot
 
 # Alarm Constants

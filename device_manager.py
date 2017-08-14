@@ -18,9 +18,10 @@ import sys
 from time import sleep
 import uuid
 
-import hdcosal as osal
+from hdcpython import osal
+from hdcpython import ota_handler
+from hdcpython.relay import Relay
 import hdcpython as iot
-from hdcrelay import Relay
 
 running = True
 relay = None
@@ -368,7 +369,7 @@ if __name__ == "__main__":
 
 
     # Setup an OTA Handler
-    ota = iot.ota.OTAHandler()
+    ota = ota_handler.OTAHandler()
 
     # Set action callbacks, if enabled in iot.cfg
     action_register_conditional(client, "file_download", file_download, \

@@ -10,12 +10,12 @@ import re
 from time import sleep
 
 import hdcpython
-import hdcpython_test.test_helpers as helpers
+import hdcpython.test.test_helpers as helpers
 
 
 class ClientActionDeregister(unittest.TestCase):
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.client.os.path.exists")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.client.os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up Mocks
         mock_exists.side_effect = [True, True]
@@ -51,8 +51,8 @@ class ClientActionDeregister(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionReregisterNotExist(unittest.TestCase):
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.client.os.path.exists")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.client.os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -74,8 +74,8 @@ class ClientActionReregisterNotExist(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionRegisterCallback(unittest.TestCase):
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.client.os.path.exists")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.client.os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -104,8 +104,8 @@ class ClientActionRegisterCallback(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionRegisterCallbackExists(unittest.TestCase):
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.client.os.path.exists")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.client.os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -148,8 +148,8 @@ class ClientActionRegisterCallbackExists(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionRegisterCommand(unittest.TestCase):
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.client.os.path.exists")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.client.os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -173,8 +173,8 @@ class ClientActionRegisterCommand(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionRegisterCommandExists(unittest.TestCase):
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.client.os.path.exists")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.client.os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -207,10 +207,10 @@ class ClientActionRegisterCommandExists(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientAlarmPublish(unittest.TestCase):
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.client.os.path.exists")
-    @mock.patch("hdcpython.handler.sleep")
-    @mock.patch("hdcpython.handler.mqttlib.Client")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("hdcpython._core.handler.sleep")
+    @mock.patch("hdcpython._core.handler.mqttlib.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -229,22 +229,22 @@ class ClientAlarmPublish(unittest.TestCase):
                                            message="alarm message")
         assert result == hdcpython.STATUS_SUCCESS
         pub = self.client.handler.publish_queue.get()
-        assert isinstance(pub, hdcpython.defs.PublishAlarm)
+        assert isinstance(pub, hdcpython._core.defs.PublishAlarm)
         assert pub.name == "alarm_key"
         assert pub.state == 5
         assert pub.message == "alarm message"
         work = self.client.handler.work_queue.get()
-        assert work.type == hdcpython.constants.WORK_PUBLISH
+        assert work.type == hdcpython._core.constants.WORK_PUBLISH
 
     def setUp(self):
         # Configuration to be 'read' from config file
         self.config_args = helpers.config_file_default()
 
 class ClientAttributePublish(unittest.TestCase):
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.client.os.path.exists")
-    @mock.patch("hdcpython.handler.sleep")
-    @mock.patch("hdcpython.handler.mqttlib.Client")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("hdcpython._core.handler.sleep")
+    @mock.patch("hdcpython._core.handler.mqttlib.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -263,7 +263,7 @@ class ClientAttributePublish(unittest.TestCase):
                                                "attribute string")
         assert result == hdcpython.STATUS_SUCCESS
         pub = self.client.handler.publish_queue.get()
-        assert isinstance(pub, hdcpython.defs.PublishAttribute)
+        assert isinstance(pub, hdcpython._core.defs.PublishAttribute)
         assert pub.name == "attribute_key"
         assert pub.value == "attribute string"
 
@@ -272,10 +272,10 @@ class ClientAttributePublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientConnectFailure(unittest.TestCase):
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.client.os.path.exists")
-    @mock.patch("hdcpython.handler.sleep")
-    @mock.patch("hdcpython.handler.mqttlib.Client")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("hdcpython._core.handler.sleep")
+    @mock.patch("hdcpython._core.handler.mqttlib.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -309,10 +309,10 @@ class ClientConnectFailure(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientConnectSuccess(unittest.TestCase):
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.client.os.path.exists")
-    @mock.patch("hdcpython.handler.sleep")
-    @mock.patch("hdcpython.handler.mqttlib.Client")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("hdcpython._core.handler.sleep")
+    @mock.patch("hdcpython._core.handler.mqttlib.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -323,7 +323,7 @@ class ClientConnectSuccess(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":0}
-        self.client = hdcpython.client.Client("testing-client", kwargs)
+        self.client = hdcpython.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Connect successfully
@@ -347,10 +347,10 @@ class ClientConnectSuccess(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientDisconnectFailure(unittest.TestCase):
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.client.os.path.exists")
-    @mock.patch("hdcpython.handler.sleep")
-    @mock.patch("hdcpython.handler.mqttlib.Client")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("hdcpython._core.handler.sleep")
+    @mock.patch("hdcpython._core.handler.mqttlib.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -388,10 +388,10 @@ class ClientDisconnectFailure(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientEventPublish(unittest.TestCase):
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.client.os.path.exists")
-    @mock.patch("hdcpython.handler.sleep")
-    @mock.patch("hdcpython.handler.mqttlib.Client")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("hdcpython._core.handler.sleep")
+    @mock.patch("hdcpython._core.handler.mqttlib.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -409,7 +409,7 @@ class ClientEventPublish(unittest.TestCase):
         result = self.client.event_publish("event message")
         assert result == hdcpython.STATUS_SUCCESS
         pub = self.client.handler.publish_queue.get()
-        assert isinstance(pub, hdcpython.defs.PublishLog)
+        assert isinstance(pub, hdcpython._core.defs.PublishLog)
         assert pub.message == "event message"
 
     def setUp(self):
@@ -417,14 +417,14 @@ class ClientEventPublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientFileDownloadAsyncSuccess(unittest.TestCase):
-    @mock.patch("hdcpython.handler.open")
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.handler.os.rename")
-    @mock.patch("hdcpython.handler.os.path.isdir")
-    @mock.patch("hdcpython.client.os.path.exists")
-    @mock.patch("hdcpython.handler.sleep")
-    @mock.patch("hdcpython.handler.mqttlib.Client")
-    @mock.patch("hdcpython.handler.requests.get")
+    @mock.patch("hdcpython._core.handler.open")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.handler.os.rename")
+    @mock.patch("hdcpython._core.handler.os.path.isdir")
+    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("hdcpython._core.handler.sleep")
+    @mock.patch("hdcpython._core.handler.mqttlib.Client")
+    @mock.patch("hdcpython._core.handler.requests.get")
     def runTest(self, mock_get, mock_mqtt, mock_sleep, mock_exists, mock_isdir, mock_rename, mock_client_open, mock_handle_open):
         # Set up mocks
         mock_exists.side_effect = [True, True, True]
@@ -500,13 +500,13 @@ class ClientFileDownloadAsyncSuccess(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientFileUploadAsyncSuccess(unittest.TestCase):
-    @mock.patch("hdcpython.handler.open")
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.handler.os.path.isfile")
-    @mock.patch("hdcpython.client.os.path.exists")
-    @mock.patch("hdcpython.handler.sleep")
-    @mock.patch("hdcpython.handler.mqttlib.Client")
-    @mock.patch("hdcpython.handler.requests.post")
+    @mock.patch("hdcpython._core.handler.open")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.handler.os.path.isfile")
+    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("hdcpython._core.handler.sleep")
+    @mock.patch("hdcpython._core.handler.mqttlib.Client")
+    @mock.patch("hdcpython._core.handler.requests.post")
     def runTest(self, mock_post, mock_mqtt, mock_sleep, mock_exists, mock_isfile, mock_client_open, mock_handle_open):
         # Set up mocks
         mock_exists.side_effect = [True, True, True]
@@ -582,10 +582,10 @@ class ClientFileUploadAsyncSuccess(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientLocationPublish(unittest.TestCase):
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.client.os.path.exists")
-    @mock.patch("hdcpython.handler.sleep")
-    @mock.patch("hdcpython.handler.mqttlib.Client")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("hdcpython._core.handler.sleep")
+    @mock.patch("hdcpython._core.handler.mqttlib.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -605,7 +605,7 @@ class ClientLocationPublish(unittest.TestCase):
                                               accuracy=12.34, fix_type="gps")
         assert result == hdcpython.STATUS_SUCCESS
         pub = self.client.handler.publish_queue.get()
-        assert isinstance(pub, hdcpython.defs.PublishLocation)
+        assert isinstance(pub, hdcpython._core.defs.PublishLocation)
         assert pub.latitude == 12.34
         assert pub.longitude == 56.78
         assert pub.heading == 90.12
@@ -619,10 +619,10 @@ class ClientLocationPublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientTelemetryPublish(unittest.TestCase):
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.client.os.path.exists")
-    @mock.patch("hdcpython.handler.sleep")
-    @mock.patch("hdcpython.handler.mqttlib.Client")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("hdcpython._core.handler.sleep")
+    @mock.patch("hdcpython._core.handler.mqttlib.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -640,7 +640,7 @@ class ClientTelemetryPublish(unittest.TestCase):
         result = self.client.telemetry_publish("property_key", 26.6)
         assert result == hdcpython.STATUS_SUCCESS
         pub = self.client.handler.publish_queue.get()
-        assert isinstance(pub, hdcpython.defs.PublishTelemetry)
+        assert isinstance(pub, hdcpython._core.defs.PublishTelemetry)
         assert pub.name == "property_key"
         assert pub.value == 26.6
 
@@ -649,8 +649,8 @@ class ClientTelemetryPublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ConfigReadFile(unittest.TestCase):
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.client.os.path.exists")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.client.os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -679,8 +679,8 @@ class ConfigReadFile(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ConfigReadDefaults(unittest.TestCase):
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.client.os.path.exists")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.client.os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, False]
@@ -715,8 +715,8 @@ class ConfigReadDefaults(unittest.TestCase):
                            "port":8883, "token":"abcdefghijklm"}}
 
 class ConfigWriteReadDeviceID(unittest.TestCase):
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.client.os.path.exists")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.client.os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, False]
@@ -754,11 +754,11 @@ class ConfigWriteReadDeviceID(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class HandleActionExecCallbackSuccess(unittest.TestCase):
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.client.os.path.exists")
-    @mock.patch("hdcpython.handler.sleep")
-    @mock.patch("hdcpython.defs.inspect")
-    @mock.patch("hdcpython.handler.mqttlib.Client")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("hdcpython._core.handler.sleep")
+    @mock.patch("hdcpython._core.defs.inspect")
+    @mock.patch("hdcpython._core.handler.mqttlib.Client")
     def runTest(self, mock_mqtt, mock_inspect, mock_sleep, mock_exists,
                 mock_open):
         # Set up mocks
@@ -780,7 +780,7 @@ class HandleActionExecCallbackSuccess(unittest.TestCase):
         params = {"some_param":521, "some_other_param":6234}
         user_data = "User Data"
         callback = mock.Mock(return_value=(0, "I did it!"))
-        action = hdcpython.defs.Action("some_action", callback, self.client, user_data)
+        action = hdcpython._core.defs.Action("some_action", callback, self.client, user_data)
         self.client.handler.callbacks.add_action(action)
 
         # Connect to Cloud
@@ -863,10 +863,10 @@ class HandleActionExecCallbackSuccess(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class HandlePublishAllTypes(unittest.TestCase):
-    @mock.patch("hdcpython.client.open")
-    @mock.patch("hdcpython.client.os.path.exists")
-    @mock.patch("hdcpython.handler.sleep")
-    @mock.patch("hdcpython.handler.mqttlib.Client")
+    @mock.patch("hdcpython._core.client.open")
+    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("hdcpython._core.handler.sleep")
+    @mock.patch("hdcpython._core.handler.mqttlib.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -881,15 +881,15 @@ class HandlePublishAllTypes(unittest.TestCase):
         self.client.initialize()
 
         # Set up pending publishes
-        alarm = hdcpython.defs.PublishAlarm("alarm_key", 6,
+        alarm = hdcpython._core.defs.PublishAlarm("alarm_key", 6,
                                             message="I'm an alarm")
-        attr = hdcpython.defs.PublishAttribute("attribute_key",
+        attr = hdcpython._core.defs.PublishAttribute("attribute_key",
                                                "Attribute String")
-        loc = hdcpython.defs.PublishLocation(11.11, 22.22, heading=33.33,
+        loc = hdcpython._core.defs.PublishLocation(11.11, 22.22, heading=33.33,
                                              altitude=44.44, speed=55.55,
                                              accuracy=66.66, fix_type="gps")
-        event = hdcpython.defs.PublishLog("Event Message")
-        telem = hdcpython.defs.PublishTelemetry("property_key", 12.34)
+        event = hdcpython._core.defs.PublishLog("Event Message")
+        telem = hdcpython._core.defs.PublishTelemetry("property_key", 12.34)
         publishes = [alarm, attr, loc, event, telem]
         for pub in publishes:
             self.client.handler.queue_publish(pub)
@@ -1029,7 +1029,7 @@ class OTAExecuteWorkingDir(unittest.TestCase):
         mock_system.assert_called_once()
 
 class OTAPackageDownload(unittest.TestCase):
-    @mock.patch("hdcpython.client.Client.file_download")
+    @mock.patch("hdcpython._core.client.Client.file_download")
     def runTest(self, mock_download):
         mock_download.return_value = hdcpython.STATUS_SUCCESS
 
@@ -1040,7 +1040,7 @@ class OTAPackageDownload(unittest.TestCase):
         assert result == hdcpython.STATUS_SUCCESS
 
 class OTAPackageDownloadNoClient(unittest.TestCase):
-    @mock.patch("hdcpython.client.Client.file_download")
+    @mock.patch("hdcpython._core.client.Client.file_download")
     def runTest(self, mock_download):
         mock_download.return_value = hdcpython.STATUS_SUCCESS
 
@@ -1050,7 +1050,7 @@ class OTAPackageDownloadNoClient(unittest.TestCase):
         assert result == hdcpython.STATUS_BAD_PARAMETER
 
 class OTAPackageDownloadBadFile(unittest.TestCase):
-    @mock.patch("hdcpython.client.Client.file_download")
+    @mock.patch("hdcpython._core.client.Client.file_download")
     def runTest(self, mock_download):
         mock_download.return_value = hdcpython.STATUS_FAILURE
 

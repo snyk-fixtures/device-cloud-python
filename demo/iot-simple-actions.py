@@ -13,7 +13,7 @@ import sys
 from time import sleep
 
 import hdcpython as iot
-import hdcosal as osal
+from hdcpython import osal
 
 running = True
 

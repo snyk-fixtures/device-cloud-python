@@ -10,41 +10,45 @@ from logging import INFO as LOGINFO
 from logging import NOTSET as LOGNOTSET
 from logging import WARNING as LOGWARNING
 
-from hdcpython.client import Client
-from hdcpython.handler import status_string
+from hdcpython._core.client import Client
+from hdcpython._core.handler import status_string
 
-from hdcpython.constants import DEFAULT_CONFIG_DIR
-from hdcpython.constants import DEFAULT_CONFIG_FILE
-from hdcpython.constants import DEFAULT_KEEP_ALIVE
-from hdcpython.constants import DEFAULT_LOOP_TIME
-from hdcpython.constants import DEFAULT_THREAD_COUNT
+from hdcpython._core.constants import DEFAULT_CONFIG_DIR
+from hdcpython._core.constants import DEFAULT_CONFIG_FILE
+from hdcpython._core.constants import DEFAULT_KEEP_ALIVE
+from hdcpython._core.constants import DEFAULT_LOOP_TIME
+from hdcpython._core.constants import DEFAULT_THREAD_COUNT
 
-from hdcpython.constants import STATUS_SUCCESS
-from hdcpython.constants import STATUS_INVOKED
-from hdcpython.constants import STATUS_BAD_PARAMETER
-from hdcpython.constants import STATUS_BAD_REQUEST
-from hdcpython.constants import STATUS_EXECUTION_ERROR
-from hdcpython.constants import STATUS_EXISTS
-from hdcpython.constants import STATUS_FILE_OPEN_FAILED
-from hdcpython.constants import STATUS_FULL
-from hdcpython.constants import STATUS_IO_ERROR
-from hdcpython.constants import STATUS_NO_MEMORY
-from hdcpython.constants import STATUS_NO_PERMISSION
-from hdcpython.constants import STATUS_NOT_EXECUTABLE
-from hdcpython.constants import STATUS_NOT_FOUND
-from hdcpython.constants import STATUS_NOT_INITIALIZED
-from hdcpython.constants import STATUS_OUT_OF_RANGE
-from hdcpython.constants import STATUS_PARSE_ERROR
-from hdcpython.constants import STATUS_TIMED_OUT
-from hdcpython.constants import STATUS_TRY_AGAIN
-from hdcpython.constants import STATUS_NOT_SUPPORTED
-from hdcpython.constants import STATUS_FAILURE
+from hdcpython._core.constants import STATUS_SUCCESS
+from hdcpython._core.constants import STATUS_INVOKED
+from hdcpython._core.constants import STATUS_BAD_PARAMETER
+from hdcpython._core.constants import STATUS_BAD_REQUEST
+from hdcpython._core.constants import STATUS_EXECUTION_ERROR
+from hdcpython._core.constants import STATUS_EXISTS
+from hdcpython._core.constants import STATUS_FILE_OPEN_FAILED
+from hdcpython._core.constants import STATUS_FULL
+from hdcpython._core.constants import STATUS_IO_ERROR
+from hdcpython._core.constants import STATUS_NO_MEMORY
+from hdcpython._core.constants import STATUS_NO_PERMISSION
+from hdcpython._core.constants import STATUS_NOT_EXECUTABLE
+from hdcpython._core.constants import STATUS_NOT_FOUND
+from hdcpython._core.constants import STATUS_NOT_INITIALIZED
+from hdcpython._core.constants import STATUS_OUT_OF_RANGE
+from hdcpython._core.constants import STATUS_PARSE_ERROR
+from hdcpython._core.constants import STATUS_TIMED_OUT
+from hdcpython._core.constants import STATUS_TRY_AGAIN
+from hdcpython._core.constants import STATUS_NOT_SUPPORTED
+from hdcpython._core.constants import STATUS_FAILURE
 
-import hdcpython.ota_handler as ota
+import hdcpython.osal
+import hdcpython.ota_handler
+import hdcpython.relay
 
 __all__ = ["Client",
            "status_string",
-           "ota",
+           "osal"
+           "ota_handler",
+           "relay",
            "DEFAULT_CONFIG_DIR",
            "DEFAULT_CONFIG_FILE",
            "DEFAULT_KEEP_ALIVE",

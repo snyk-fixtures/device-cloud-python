@@ -6,15 +6,15 @@ import json
 import os
 import uuid
 
-from hdcpython import defs
-from hdcpython.constants import DEFAULT_CONFIG_DIR
-from hdcpython.constants import DEFAULT_CONFIG_FILE
-from hdcpython.constants import DEFAULT_KEEP_ALIVE
-from hdcpython.constants import DEFAULT_LOOP_TIME
-from hdcpython.constants import DEFAULT_THREAD_COUNT
-from hdcpython.constants import STATUS_SUCCESS
-from hdcpython.constants import WORK_PUBLISH
-from hdcpython.handler import Handler
+from hdcpython._core.constants import DEFAULT_CONFIG_DIR
+from hdcpython._core.constants import DEFAULT_CONFIG_FILE
+from hdcpython._core.constants import DEFAULT_KEEP_ALIVE
+from hdcpython._core.constants import DEFAULT_LOOP_TIME
+from hdcpython._core.constants import DEFAULT_THREAD_COUNT
+from hdcpython._core.constants import STATUS_SUCCESS
+from hdcpython._core.constants import WORK_PUBLISH
+from hdcpython._core import defs
+from hdcpython._core.handler import Handler
 
 
 class Client(object):

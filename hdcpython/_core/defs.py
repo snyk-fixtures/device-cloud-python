@@ -7,7 +7,7 @@ import json
 import subprocess
 from datetime import datetime
 
-from hdcpython import constants
+from hdcpython._core import constants
 
 class Action(object):
     """
