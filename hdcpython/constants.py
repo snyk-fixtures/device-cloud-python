@@ -2,10 +2,6 @@
 This module contains all the constant values required by the Client
 """
 
-# META INFO
-
-API_VERSION = "17.08.10"
-
 # CONFIGURATION DEFAULTS
 
 # Default configuration directory

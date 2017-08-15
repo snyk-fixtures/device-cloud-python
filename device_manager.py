@@ -295,7 +295,7 @@ def publish_platform_info(client):
     client.attribute_publish("architecture", platform.machine())
     client.attribute_publish("hostname", platform.node())
     client.attribute_publish("kernel", osal.os_kernel())
-    client.attribute_publish("hdc_version", iot.constants.API_VERSION)
+    client.attribute_publish("hdc_version", iot.API_VERSION)
     client.attribute_publish("mac_address", get_adapter_mac())
 
 def quit_me():
