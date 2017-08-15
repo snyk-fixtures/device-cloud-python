@@ -2,6 +2,7 @@
 This module contains the Client class for user applications
 """
 
+import certifi
 import json
 import os
 import uuid
@@ -143,7 +144,8 @@ class Client(object):
         config_defaults = {
             "keep_alive":DEFAULT_KEEP_ALIVE,
             "loop_time":DEFAULT_LOOP_TIME,
-            "thread_count":DEFAULT_THREAD_COUNT
+            "thread_count":DEFAULT_THREAD_COUNT,
+            "ca_bundle_file":certifi.where()
         }
         self.config.update(config_defaults, False)
 

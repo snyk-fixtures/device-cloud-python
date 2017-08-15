@@ -10,6 +10,7 @@ setup(
 	install_requires=[
 		'paho-mqtt',
 		'requests',
+                'certifi',
 		'websocket-client'
 		],
 	maintainer='Paul Barrette',

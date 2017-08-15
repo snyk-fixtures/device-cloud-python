@@ -246,22 +246,32 @@ class Handler(object):
             end_time = current_time + timedelta(seconds=timeout)
             self.state = constants.STATE_CONNECTING
 
-            # Start a secure connection if the cert file is available
-            if self.config.ca_bundle_file:
-                self.mqtt.tls_set(self.config.ca_bundle_file,
-                                  tls_version=ssl.PROTOCOL_TLSv1_2)
+            # Start a secure connection if using a secure port and the cert file
+            # is available
+            if self.config.cloud.port in constants.SECURE_PORTS:
+                if not self.config.ca_bundle_file:
+                    self.logger.error("Missing certificate bundle from configuration")
+                    status = constants.STATUS_BAD_PARAMETER
+                elif not os.path.isfile(self.config.ca_bundle_file):
+                    self.logger.error("Certificate bundle not found")
+                    status = constants.STATUS_NOT_FOUND
+                else:
+                    self.mqtt.tls_set(self.config.ca_bundle_file,
+                                      tls_version=ssl.PROTOCOL_TLSv1_2)
 
-                # Start an insecure connection if not validate_cloud_cert
-                self.mqtt.tls_insecure_set(self.config.validate_cloud_cert
-                                           is False)
+                    # Start an insecure connection if not validate_cloud_cert
+                    self.mqtt.tls_insecure_set(self.config.validate_cloud_cert
+                                               is False)
 
-            # Start MQTT connection
-            try:
-                result = self.mqtt.connect(self.config.cloud.host,
-                                           self.config.cloud.port, 60)
-            except gaierror as error:
-                self.logger.error(str(error))
-                self.state = constants.STATE_DISCONNECTED
+            # status != bad_parameter or not_found
+            if status == constants.STATUS_FAILURE:
+                # Start MQTT connection
+                try:
+                    result = self.mqtt.connect(self.config.cloud.host,
+                                               self.config.cloud.port, 60)
+                except gaierror as error:
+                    self.logger.error(str(error))
+                    self.state = constants.STATE_DISCONNECTED
 
         if result == 0:
             # Successful MQTT connection
@@ -422,7 +432,7 @@ class Handler(object):
         self.logger.info("Downloading \"%s\"", download.file_name)
 
         # Start creating URL for file download
-        url = "{}/file/{}".format(self.config.cloud.host, download.file_id)
+        url = "https://{}/file/{}".format(self.config.cloud.host, download.file_id)
 
         # Download directory
         download_dir = os.path.dirname(download.file_path)
@@ -440,19 +450,14 @@ class Handler(object):
                 print err
                 status = constants.STATUS_BAD_PARAMETER
 
-        # Secure or insecure HTTP request.
+        # Secure or insecure HTTPS request.
         response = None
-        if self.config.validate_cloud_cert is False:
-            url = "https://" + url
+        if (self.config.validate_cloud_cert is False or
+                not self.config.ca_bundle_file):
             response = requests.get(url, stream=True, verify=False)
-        elif self.config.ca_bundle_file:
-            url = "https://" + url
-            cert_location = self.config.ca_bundle_file
-            response = requests.get(url, stream=True,
-                                    verify=cert_location)
         else:
-            url = "http://" + url
-            response = requests.get(url, stream=True)
+            cert_location = self.config.ca_bundle_file
+            response = requests.get(url, stream=True, verify=cert_location)
 
         if response.status_code == 200:
             # Write to temporary file, while simultaneously calculating checksum
@@ -507,25 +512,22 @@ class Handler(object):
                          os.path.basename(upload.file_path), upload.file_name)
 
         # Start creating URL for file upload
-        url = "{}/file/{}".format(self.config.cloud.host, upload.file_id)
+        url = "https://{}/file/{}".format(self.config.cloud.host,
+                                          upload.file_id)
 
         response = None
         if os.path.exists(upload.file_path):
             # If file exists attempt upload
             with open(upload.file_path, "rb") as up_file:
-                # Secure or insecure HTTP Post
-                if self.config.validate_cloud_cert is False:
-                    url = "https://" + url
-                    response = requests.post(url, data=up_file,
-                                             verify=False)
-                elif self.config.ca_bundle_file:
-                    url = "https://" + url
+                # Secure or insecure HTTPS Post
+                if (self.config.validate_cloud_cert is False or
+                        not self.config.ca_bundle_file):
+                    response = requests.post(url, data=up_file, verify=False)
+                else:
                     cert_location = self.config.ca_bundle_file
                     response = requests.post(url, data=up_file,
                                              verify=cert_location)
-                else:
-                    url = "http://" + url
-                    response = requests.post(url, data=up_file)
+
             if response.status_code == 200:
                 self.logger.info("Successfully uploaded \"%s\"",
                                  upload.file_name)

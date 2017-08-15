@@ -1,18 +1,7 @@
 # Share
 ## Folder Contents
- * `cacert.pem` - Root Certificates File
  * `hdc-dev-mgr.service` - Example systemd service configuration file
  * `hdc-dev-mgr.sh` - Example init.d service script
-
-## Using the Root Certificates File
- **This file is intended for use on Windows systems where there is no
- ca-certificates.crt (or equivalent) file**
-
- To use HDC over SSL/TLS on Windows, a certificate file is needed as there is
- not one that is available by default. `cacert.pem` is a root certificate store
- from Mozilla that allows for certificate verification and therefore SSL
- support. In your `iot-connect.cfg` file, simply specify `ca_bundle_file` as the path to cacert.pem`. You can then use the HDC agent via SSL by changing the
- connection port to the SSL port.
 
 ## Running the HDC Device Manager as a Service
 Prior to using either the systemd or init.d files to setup the device manager

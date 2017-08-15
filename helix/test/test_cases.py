@@ -14,8 +14,8 @@ import helix.test.test_helpers as helpers
 
 
 class ClientActionDeregister(unittest.TestCase):
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up Mocks
         mock_exists.side_effect = [True, True]
@@ -51,8 +51,8 @@ class ClientActionDeregister(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionReregisterNotExist(unittest.TestCase):
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -74,8 +74,8 @@ class ClientActionReregisterNotExist(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionRegisterCallback(unittest.TestCase):
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -104,8 +104,8 @@ class ClientActionRegisterCallback(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionRegisterCallbackExists(unittest.TestCase):
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -148,8 +148,8 @@ class ClientActionRegisterCallbackExists(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionRegisterCommand(unittest.TestCase):
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -173,8 +173,8 @@ class ClientActionRegisterCommand(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionRegisterCommandExists(unittest.TestCase):
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -207,10 +207,10 @@ class ClientActionRegisterCommandExists(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientAlarmPublish(unittest.TestCase):
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.client.os.path.exists")
-    @mock.patch("helix._core.handler.sleep")
-    @mock.patch("helix._core.handler.mqttlib.Client")
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
+    @mock.patch("time.sleep")
+    @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -241,10 +241,10 @@ class ClientAlarmPublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientAttributePublish(unittest.TestCase):
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.client.os.path.exists")
-    @mock.patch("helix._core.handler.sleep")
-    @mock.patch("helix._core.handler.mqttlib.Client")
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
+    @mock.patch("time.sleep")
+    @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -272,11 +272,11 @@ class ClientAttributePublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientConnectFailure(unittest.TestCase):
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.client.os.path.isfile")
-    @mock.patch("helix._core.client.os.path.exists")
-    @mock.patch("helix._core.handler.sleep")
-    @mock.patch("helix._core.handler.mqttlib.Client")
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.isfile")
+    @mock.patch("os.path.exists")
+    @mock.patch("time.sleep")
+    @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
                 mock_open):
         # Set up mocks
@@ -312,11 +312,11 @@ class ClientConnectFailure(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientConnectSuccess(unittest.TestCase):
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.client.os.path.isfile")
-    @mock.patch("helix._core.client.os.path.exists")
-    @mock.patch("helix._core.handler.sleep")
-    @mock.patch("helix._core.handler.mqttlib.Client")
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.isfile")
+    @mock.patch("os.path.exists")
+    @mock.patch("time.sleep")
+    @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
                 mock_open):
         # Set up mocks
@@ -353,11 +353,11 @@ class ClientConnectSuccess(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientDisconnectFailure(unittest.TestCase):
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.client.os.path.isfile")
-    @mock.patch("helix._core.client.os.path.exists")
-    @mock.patch("helix._core.handler.sleep")
-    @mock.patch("helix._core.handler.mqttlib.Client")
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.isfile")
+    @mock.patch("os.path.exists")
+    @mock.patch("time.sleep")
+    @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
                 mock_open):
         # Set up mocks
@@ -397,10 +397,10 @@ class ClientDisconnectFailure(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientEventPublish(unittest.TestCase):
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.client.os.path.exists")
-    @mock.patch("helix._core.handler.sleep")
-    @mock.patch("helix._core.handler.mqttlib.Client")
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
+    @mock.patch("time.sleep")
+    @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -426,25 +426,24 @@ class ClientEventPublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientFileDownloadAsyncSuccess(unittest.TestCase):
-    @mock.patch("helix._core.handler.open")
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.handler.os.rename")
-    @mock.patch("helix._core.handler.os.path.isdir")
-    @mock.patch("helix._core.client.os.path.isfile")
-    @mock.patch("helix._core.client.os.path.exists")
-    @mock.patch("helix._core.handler.sleep")
-    @mock.patch("helix._core.handler.mqttlib.Client")
-    @mock.patch("helix._core.handler.requests.get")
-    def runTest(self, mock_get, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
-                mock_isdir, mock_rename, mock_client_open, mock_handle_open):
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.rename")
+    @mock.patch("os.path.isdir")
+    @mock.patch("os.path.isfile")
+    @mock.patch("os.path.exists")
+    @mock.patch("time.sleep")
+    @mock.patch("paho.mqtt.client.Client")
+    @mock.patch("requests.get")
+    def runTest(self, mock_get, mock_mqtt, mock_sleep, mock_exists,
+                mock_isfile, mock_isdir, mock_rename, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True, True]
-        mock_isfile.side_effect = [True]
         mock_isdir.side_effect = [False, True]
+        mock_isfile.side_effect = [True]
         read_strings = [json.dumps(self.config_args), helpers.uuid]
-        mock_client_read = mock_client_open.return_value.__enter__.return_value.read
+        mock_client_read = mock_open.return_value.__enter__.return_value.read
         mock_client_read.side_effect = read_strings
-        mock_handle_write = mock_handle_open.return_value.__enter__.return_value.write
+        mock_handle_write = mock_open.return_value.__enter__.return_value.write
         mock_mqtt.return_value = helpers.init_mock_mqtt()
         mock_get.return_value.status_code = 200
         file_content = ["This ", "is ", "totally ", "a ", "file.\n",
@@ -512,22 +511,23 @@ class ClientFileDownloadAsyncSuccess(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientFileUploadAsyncSuccess(unittest.TestCase):
-    @mock.patch("helix._core.handler.open")
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.handler.os.path.isfile")
-    @mock.patch("helix._core.client.os.path.exists")
-    @mock.patch("helix._core.handler.sleep")
-    @mock.patch("helix._core.handler.mqttlib.Client")
-    @mock.patch("helix._core.handler.requests.post")
-    def runTest(self, mock_post, mock_mqtt, mock_sleep, mock_exists, mock_isfile, mock_client_open, mock_handle_open):
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.isfile")
+    @mock.patch("os.path.exists")
+    @mock.patch("time.sleep")
+    @mock.patch("paho.mqtt.client.Client")
+    @mock.patch("requests.post")
+    def runTest(self, mock_post, mock_mqtt, mock_sleep, mock_exists,
+                mock_isfile, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True, True]
         mock_isfile.side_effect = [True, True]
         read_strings = [json.dumps(self.config_args), helpers.uuid]
-        mock_client_read = mock_client_open.return_value.__enter__.return_value.read
-        mock_client_read.side_effect = read_strings
+        mock_read = mock_open.return_value.__enter__.return_value.read
+        mock_read.side_effect = read_strings
         file_content = "This is totally a file.\nWhat are you talking about.\n"
-        mock_handle_open.return_value.__enter__.return_value = file_content
+        mock_iter = mock_open.return_value.__enter__.return_value.__iter__
+        mock_iter.return_value = iter(file_content)
         mock_mqtt.return_value = helpers.init_mock_mqtt()
         post_kwargs = {}
         def post_func(url, data=None, verify=None):
@@ -577,7 +577,7 @@ class ClientFileUploadAsyncSuccess(unittest.TestCase):
         # Check to see what has been uploaded
         assert post_kwargs["url"] == "https://api.notarealcloudhost.com/file/123456789"
         assert post_kwargs["verify"] == "/top/secret/location"
-        assert post_kwargs["data"] == "This is totally a file.\nWhat are you talking about.\n"
+        assert post_kwargs["data"] is mock_open.return_value.__enter__.return_value
         args = upload_callback.call_args_list[0][0]
         assert args[0] is self.client
         assert args[1] == "filename.ext"
@@ -594,10 +594,10 @@ class ClientFileUploadAsyncSuccess(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientLocationPublish(unittest.TestCase):
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.client.os.path.exists")
-    @mock.patch("helix._core.handler.sleep")
-    @mock.patch("helix._core.handler.mqttlib.Client")
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
+    @mock.patch("time.sleep")
+    @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -631,10 +631,10 @@ class ClientLocationPublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientTelemetryPublish(unittest.TestCase):
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.client.os.path.exists")
-    @mock.patch("helix._core.handler.sleep")
-    @mock.patch("helix._core.handler.mqttlib.Client")
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
+    @mock.patch("time.sleep")
+    @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -661,8 +661,8 @@ class ClientTelemetryPublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ConfigReadFile(unittest.TestCase):
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -691,9 +691,9 @@ class ConfigReadFile(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ConfigReadDefaults(unittest.TestCase):
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.client.os.path.isfile")
-    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.isfile")
+    @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_isfile, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, False]
@@ -712,7 +712,7 @@ class ConfigReadDefaults(unittest.TestCase):
         mock_open.assert_any_call("./device_id", "w")
         mock_read.assert_called()
         mock_write.assert_called()
-        assert self.client.config.ca_bundle_file is None
+        assert self.client.config.ca_bundle_file.endswith("cacert.pem")
         assert self.client.config.cloud.host == "api.notarealcloudhost.com"
         assert self.client.config.cloud.port == 8883
         assert self.client.config.cloud.token == "abcdefghijklm"
@@ -768,12 +768,12 @@ class ConfigWriteReadDeviceID(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class HandleActionExecCallbackSuccess(unittest.TestCase):
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.client.os.path.isfile")
-    @mock.patch("helix._core.client.os.path.exists")
-    @mock.patch("helix._core.handler.sleep")
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.isfile")
+    @mock.patch("os.path.exists")
+    @mock.patch("time.sleep")
     @mock.patch("helix._core.defs.inspect")
-    @mock.patch("helix._core.handler.mqttlib.Client")
+    @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_inspect, mock_sleep, mock_exists,
                 mock_isfile, mock_open):
         # Set up mocks
@@ -879,11 +879,11 @@ class HandleActionExecCallbackSuccess(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class HandlePublishAllTypes(unittest.TestCase):
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.client.os.path.isfile")
-    @mock.patch("helix._core.client.os.path.exists")
-    @mock.patch("helix._core.handler.sleep")
-    @mock.patch("helix._core.handler.mqttlib.Client")
+    @mock.patch("__builtin__.open")
+    @mock.patch("os.path.isfile")
+    @mock.patch("os.path.exists")
+    @mock.patch("time.sleep")
+    @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
                 mock_open):
         # Set up mocks

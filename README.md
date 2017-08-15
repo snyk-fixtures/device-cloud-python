@@ -39,19 +39,19 @@ device_id.
 
 Configuration Options:
 ----------------------
-- config_dir
-- config_file
-- cloud
-  - host
-  - port
-  - token
-- validate_cloud_cert
-- ca_bundle_file
-- thing_def_key
-- log_file
-- keep_alive
-- loop_time
-- thread_count
+- config_dir: "/path/to/config/dir"
+- config_file: "configfilename.cfg"
+- cloud:
+  - host: "api.cloudhost.com"
+  - port: 1883/8883/443
+  - token: "tokenfromcloud"
+- validate_cloud_cert: true/false
+- ca_bundle_file: "/path/to/cert/bundle" (default will use included file)
+- thing_def_key: "some_thing_def_key"
+- log_file: "/path/to/a/log/file.log"
+- keep_alive: ##
+- loop_time: ##
+- thread_count: ##
 
 Device Manager:
 ---------------
