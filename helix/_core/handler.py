@@ -17,10 +17,10 @@ from time import sleep
 import requests
 import paho.mqtt.client as mqttlib
 
-from hdcpython._core import constants
-from hdcpython._core import defs
-from hdcpython._core import tr50
-from hdcpython._core.tr50 import TR50Command
+from helix._core import constants
+from helix._core import defs
+from helix._core import tr50
+from helix._core.tr50 import TR50Command
 
 
 def status_string(error_code):

@@ -11,7 +11,7 @@ import signal
 import sys
 from time import sleep
 
-import hdcpython as iot
+import helix as iot
 
 running = True
 sending_telemetry = False

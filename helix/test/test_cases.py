@@ -9,13 +9,13 @@ import re
 
 from time import sleep
 
-import hdcpython
-import hdcpython.test.test_helpers as helpers
+import helix
+import helix.test.test_helpers as helpers
 
 
 class ClientActionDeregister(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.client.os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up Mocks
         mock_exists.side_effect = [True, True]
@@ -24,7 +24,7 @@ class ClientActionDeregister(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client
-        self.client = hdcpython.Client("testing-client")
+        self.client = helix.Client("testing-client")
         self.client.initialize()
 
         # Set up a callback function
@@ -35,7 +35,7 @@ class ClientActionDeregister(unittest.TestCase):
         # Register action with callback
         result = self.client.action_register_callback("action-name", callback,
                                                       user_data)
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
         assert "action-name" in self.client.handler.callbacks
         assert self.client.handler.callbacks["action-name"].callback is callback
         assert (self.client.handler.callbacks["action-name"].user_data is
@@ -43,7 +43,7 @@ class ClientActionDeregister(unittest.TestCase):
 
         # Deregister action
         result = self.client.action_deregister("action-name")
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
         assert "action-name" not in self.client.handler.callbacks
 
     def setUp(self):
@@ -51,8 +51,8 @@ class ClientActionDeregister(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionReregisterNotExist(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.client.os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -61,12 +61,12 @@ class ClientActionReregisterNotExist(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client
-        self.client = hdcpython.Client("testing-client")
+        self.client = helix.Client("testing-client")
         self.client.initialize()
 
         # Attempt to deregister an action that does not exist
         result = self.client.action_deregister("action-name")
-        assert result == hdcpython.STATUS_NOT_FOUND
+        assert result == helix.STATUS_NOT_FOUND
         assert "action-name" not in self.client.handler.callbacks
 
     def setUp(self):
@@ -74,8 +74,8 @@ class ClientActionReregisterNotExist(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionRegisterCallback(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.client.os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -84,7 +84,7 @@ class ClientActionRegisterCallback(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client
-        self.client = hdcpython.Client("testing-client")
+        self.client = helix.Client("testing-client")
         self.client.initialize()
 
         # Register action with callback
@@ -93,7 +93,7 @@ class ClientActionRegisterCallback(unittest.TestCase):
                                                        user_data, 0)
         result = self.client.action_register_callback("action-name", callback,
                                                       user_data)
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
         assert "action-name" in self.client.handler.callbacks
         assert self.client.handler.callbacks["action-name"].callback is callback
         assert (self.client.handler.callbacks["action-name"].user_data is
@@ -104,8 +104,8 @@ class ClientActionRegisterCallback(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionRegisterCallbackExists(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.client.os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -114,7 +114,7 @@ class ClientActionRegisterCallbackExists(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client
-        self.client = hdcpython.Client("testing-client")
+        self.client = helix.Client("testing-client")
         self.client.initialize()
 
         # Setup callbacks and user data
@@ -128,7 +128,7 @@ class ClientActionRegisterCallbackExists(unittest.TestCase):
         # Register action with callback
         result = self.client.action_register_callback("action-name", callback,
                                                       user_data)
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
         assert "action-name" in self.client.handler.callbacks
         assert self.client.handler.callbacks["action-name"].callback is callback
         assert (self.client.handler.callbacks["action-name"].user_data is
@@ -137,7 +137,7 @@ class ClientActionRegisterCallbackExists(unittest.TestCase):
         # Attempt (and fail) to register same action with a different callback
         result = self.client.action_register_callback("action-name", callback_2,
                                                       user_data_2)
-        assert result == hdcpython.STATUS_EXISTS
+        assert result == helix.STATUS_EXISTS
         assert "action-name" in self.client.handler.callbacks
         assert self.client.handler.callbacks["action-name"].callback is callback
         assert (self.client.handler.callbacks["action-name"].user_data is
@@ -148,8 +148,8 @@ class ClientActionRegisterCallbackExists(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionRegisterCommand(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.client.os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -158,13 +158,13 @@ class ClientActionRegisterCommand(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client
-        self.client = hdcpython.Client("testing-client")
+        self.client = helix.Client("testing-client")
         self.client.initialize()
 
         # Register action with a command
         command = "do a thing"
         result = self.client.action_register_command("action-name", command)
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
         assert "action-name" in self.client.handler.callbacks
         assert self.client.handler.callbacks["action-name"].command is command
 
@@ -173,8 +173,8 @@ class ClientActionRegisterCommand(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionRegisterCommandExists(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.client.os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -183,7 +183,7 @@ class ClientActionRegisterCommandExists(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client
-        self.client = hdcpython.Client("testing-client")
+        self.client = helix.Client("testing-client")
         self.client.initialize()
 
         # Set up commands
@@ -192,13 +192,13 @@ class ClientActionRegisterCommandExists(unittest.TestCase):
 
         # Regsiter action with a command
         result = self.client.action_register_command("action-name", command)
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
         assert "action-name" in self.client.handler.callbacks
         assert self.client.handler.callbacks["action-name"].command is command
 
         # Attempt (and fail) to register action with a different command
         result = self.client.action_register_command("action-name", command_2)
-        assert result == hdcpython.STATUS_EXISTS
+        assert result == helix.STATUS_EXISTS
         assert "action-name" in self.client.handler.callbacks
         assert self.client.handler.callbacks["action-name"].command is command
 
@@ -207,10 +207,10 @@ class ClientActionRegisterCommandExists(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientAlarmPublish(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.client.os.path.exists")
-    @mock.patch("hdcpython._core.handler.sleep")
-    @mock.patch("hdcpython._core.handler.mqttlib.Client")
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("helix._core.handler.sleep")
+    @mock.patch("helix._core.handler.mqttlib.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -221,30 +221,30 @@ class ClientAlarmPublish(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":0}
-        self.client = hdcpython.Client("testing-client", kwargs)
+        self.client = helix.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Queue alarm for publishing
         result = self.client.alarm_publish("alarm_key", 5,
                                            message="alarm message")
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
         pub = self.client.handler.publish_queue.get()
-        assert isinstance(pub, hdcpython._core.defs.PublishAlarm)
+        assert isinstance(pub, helix._core.defs.PublishAlarm)
         assert pub.name == "alarm_key"
         assert pub.state == 5
         assert pub.message == "alarm message"
         work = self.client.handler.work_queue.get()
-        assert work.type == hdcpython._core.constants.WORK_PUBLISH
+        assert work.type == helix._core.constants.WORK_PUBLISH
 
     def setUp(self):
         # Configuration to be 'read' from config file
         self.config_args = helpers.config_file_default()
 
 class ClientAttributePublish(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.client.os.path.exists")
-    @mock.patch("hdcpython._core.handler.sleep")
-    @mock.patch("hdcpython._core.handler.mqttlib.Client")
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("helix._core.handler.sleep")
+    @mock.patch("helix._core.handler.mqttlib.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -255,15 +255,15 @@ class ClientAttributePublish(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":0}
-        self.client = hdcpython.Client("testing-client", kwargs)
+        self.client = helix.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Queue attribute for publishing
         result = self.client.attribute_publish("attribute_key",
                                                "attribute string")
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
         pub = self.client.handler.publish_queue.get()
-        assert isinstance(pub, hdcpython._core.defs.PublishAttribute)
+        assert isinstance(pub, helix._core.defs.PublishAttribute)
         assert pub.name == "attribute_key"
         assert pub.value == "attribute string"
 
@@ -272,13 +272,16 @@ class ClientAttributePublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientConnectFailure(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.client.os.path.exists")
-    @mock.patch("hdcpython._core.handler.sleep")
-    @mock.patch("hdcpython._core.handler.mqttlib.Client")
-    def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.client.os.path.isfile")
+    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("helix._core.handler.sleep")
+    @mock.patch("helix._core.handler.mqttlib.Client")
+    def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
+                mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
+        mock_isfile.side_effect = [True]
         read_strings = [json.dumps(self.config_args), helpers.uuid]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
@@ -287,12 +290,12 @@ class ClientConnectFailure(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":0}
-        self.client = hdcpython.Client("testing-client", kwargs)
+        self.client = helix.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Fail to connect
         mqtt = self.client.handler.mqtt
-        assert self.client.connect(timeout=5) == hdcpython.STATUS_FAILURE
+        assert self.client.connect(timeout=5) == helix.STATUS_FAILURE
         mqtt.connect.assert_called_once_with("api.notarealcloudhost.com",
                                              8883, 60)
         assert self.client.is_alive() is False
@@ -309,13 +312,16 @@ class ClientConnectFailure(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientConnectSuccess(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.client.os.path.exists")
-    @mock.patch("hdcpython._core.handler.sleep")
-    @mock.patch("hdcpython._core.handler.mqttlib.Client")
-    def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.client.os.path.isfile")
+    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("helix._core.handler.sleep")
+    @mock.patch("helix._core.handler.mqttlib.Client")
+    def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
+                mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
+        mock_isfile.side_effect = [True]
         read_strings = [json.dumps(self.config_args), helpers.uuid]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
@@ -323,16 +329,16 @@ class ClientConnectSuccess(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":0}
-        self.client = hdcpython.Client("testing-client", kwargs)
+        self.client = helix.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Connect successfully
         mqtt = self.client.handler.mqtt
-        assert self.client.connect(timeout=5) == hdcpython.STATUS_SUCCESS
+        assert self.client.connect(timeout=5) == helix.STATUS_SUCCESS
         mqtt.connect.assert_called_once_with("api.notarealcloudhost.com",
                                              8883, 60)
         assert self.client.is_connected() is True
-        assert self.client.disconnect() == hdcpython.STATUS_SUCCESS
+        assert self.client.disconnect() == helix.STATUS_SUCCESS
         mqtt.disconnect.assert_called_once()
         assert self.client.is_connected() is False
 
@@ -347,13 +353,16 @@ class ClientConnectSuccess(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientDisconnectFailure(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.client.os.path.exists")
-    @mock.patch("hdcpython._core.handler.sleep")
-    @mock.patch("hdcpython._core.handler.mqttlib.Client")
-    def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.client.os.path.isfile")
+    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("helix._core.handler.sleep")
+    @mock.patch("helix._core.handler.mqttlib.Client")
+    def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
+                mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
+        mock_isfile.side_effect = [True]
         read_strings = [json.dumps(self.config_args), helpers.uuid]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
@@ -362,17 +371,17 @@ class ClientDisconnectFailure(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":0}
-        self.client = hdcpython.Client("testing-client", kwargs)
+        self.client = helix.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Receive failure for disconnecting
         mqtt = self.client.handler.mqtt
-        assert self.client.connect(timeout=5) == hdcpython.STATUS_SUCCESS
+        assert self.client.connect(timeout=5) == helix.STATUS_SUCCESS
         mqtt.connect.assert_called_once_with("api.notarealcloudhost.com",
                                              8883, 60)
         assert self.client.is_alive() is True
         assert self.client.is_connected() is True
-        assert self.client.disconnect() == hdcpython.STATUS_SUCCESS
+        assert self.client.disconnect() == helix.STATUS_SUCCESS
         mqtt.disconnect.assert_called_once()
         assert self.client.is_alive() is False
         assert self.client.is_connected() is False
@@ -388,10 +397,10 @@ class ClientDisconnectFailure(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientEventPublish(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.client.os.path.exists")
-    @mock.patch("hdcpython._core.handler.sleep")
-    @mock.patch("hdcpython._core.handler.mqttlib.Client")
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("helix._core.handler.sleep")
+    @mock.patch("helix._core.handler.mqttlib.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -402,14 +411,14 @@ class ClientEventPublish(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":0}
-        self.client = hdcpython.Client("testing-client", kwargs)
+        self.client = helix.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Queue event (log) for publishing
         result = self.client.event_publish("event message")
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
         pub = self.client.handler.publish_queue.get()
-        assert isinstance(pub, hdcpython._core.defs.PublishLog)
+        assert isinstance(pub, helix._core.defs.PublishLog)
         assert pub.message == "event message"
 
     def setUp(self):
@@ -417,17 +426,20 @@ class ClientEventPublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientFileDownloadAsyncSuccess(unittest.TestCase):
-    @mock.patch("hdcpython._core.handler.open")
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.handler.os.rename")
-    @mock.patch("hdcpython._core.handler.os.path.isdir")
-    @mock.patch("hdcpython._core.client.os.path.exists")
-    @mock.patch("hdcpython._core.handler.sleep")
-    @mock.patch("hdcpython._core.handler.mqttlib.Client")
-    @mock.patch("hdcpython._core.handler.requests.get")
-    def runTest(self, mock_get, mock_mqtt, mock_sleep, mock_exists, mock_isdir, mock_rename, mock_client_open, mock_handle_open):
+    @mock.patch("helix._core.handler.open")
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.handler.os.rename")
+    @mock.patch("helix._core.handler.os.path.isdir")
+    @mock.patch("helix._core.client.os.path.isfile")
+    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("helix._core.handler.sleep")
+    @mock.patch("helix._core.handler.mqttlib.Client")
+    @mock.patch("helix._core.handler.requests.get")
+    def runTest(self, mock_get, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
+                mock_isdir, mock_rename, mock_client_open, mock_handle_open):
         # Set up mocks
         mock_exists.side_effect = [True, True, True]
+        mock_isfile.side_effect = [True]
         mock_isdir.side_effect = [False, True]
         read_strings = [json.dumps(self.config_args), helpers.uuid]
         mock_client_read = mock_client_open.return_value.__enter__.return_value.read
@@ -444,20 +456,20 @@ class ClientFileDownloadAsyncSuccess(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":1}
-        self.client = hdcpython.Client("testing-client", kwargs)
+        self.client = helix.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Connect client to Cloud
         mqtt = self.client.handler.mqtt
         result = self.client.connect()
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
         assert self.client.is_connected()
 
         # Request download
         result = self.client.file_download("filename.ext",
                                            "/destination/file.ext",
                                            callback=download_callback)
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
         download_callback.assert_not_called()
         args = mqtt.publish.call_args_list[0][0]
         assert args[0] == "api/0001"
@@ -487,7 +499,7 @@ class ClientFileDownloadAsyncSuccess(unittest.TestCase):
         args = download_callback.call_args_list[0][0]
         assert args[0] is self.client
         assert args[1] == "filename.ext"
-        assert args[2] == hdcpython.STATUS_SUCCESS
+        assert args[2] == helix.STATUS_SUCCESS
 
     def setUp(self):
         # Configuration to be 'read' from config file
@@ -500,17 +512,17 @@ class ClientFileDownloadAsyncSuccess(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientFileUploadAsyncSuccess(unittest.TestCase):
-    @mock.patch("hdcpython._core.handler.open")
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.handler.os.path.isfile")
-    @mock.patch("hdcpython._core.client.os.path.exists")
-    @mock.patch("hdcpython._core.handler.sleep")
-    @mock.patch("hdcpython._core.handler.mqttlib.Client")
-    @mock.patch("hdcpython._core.handler.requests.post")
+    @mock.patch("helix._core.handler.open")
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.handler.os.path.isfile")
+    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("helix._core.handler.sleep")
+    @mock.patch("helix._core.handler.mqttlib.Client")
+    @mock.patch("helix._core.handler.requests.post")
     def runTest(self, mock_post, mock_mqtt, mock_sleep, mock_exists, mock_isfile, mock_client_open, mock_handle_open):
         # Set up mocks
         mock_exists.side_effect = [True, True, True]
-        mock_isfile.side_effect = [True]
+        mock_isfile.side_effect = [True, True]
         read_strings = [json.dumps(self.config_args), helpers.uuid]
         mock_client_read = mock_client_open.return_value.__enter__.return_value.read
         mock_client_read.side_effect = read_strings
@@ -528,19 +540,19 @@ class ClientFileUploadAsyncSuccess(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":1}
-        self.client = hdcpython.Client("testing-client", kwargs)
+        self.client = helix.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Connect client to Cloud
         mqtt = self.client.handler.mqtt
         result = self.client.connect()
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
         assert self.client.is_connected()
 
         # Request upload
         result = self.client.file_upload("/path/to/some/filename.ext",
                                          callback=upload_callback)
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
         checksum = 0
         checksum = crc32(file_content, checksum)
         checksum &= 0xffffffff
@@ -569,7 +581,7 @@ class ClientFileUploadAsyncSuccess(unittest.TestCase):
         args = upload_callback.call_args_list[0][0]
         assert args[0] is self.client
         assert args[1] == "filename.ext"
-        assert args[2] == hdcpython.STATUS_SUCCESS
+        assert args[2] == helix.STATUS_SUCCESS
 
     def setUp(self):
         # Configuration to be 'read' from config file
@@ -582,10 +594,10 @@ class ClientFileUploadAsyncSuccess(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientLocationPublish(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.client.os.path.exists")
-    @mock.patch("hdcpython._core.handler.sleep")
-    @mock.patch("hdcpython._core.handler.mqttlib.Client")
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("helix._core.handler.sleep")
+    @mock.patch("helix._core.handler.mqttlib.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -596,16 +608,16 @@ class ClientLocationPublish(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":0}
-        self.client = hdcpython.Client("testing-client", kwargs)
+        self.client = helix.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Queue location for publishing
         result = self.client.location_publish(12.34, 56.78, heading=90.12,
                                               altitude=34.56, speed=78.90,
                                               accuracy=12.34, fix_type="gps")
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
         pub = self.client.handler.publish_queue.get()
-        assert isinstance(pub, hdcpython._core.defs.PublishLocation)
+        assert isinstance(pub, helix._core.defs.PublishLocation)
         assert pub.latitude == 12.34
         assert pub.longitude == 56.78
         assert pub.heading == 90.12
@@ -619,10 +631,10 @@ class ClientLocationPublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientTelemetryPublish(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.client.os.path.exists")
-    @mock.patch("hdcpython._core.handler.sleep")
-    @mock.patch("hdcpython._core.handler.mqttlib.Client")
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("helix._core.handler.sleep")
+    @mock.patch("helix._core.handler.mqttlib.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -633,14 +645,14 @@ class ClientTelemetryPublish(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":0}
-        self.client = hdcpython.Client("testing-client", kwargs)
+        self.client = helix.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Queue telemetry for publishing
         result = self.client.telemetry_publish("property_key", 26.6)
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
         pub = self.client.handler.publish_queue.get()
-        assert isinstance(pub, hdcpython._core.defs.PublishTelemetry)
+        assert isinstance(pub, helix._core.defs.PublishTelemetry)
         assert pub.name == "property_key"
         assert pub.value == 26.6
 
@@ -649,8 +661,8 @@ class ClientTelemetryPublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ConfigReadFile(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.client.os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
@@ -659,7 +671,7 @@ class ConfigReadFile(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client (with a different configuration file)
-        self.client = hdcpython.Client("testing-client")
+        self.client = helix.Client("testing-client")
         self.client.config.config_dir = "some/other/directory"
         self.client.config.config_file = "someotherfile.cfg"
         self.client.initialize()
@@ -679,18 +691,20 @@ class ConfigReadFile(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ConfigReadDefaults(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.client.os.path.exists")
-    def runTest(self, mock_exists, mock_open):
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.client.os.path.isfile")
+    @mock.patch("helix._core.client.os.path.exists")
+    def runTest(self, mock_exists, mock_isfile, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, False]
+        mock_isfile.side_effect = [True]
         read_strings = [json.dumps(self.config_args), helpers.uuid]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
         mock_write = mock_open.return_value.__enter__.return_value.write
 
         # Initialize client
-        self.client = hdcpython.Client("testing-client")
+        self.client = helix.Client("testing-client")
         self.client.initialize()
 
         # Check that all defaults are being used
@@ -715,8 +729,8 @@ class ConfigReadDefaults(unittest.TestCase):
                            "port":8883, "token":"abcdefghijklm"}}
 
 class ConfigWriteReadDeviceID(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.client.os.path.exists")
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.client.os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, False]
@@ -726,7 +740,7 @@ class ConfigWriteReadDeviceID(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client
-        self.client = hdcpython.Client("testing-client")
+        self.client = helix.Client("testing-client")
         self.client.initialize()
 
         # device_id is generated and written when the device_id file is not
@@ -742,7 +756,7 @@ class ConfigWriteReadDeviceID(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # device_id is read and used when it exists
-        self.client_2 = hdcpython.Client("testing-client-2")
+        self.client_2 = helix.Client("testing-client-2")
         self.client_2.initialize()
         assert mock_read.call_count == 2
         assert mock_write.call_count == 0
@@ -754,15 +768,17 @@ class ConfigWriteReadDeviceID(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class HandleActionExecCallbackSuccess(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.client.os.path.exists")
-    @mock.patch("hdcpython._core.handler.sleep")
-    @mock.patch("hdcpython._core.defs.inspect")
-    @mock.patch("hdcpython._core.handler.mqttlib.Client")
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.client.os.path.isfile")
+    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("helix._core.handler.sleep")
+    @mock.patch("helix._core.defs.inspect")
+    @mock.patch("helix._core.handler.mqttlib.Client")
     def runTest(self, mock_mqtt, mock_inspect, mock_sleep, mock_exists,
-                mock_open):
+                mock_isfile, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
+        mock_isfile.side_effect = [True]
         read_strings = [json.dumps(self.config_args), helpers.uuid]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
@@ -772,7 +788,7 @@ class HandleActionExecCallbackSuccess(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":1}
-        self.client = hdcpython.Client("testing-client", kwargs)
+        self.client = helix.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Set up action callback
@@ -780,11 +796,11 @@ class HandleActionExecCallbackSuccess(unittest.TestCase):
         params = {"some_param":521, "some_other_param":6234}
         user_data = "User Data"
         callback = mock.Mock(return_value=(0, "I did it!"))
-        action = hdcpython._core.defs.Action("some_action", callback, self.client, user_data)
+        action = helix._core.defs.Action("some_action", callback, self.client, user_data)
         self.client.handler.callbacks.add_action(action)
 
         # Connect to Cloud
-        assert self.client.connect(timeout=5) == hdcpython.STATUS_SUCCESS
+        assert self.client.connect(timeout=5) == helix.STATUS_SUCCESS
 
         thing_key = mock_mqtt.call_args_list[0][0][0]
         assert thing_key == "{}-testing-client".format(helpers.uuid)
@@ -863,13 +879,16 @@ class HandleActionExecCallbackSuccess(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class HandlePublishAllTypes(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.open")
-    @mock.patch("hdcpython._core.client.os.path.exists")
-    @mock.patch("hdcpython._core.handler.sleep")
-    @mock.patch("hdcpython._core.handler.mqttlib.Client")
-    def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
+    @mock.patch("helix._core.client.open")
+    @mock.patch("helix._core.client.os.path.isfile")
+    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("helix._core.handler.sleep")
+    @mock.patch("helix._core.handler.mqttlib.Client")
+    def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
+                mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, True]
+        mock_isfile.side_effect = [True]
         read_strings = [json.dumps(self.config_args), helpers.uuid]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
@@ -877,25 +896,25 @@ class HandlePublishAllTypes(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":1}
-        self.client = hdcpython.Client("testing-client", kwargs)
+        self.client = helix.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Set up pending publishes
-        alarm = hdcpython._core.defs.PublishAlarm("alarm_key", 6,
+        alarm = helix._core.defs.PublishAlarm("alarm_key", 6,
                                             message="I'm an alarm")
-        attr = hdcpython._core.defs.PublishAttribute("attribute_key",
+        attr = helix._core.defs.PublishAttribute("attribute_key",
                                                "Attribute String")
-        loc = hdcpython._core.defs.PublishLocation(11.11, 22.22, heading=33.33,
+        loc = helix._core.defs.PublishLocation(11.11, 22.22, heading=33.33,
                                              altitude=44.44, speed=55.55,
                                              accuracy=66.66, fix_type="gps")
-        event = hdcpython._core.defs.PublishLog("Event Message")
-        telem = hdcpython._core.defs.PublishTelemetry("property_key", 12.34)
+        event = helix._core.defs.PublishLog("Event Message")
+        telem = helix._core.defs.PublishTelemetry("property_key", 12.34)
         publishes = [alarm, attr, loc, event, telem]
         for pub in publishes:
             self.client.handler.queue_publish(pub)
 
         # Connect to Cloud
-        assert self.client.connect(timeout=5) == hdcpython.STATUS_SUCCESS
+        assert self.client.connect(timeout=5) == helix.STATUS_SUCCESS
         sleep(2)
         #TODO Make a better check for publish handling
         thing_key = mock_mqtt.call_args_list[0][0][0]
@@ -966,10 +985,10 @@ class OTAExecute(unittest.TestCase):
         test_cmd = "echo 'Hello'"
         mock_system.return_value = 0
 
-        self.ota = hdcpython.ota_handler.OTAHandler();
+        self.ota = helix.ota_handler.OTAHandler();
         result = self.ota._execute(test_cmd)
 
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
         mock_system.assert_called_once_with(test_cmd)
 
 class OTAExecuteBadCommand(unittest.TestCase):
@@ -979,10 +998,10 @@ class OTAExecuteBadCommand(unittest.TestCase):
         test_cmd = "eacho 'Hello'"
         mock_system.return_value = 127
 
-        self.ota = hdcpython.ota_handler.OTAHandler();
+        self.ota = helix.ota_handler.OTAHandler();
         result = self.ota._execute(test_cmd)
 
-        assert result == hdcpython.STATUS_EXECUTION_ERROR
+        assert result == helix.STATUS_EXECUTION_ERROR
         mock_system.assert_called_once_with(test_cmd)
 
 class OTAExecuteNoCommand(unittest.TestCase):
@@ -992,10 +1011,10 @@ class OTAExecuteNoCommand(unittest.TestCase):
         test_cmd = None
         mock_system.return_value = -1
 
-        self.ota = hdcpython.ota_handler.OTAHandler();
+        self.ota = helix.ota_handler.OTAHandler();
         result = self.ota._execute(test_cmd)
 
-        assert result == hdcpython.STATUS_NOT_FOUND
+        assert result == helix.STATUS_NOT_FOUND
         mock_system.assert_not_called()
 
 class OTAExecuteBadWorkingDir(unittest.TestCase):
@@ -1006,10 +1025,10 @@ class OTAExecuteBadWorkingDir(unittest.TestCase):
         mock_isdir.return_value = False
         test_cmd = "echo 'Hello'"
 
-        self.ota = hdcpython.ota_handler.OTAHandler();
+        self.ota = helix.ota_handler.OTAHandler();
         result = self.ota._execute(test_cmd, ".....not_a_real_dir.....")
 
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
         mock_system.assert_called_once_with(test_cmd)
 
 class OTAExecuteWorkingDir(unittest.TestCase):
@@ -1019,57 +1038,57 @@ class OTAExecuteWorkingDir(unittest.TestCase):
         mock_system.return_value = 0
         mock_isdir.return_value = True
 
-        self.ota = hdcpython.ota_handler.OTAHandler();
+        self.ota = helix.ota_handler.OTAHandler();
         result = self.ota._execute("echo 'Hello'", "../")
 
         full_cmd = mock_system.call_args[0][0]
         pat = re.compile("cd \\.\\.\\/(;|( &)) echo 'Hello'")
         assert pat.match(full_cmd) != None
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
         mock_system.assert_called_once()
 
 class OTAPackageDownload(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.Client.file_download")
+    @mock.patch("helix._core.client.Client.file_download")
     def runTest(self, mock_download):
-        mock_download.return_value = hdcpython.STATUS_SUCCESS
+        mock_download.return_value = helix.STATUS_SUCCESS
 
-        self.client = hdcpython.Client("testing-client")
-        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.client = helix.Client("testing-client")
+        self.ota = helix.ota_handler.OTAHandler()
         self.ota._runtime_dir = ""
         result = self.ota._package_download(self.client, "fake.tar.gz")
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
 
 class OTAPackageDownloadNoClient(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.Client.file_download")
+    @mock.patch("helix._core.client.Client.file_download")
     def runTest(self, mock_download):
-        mock_download.return_value = hdcpython.STATUS_SUCCESS
+        mock_download.return_value = helix.STATUS_SUCCESS
 
-        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.ota = helix.ota_handler.OTAHandler()
         self.ota._runtime_dir = ""
         result = self.ota._package_download(None, "fake.tar.gz")
-        assert result == hdcpython.STATUS_BAD_PARAMETER
+        assert result == helix.STATUS_BAD_PARAMETER
 
 class OTAPackageDownloadBadFile(unittest.TestCase):
-    @mock.patch("hdcpython._core.client.Client.file_download")
+    @mock.patch("helix._core.client.Client.file_download")
     def runTest(self, mock_download):
-        mock_download.return_value = hdcpython.STATUS_FAILURE
+        mock_download.return_value = helix.STATUS_FAILURE
 
-        self.client = hdcpython.Client("testing-client")
-        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.client = helix.Client("testing-client")
+        self.ota = helix.ota_handler.OTAHandler()
         self.ota._runtime_dir = ""
         result = self.ota._package_download(self.client, "fake.tar.gz")
-        assert result == hdcpython.STATUS_FAILURE
+        assert result == helix.STATUS_FAILURE
 
 class OTAPackageUnzipOther(unittest.TestCase):
     @mock.patch("os.path.isfile")
     def runTest(self, mock_isfile):
         mock_isfile.return_value = True
 
-        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.ota = helix.ota_handler.OTAHandler()
         self.ota._runtime_dir = ""
 
         result = self.ota._package_unzip("aaaa.rar", "bbbb")
-        assert result == hdcpython.STATUS_NOT_SUPPORTED
+        assert result == helix.STATUS_NOT_SUPPORTED
 
 class OTAPackageUnzipTar(unittest.TestCase):
     @mock.patch("os.path.isfile")
@@ -1079,11 +1098,11 @@ class OTAPackageUnzipTar(unittest.TestCase):
     def runTest(self, mock_close, mock_extract, mock_open, mock_isfile):
         mock_isfile.return_value = True
 
-        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.ota = helix.ota_handler.OTAHandler()
         self.ota._runtime_dir = ""
 
         result = self.ota._package_unzip("aaaa.tar.gz", "bbbb")
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
 
 class OTAPackageUnzipZip(unittest.TestCase):
     @mock.patch("os.path.isfile")
@@ -1093,11 +1112,11 @@ class OTAPackageUnzipZip(unittest.TestCase):
     def runTest(self, mock_close, mock_extract, mock_open, mock_isfile):
         mock_isfile.return_value = True
 
-        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.ota = helix.ota_handler.OTAHandler()
         self.ota._runtime_dir = ""
 
         result = self.ota._package_unzip("aaaa.zip", "bbbb")
-        assert result == hdcpython.STATUS_SUCCESS
+        assert result == helix.STATUS_SUCCESS
 
 class OTAPackageUnzipOpenException(unittest.TestCase):
     @mock.patch("os.path.isfile")
@@ -1106,16 +1125,16 @@ class OTAPackageUnzipOpenException(unittest.TestCase):
     def runTest(self, mock_tar, mock_open, mock_isfile):
         mock_isfile.return_value = True
 
-        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.ota = helix.ota_handler.OTAHandler()
         self.ota._runtime_dir = ""
 
         mock_open.side_effect = IOError
         result = self.ota._package_unzip("aaaa.tar.gz", "bbbb")
-        assert result == hdcpython.STATUS_FILE_OPEN_FAILED
+        assert result == helix.STATUS_FILE_OPEN_FAILED
 
         mock_open.side_effect = OSError
         result = self.ota._package_unzip("aaaa.tar.gz", "bbbb")
-        assert result == hdcpython.STATUS_FILE_OPEN_FAILED
+        assert result == helix.STATUS_FILE_OPEN_FAILED
 
 class OTAPackageUnzipExtractException(unittest.TestCase):
     @mock.patch("os.path.isfile")
@@ -1125,16 +1144,16 @@ class OTAPackageUnzipExtractException(unittest.TestCase):
         mock_isfile.return_value = True
         mock_open.return_value = mock_tar
 
-        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.ota = helix.ota_handler.OTAHandler()
         self.ota._runtime_dir = ""
 
         mock_tar.extractall.side_effect = IOError
         result = self.ota._package_unzip("aaaa.tar.gz", "bbbb")
-        assert result == hdcpython.STATUS_IO_ERROR
+        assert result == helix.STATUS_IO_ERROR
 
         mock_tar.extractall.side_effect = OSError
         result = self.ota._package_unzip("aaaa.tar.gz", "bbbb")
-        assert result == hdcpython.STATUS_IO_ERROR
+        assert result == helix.STATUS_IO_ERROR
 
 class OTAReadUpdateJSON(unittest.TestCase):
     @mock.patch("json.load")
@@ -1143,9 +1162,9 @@ class OTAReadUpdateJSON(unittest.TestCase):
     def runTest(self, mock_open, mock_isfile, mock_json):
         mock_isfile.return_value = True
 
-        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.ota = helix.ota_handler.OTAHandler()
         result = self.ota._read_update_json("fake")
-        assert result[0] == hdcpython.STATUS_SUCCESS
+        assert result[0] == helix.STATUS_SUCCESS
         assert result[1] != None
 
 class OTAReadUpdateJSONBadFormat(unittest.TestCase):
@@ -1156,9 +1175,9 @@ class OTAReadUpdateJSONBadFormat(unittest.TestCase):
         mock_json.side_effect = ValueError
         mock_isfile.return_value = True
 
-        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.ota = helix.ota_handler.OTAHandler()
         result = self.ota._read_update_json("fake")
-        assert result[0] == hdcpython.STATUS_IO_ERROR
+        assert result[0] == helix.STATUS_IO_ERROR
         assert result[1] == None
 
 class OTAReadUpdateJSONNonExistant(unittest.TestCase):
@@ -1166,9 +1185,9 @@ class OTAReadUpdateJSONNonExistant(unittest.TestCase):
     def runTest(self, mock_isfile):
         mock_isfile.return_value = False
 
-        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.ota = helix.ota_handler.OTAHandler()
         result = self.ota._read_update_json("")
-        assert result[0] == hdcpython.STATUS_BAD_PARAMETER
+        assert result[0] == helix.STATUS_BAD_PARAMETER
         assert result[1] == None
 
 class OTAUpdateCallback(unittest.TestCase):
@@ -1178,11 +1197,11 @@ class OTAUpdateCallback(unittest.TestCase):
     def runTest(self, mock_start, mock_open, mock_isfile):
         mock_isfile.return_value = False
 
-        self.client = hdcpython.Client("testing-client")
-        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.client = helix.Client("testing-client")
+        self.ota = helix.ota_handler.OTAHandler()
 
         result = self.ota.update_callback(self.client, {}, ["aaaa"], None)
-        assert result[0] == hdcpython.STATUS_INVOKED
+        assert result[0] == helix.STATUS_INVOKED
 
 class OTAUpdateCallbackInProgress(unittest.TestCase):
     @mock.patch("os.path.isfile")
@@ -1191,21 +1210,21 @@ class OTAUpdateCallbackInProgress(unittest.TestCase):
     def runTest(self, mock_start, mock_open, mock_isfile):
         mock_isfile.return_value = True
 
-        self.client = hdcpython.Client("testing-client")
-        self.ota = hdcpython.ota_handler.OTAHandler()
+        self.client = helix.Client("testing-client")
+        self.ota = helix.ota_handler.OTAHandler()
 
         result = self.ota.update_callback(self.client, {}, ["aaaa"], None)
-        assert result[0] == hdcpython.STATUS_FAILURE
+        assert result[0] == helix.STATUS_FAILURE
 
 class OTAUpdateSoftware(unittest.TestCase):
     """
     Test "suite" that will run success and failure cases on the main
     "_update_software" method.
     """
-    @mock.patch("hdcpython.Client")
+    @mock.patch("helix.Client")
     def setUp(self, mock_client):
-        self.ota = hdcpython.ota_handler.OTAHandler()
-        self.client = hdcpython.Client("testing-client")
+        self.ota = helix.ota_handler.OTAHandler()
+        self.client = helix.Client("testing-client")
         self.params = {"package": "fake"}
         self.update_data = {"pre_install": "pre", \
                             "install": "install", \
@@ -1216,10 +1235,10 @@ class OTAUpdateSoftware(unittest.TestCase):
 
     @mock.patch("os.remove")
     @mock.patch("os.path")
-    @mock.patch("hdcpython.ota_handler.OTAHandler._execute")
-    @mock.patch("hdcpython.ota_handler.OTAHandler._read_update_json")
-    @mock.patch("hdcpython.ota_handler.OTAHandler._package_unzip")
-    @mock.patch("hdcpython.ota_handler.OTAHandler._package_download")
+    @mock.patch("helix.ota_handler.OTAHandler._execute")
+    @mock.patch("helix.ota_handler.OTAHandler._read_update_json")
+    @mock.patch("helix.ota_handler.OTAHandler._package_unzip")
+    @mock.patch("helix.ota_handler.OTAHandler._package_download")
     def runTest(self, mock_dl, mock_unzip, mock_read, mock_execute, mock_path, mock_remove):
         # Store mocks for tests
         self.mock_dl = mock_dl
@@ -1257,10 +1276,10 @@ class OTAUpdateSoftware(unittest.TestCase):
 
         self.mock_path.isdir.return_value = False
         self.mock_path.isfile.return_value = False
-        self.mock_dl.return_value = hdcpython.STATUS_SUCCESS
-        self.mock_unzip.return_value = hdcpython.STATUS_SUCCESS
-        self.mock_read.return_value = (hdcpython.STATUS_SUCCESS, self.update_data)
-        self.mock_execute.return_value = hdcpython.STATUS_SUCCESS
+        self.mock_dl.return_value = helix.STATUS_SUCCESS
+        self.mock_unzip.return_value = helix.STATUS_SUCCESS
+        self.mock_read.return_value = (helix.STATUS_SUCCESS, self.update_data)
+        self.mock_execute.return_value = helix.STATUS_SUCCESS
 
     def successCase(self):
         self.resetMocks()
@@ -1271,12 +1290,12 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_unzip.assert_called_once()
         self.mock_read.assert_called_once()
         assert self.mock_execute.call_count == 3
-        assert mock.call(hdcpython.LOGERROR, "OTA Failed!") not in self.client.log.call_args_list
-        assert mock.call(hdcpython.LOGINFO, "OTA Successful!") in self.client.log.call_args_list
+        assert mock.call(helix.LOGERROR, "OTA Failed!") not in self.client.log.call_args_list
+        assert mock.call(helix.LOGINFO, "OTA Successful!") in self.client.log.call_args_list
 
     def downloadFailCase(self):
         self.resetMocks()
-        self.mock_dl.return_value = hdcpython.STATUS_FAILURE
+        self.mock_dl.return_value = helix.STATUS_FAILURE
 
         self.ota._update_software(self.client, self.params, self.request)
 
@@ -1284,13 +1303,13 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_unzip.assert_not_called()
         self.mock_read.assert_not_called()
         assert self.mock_execute.call_count == 0
-        assert mock.call(hdcpython.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
-        assert mock.call(hdcpython.LOGERROR, "Download Failed!") in self.client.log.call_args_list
-        assert mock.call(hdcpython.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
+        assert mock.call(helix.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
+        assert mock.call(helix.LOGERROR, "Download Failed!") in self.client.log.call_args_list
+        assert mock.call(helix.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
 
     def unzipFailCase(self):
         self.resetMocks()
-        self.mock_unzip.return_value = hdcpython.STATUS_IO_ERROR
+        self.mock_unzip.return_value = helix.STATUS_IO_ERROR
 
         self.ota._update_software(self.client, self.params, self.request)
 
@@ -1298,13 +1317,13 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_unzip.assert_called_once()
         self.mock_read.assert_not_called()
         assert self.mock_execute.call_count == 0
-        assert mock.call(hdcpython.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
-        assert mock.call(hdcpython.LOGERROR, "Unzip Failed!") in self.client.log.call_args_list
-        assert mock.call(hdcpython.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
+        assert mock.call(helix.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
+        assert mock.call(helix.LOGERROR, "Unzip Failed!") in self.client.log.call_args_list
+        assert mock.call(helix.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
 
     def dataReadFailCase(self):
         self.resetMocks()
-        self.mock_read.return_value = (hdcpython.STATUS_FAILURE, "")
+        self.mock_read.return_value = (helix.STATUS_FAILURE, "")
 
         self.ota._update_software(self.client, self.params, self.request)
 
@@ -1312,14 +1331,14 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_unzip.assert_called_once()
         self.mock_read.assert_called_once()
         assert self.mock_execute.call_count == 0
-        assert mock.call(hdcpython.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
-        assert mock.call(hdcpython.LOGERROR, "Data Read Failed!") in self.client.log.call_args_list
-        assert mock.call(hdcpython.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
+        assert mock.call(helix.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
+        assert mock.call(helix.LOGERROR, "Data Read Failed!") in self.client.log.call_args_list
+        assert mock.call(helix.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
 
     def preInstallFailCase(self):
         self.resetMocks()
         self.mock_execute.return_value = None
-        self.mock_execute.side_effect = [hdcpython.STATUS_EXECUTION_ERROR, hdcpython.STATUS_SUCCESS, hdcpython.STATUS_SUCCESS]
+        self.mock_execute.side_effect = [helix.STATUS_EXECUTION_ERROR, helix.STATUS_SUCCESS, helix.STATUS_SUCCESS]
 
         self.ota._update_software(self.client, self.params, self.request)
 
@@ -1327,13 +1346,13 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_unzip.assert_called_once()
         self.mock_read.assert_called_once()
         assert self.mock_execute.call_count == 1
-        assert mock.call(hdcpython.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
-        assert mock.call(hdcpython.LOGERROR, "Pre-Install Failed!") in self.client.log.call_args_list
-        assert mock.call(hdcpython.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
+        assert mock.call(helix.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
+        assert mock.call(helix.LOGERROR, "Pre-Install Failed!") in self.client.log.call_args_list
+        assert mock.call(helix.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
 
     def installFailCase(self):
         self.resetMocks()
-        self.mock_execute.side_effect = [hdcpython.STATUS_SUCCESS, hdcpython.STATUS_EXECUTION_ERROR, hdcpython.STATUS_SUCCESS]
+        self.mock_execute.side_effect = [helix.STATUS_SUCCESS, helix.STATUS_EXECUTION_ERROR, helix.STATUS_SUCCESS]
 
         self.ota._update_software(self.client, self.params, self.request)
 
@@ -1341,13 +1360,13 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_unzip.assert_called_once()
         self.mock_read.assert_called_once()
         assert self.mock_execute.call_count == 2
-        assert mock.call(hdcpython.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
-        assert mock.call(hdcpython.LOGERROR, "Install Failed!") in self.client.log.call_args_list
-        assert mock.call(hdcpython.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
+        assert mock.call(helix.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
+        assert mock.call(helix.LOGERROR, "Install Failed!") in self.client.log.call_args_list
+        assert mock.call(helix.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
 
     def postInstallFailCase(self):
         self.resetMocks()
-        self.mock_execute.side_effect = [hdcpython.STATUS_SUCCESS, hdcpython.STATUS_SUCCESS, hdcpython.STATUS_EXECUTION_ERROR]
+        self.mock_execute.side_effect = [helix.STATUS_SUCCESS, helix.STATUS_SUCCESS, helix.STATUS_EXECUTION_ERROR]
 
         self.ota._update_software(self.client, self.params, self.request)
 
@@ -1355,9 +1374,9 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_unzip.assert_called_once()
         self.mock_read.assert_called_once()
         assert self.mock_execute.call_count == 3
-        assert mock.call(hdcpython.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
-        assert mock.call(hdcpython.LOGERROR, "Post-Install Failed!") in self.client.log.call_args_list
-        assert mock.call(hdcpython.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
+        assert mock.call(helix.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
+        assert mock.call(helix.LOGERROR, "Post-Install Failed!") in self.client.log.call_args_list
+        assert mock.call(helix.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
 
     def preInstallNoneCase(self):
         self.resetMocks()
@@ -1369,9 +1388,9 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_unzip.assert_called_once()
         self.mock_read.assert_called_once()
         assert self.mock_execute.call_count == 2
-        assert mock.call(hdcpython.LOGINFO, "OTA Successful!") in self.client.log.call_args_list
-        assert mock.call(hdcpython.LOGERROR, "Pre-Install Failed!") not in self.client.log.call_args_list
-        assert mock.call(hdcpython.LOGERROR, "OTA Failed!") not in self.client.log.call_args_list
+        assert mock.call(helix.LOGINFO, "OTA Successful!") in self.client.log.call_args_list
+        assert mock.call(helix.LOGERROR, "Pre-Install Failed!") not in self.client.log.call_args_list
+        assert mock.call(helix.LOGERROR, "OTA Failed!") not in self.client.log.call_args_list
 
     def postInstallNoneCase(self):
         self.resetMocks()
@@ -1383,6 +1402,6 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_unzip.assert_called_once()
         self.mock_read.assert_called_once()
         assert self.mock_execute.call_count == 2
-        assert mock.call(hdcpython.LOGINFO, "OTA Successful!") in self.client.log.call_args_list
-        assert mock.call(hdcpython.LOGERROR, "Post-Install Failed!") not in self.client.log.call_args_list
-        assert mock.call(hdcpython.LOGERROR, "OTA Failed!") not in self.client.log.call_args_list
+        assert mock.call(helix.LOGINFO, "OTA Successful!") in self.client.log.call_args_list
+        assert mock.call(helix.LOGERROR, "Post-Install Failed!") not in self.client.log.call_args_list
+        assert mock.call(helix.LOGERROR, "OTA Failed!") not in self.client.log.call_args_list

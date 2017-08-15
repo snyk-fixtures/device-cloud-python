@@ -1,5 +1,5 @@
 """
-This module defines several helper classes for use in the hdcpython handler
+This module defines several helper classes for use in the helix handler
 """
 
 import inspect
@@ -7,7 +7,7 @@ import json
 import subprocess
 from datetime import datetime
 
-from hdcpython._core import constants
+from helix._core import constants
 
 class Action(object):
     """

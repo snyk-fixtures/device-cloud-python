@@ -18,10 +18,10 @@ import sys
 from time import sleep
 import uuid
 
-from hdcpython import osal
-from hdcpython import ota_handler
-from hdcpython.relay import Relay
-import hdcpython as iot
+from helix import osal
+from helix import ota_handler
+from helix.relay import Relay
+import helix as iot
 
 running = True
 relay = None
@@ -293,10 +293,10 @@ def publish_platform_info(client):
     client.log(iot.LOGINFO, "Publishing platform Info")
 
     try:
-        hdc_version = pkg_resources.get_distribution("hdcpython").version
+        hdc_version = pkg_resources.get_distribution("helix").version
     except pkg_resources.DistributionNotFound:
         hdc_version = "Unknown"
-    
+
     client.attribute_publish("os_name", osal.os_name())
     client.attribute_publish("os_version", osal.os_version())
     client.attribute_publish("architecture", platform.machine())

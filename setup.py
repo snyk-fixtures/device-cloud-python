@@ -1,12 +1,12 @@
 from setuptools import setup
 
 setup(
-	name='hdcpython',
+	name='helix',
 	version='17.08.16',
 	description='Python library for Wind River\'s Helix Device Cloud',
 	author='Wind River Systems',
 	author_email='',
-	packages=['hdcpython','hdcpython._core','hdcpython.test'],
+	packages=['helix','helix._core','helix.test'],
 	install_requires=[
 		'paho-mqtt',
 		'requests',

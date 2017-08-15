@@ -19,18 +19,15 @@ Requirements:
 - requests
 - websocket-client
 
-(The last two can be obtained with `sudo pip install` and the package name, or 
-by running `pip install .`, which will install the module and its dependencies)
-
 Pip Installation:
 -----------------
 The module can be installed locally for ease of use by running `pip install .`
 in the root directory of the cloned repository. This will install the module and
 its dependencies. The agent can then be imported into other Python scripts as
-normal (`import hdcpython`).
+normal (`import helix`).
 
-Configuration
--------------
+Configuration:
+--------------
 Parses the standard {APP_ID}-connect.cfg file for Cloud connection information.
 Default configuration directory is the current working directory. Configuration
 values can also be set from within the app by changing
@@ -39,6 +36,22 @@ config_dir will look for the configuration file in the specified directory when
 calling `client.initialize()`. This is also where the device_id is stored, so
 multiple apps can share a single configuration directory to make use of the same
 device_id.
+
+Configuration Options:
+----------------------
+- config_dir
+- config_file
+- cloud
+  - host
+  - port
+  - token
+- validate_cloud_cert
+- ca_bundle_file
+- thing_def_key
+- log_file
+- keep_alive
+- loop_time
+- thread_count
 
 Device Manager:
 ---------------
@@ -51,7 +64,7 @@ along with a readme on how to use them.
 
 So far supports:
 ----------------
-- Documented user APIs (can be obtained by running `pydoc hdcpython`)
+- Documented user APIs (can be obtained by running `pydoc helix`)
 - Telemetry (known as properties on the Cloud side)
 - Attributes (string telemetry)
 - Actions (both function callbacks and console commands. Known as methods on
@@ -70,7 +83,7 @@ So far supports:
 - Event message publishing
 - Alarm publishing
 - pytest implementation start. Run `pytest -v .` to run unit tests.
-  `pytest --cov-report=html --cov=hdcpython -v .` Will generate a directory
+  `pytest --cov-report=html --cov=helix -v .` Will generate a directory
   containing an HTML report of coverage.
 - Websockets (setting the port to 443 will use websockets to send MQTT packets)
 - Connection loss handling (Publishes made while offline will be cached and sent
@@ -88,9 +101,6 @@ Issues:
 -------
 - MQTT over websockets on Windows does not work.
 - Remote login on Windows cannot parse backspace. Don't make any typos.
-- Windows has no native cert bundle for SSL. The -connect.cfg file must be
-  updated to point at wr-iot-python/share/cacert.pem to use SSL
-- SSL cert bundle is called ca-bundle.crt, not ca-certificates.crt on CentOS.
 - Current remote login test server has a self-signed certificate.
   validate_cloud_cert must be set to false in iot-connect.cfg in order to
   connect successfully.

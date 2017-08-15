@@ -12,8 +12,8 @@ import signal
 import sys
 from time import sleep
 
-import hdcpython as iot
-from hdcpython import osal
+import helix as iot
+from helix import osal
 
 running = True
 
