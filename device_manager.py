@@ -11,6 +11,7 @@ import errno
 import json
 import os
 from os.path import abspath
+import pkg_resources
 import platform
 import signal
 import sys
@@ -290,12 +291,17 @@ def publish_platform_info(client):
     """
     client.log(iot.LOGINFO, "Publishing platform Info")
 
+    try:
+        hdc_version = pkg_resources.get_distribution("hdcpython").version
+    except pkg_resources.DistributionNotFound:
+        hdc_version = "Unknown"
+    
     client.attribute_publish("os_name", osal.os_name())
     client.attribute_publish("os_version", osal.os_version())
     client.attribute_publish("architecture", platform.machine())
     client.attribute_publish("hostname", platform.node())
     client.attribute_publish("kernel", osal.os_kernel())
-    client.attribute_publish("hdc_version", iot.API_VERSION)
+    client.attribute_publish("hdc_version", hdc_version)
     client.attribute_publish("mac_address", get_adapter_mac())
 
 def quit_me():

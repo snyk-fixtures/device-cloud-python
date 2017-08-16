@@ -42,10 +42,7 @@ from hdcpython.constants import STATUS_FAILURE
 
 import hdcpython.ota_handler as ota
 
-API_VERSION = "17.08.10"
-
-__all__ = ["API_VERSION",
-           "Client",
+__all__ = ["Client",
            "status_string",
            "ota",
            "DEFAULT_CONFIG_DIR",
