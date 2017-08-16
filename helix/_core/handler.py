@@ -139,7 +139,7 @@ class Handler(object):
         self.send(message)
 
         while (timeout == 0 or current_time < end_time) and not reply_success:
-            sleep(1)
+            sleep(0.1)
 
         success = None
         if reply_success:
@@ -285,7 +285,7 @@ class Handler(object):
             # Wait for cloud connection
             while ((timeout == 0 or current_time < end_time) and
                    self.state == constants.STATE_CONNECTING):
-                sleep(1)
+                sleep(0.1)
                 current_time = datetime.utcnow()
 
             # Still connecting, timed out
@@ -336,11 +336,15 @@ class Handler(object):
         current_time = datetime.utcnow()
         end_time = current_time + timedelta(seconds=timeout)
 
+        # Publish any data that was queued before disconnecting
+        if not self.publish_queue.empty():
+            self.queue_work(defs.Work(constants.WORK_PUBLISH, None))
+
         # Wait for pending work that has not been dealt with
         self.logger.info("Disconnecting...")
         while ((timeout == 0 or current_time < end_time) and
                not self.work_queue.empty()):
-            sleep(1)
+            sleep(0.1)
             current_time = datetime.utcnow()
 
         # Optionally wait for any outstanding replies.
@@ -348,7 +352,7 @@ class Handler(object):
             self.logger.info("Waiting for replies...")
             while ((timeout == 0 or current_time < end_time) and
                    len(self.reply_tracker) != 0):
-                sleep(1)
+                sleep(0.1)
                 current_time = datetime.utcnow()
 
         self.to_quit = True
@@ -800,8 +804,10 @@ class Handler(object):
 
             # Make a work item to publish anything that's pending
             if not self.publish_queue.empty():
-                work = defs.Work(constants.WORK_PUBLISH, None)
-                self.work_queue.put(work)
+                self.queue_work(defs.Work(constants.WORK_PUBLISH, None))
+
+        # One last loop to send out any pending messages
+        self.mqtt.loop(timeout=0.1)
 
         # Disconnect MQTT
         self.mqtt.disconnect()
@@ -912,7 +918,7 @@ class Handler(object):
         if status == constants.STATUS_SUCCESS and blocking:
             while ((timeout == 0 or current_time < end_time) and
                    transfer.status is None):
-                sleep(1)
+                sleep(0.1)
                 current_time = datetime.utcnow()
 
             if transfer.status is None:
@@ -979,7 +985,7 @@ class Handler(object):
                 if status == constants.STATUS_SUCCESS and blocking:
                     while ((timeout == 0 or current_time < end_time) and
                            not self.to_quit and transfer.status is None):
-                        sleep(1)
+                        sleep(0.1)
                         current_time = datetime.utcnow()
 
                     if transfer.status is None:
