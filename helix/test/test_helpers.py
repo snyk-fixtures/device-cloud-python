@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 
 import ssl
-from Queue import Queue
+import sys
 from time import sleep
 import mock
+
+if sys.version_info.major == 2:
+    from Queue import Queue
+else:
+    from queue import Queue
 
 
 uuid = "991d72fb-03b6-471d-8d0e-8134beaae7a2"

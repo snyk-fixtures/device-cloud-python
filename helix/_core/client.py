@@ -85,11 +85,11 @@ class Client(object):
                 with open(config_path, "r") as config_file:
                     kwargs.update(json.load(config_file))
             except IOError as error:
-                print ("Error parsing JSON from "
-                       "{}".format(self.config.config_file))
+                print("Error parsing JSON from "
+                        "{}".format(self.config.config_file))
                 raise error
         else:
-            print "Cannot find {}".format(self.config.config_file)
+            print("Cannot find {}".format(self.config.config_file))
             raise IOError("Cannot find {}".format(self.config.config_file))
         self.config.update(kwargs, False)
 
@@ -102,7 +102,7 @@ class Client(object):
                 with open(device_id_path, "r") as id_file:
                     self.config.device_id = id_file.read().strip()
             except:
-                print "Failed to read device_id"
+                print("Failed to read device_id")
                 raise IOError("Failed to read device_id")
         else:
             try:
@@ -110,19 +110,19 @@ class Client(object):
                     self.config.device_id = str(uuid.uuid4())
                     id_file.write(self.config.device_id)
             except:
-                print "Failed to write device_id"
+                print("Failed to write device_id")
                 raise IOError("Failed to write device_id")
         self.config.update(kwargs, False)
 
         # Check that all necessary configuration has been obtained
         if not self.config.cloud.token:
-            print "Cloud token not set. Must be set in config"
+            print("Cloud token not set. Must be set in config")
             raise KeyError("Cloud token not set. Must be set in config")
         if not self.config.cloud.host:
-            print "Cloud host addess not set. Must be set in config"
+            print("Cloud host addess not set. Must be set in config")
             raise KeyError("Cloud host address not set. Must be set in config")
         if not self.config.cloud.port:
-            print "Cloud port not set. Must be set in config"
+            print("Cloud port not set. Must be set in config")
             raise KeyError("Cloud port not set. Must be set in config")
 
         # Generate key
@@ -130,7 +130,7 @@ class Client(object):
             self.config.key = "{}-{}".format(self.config.device_id,
                                              self.config.app_id)
         else:
-            print "app_id or device_id not set. Required for key."
+            print("app_id or device_id not set. Required for key.")
             raise KeyError("app_id or device_id not set. Required for key.")
 
         if len(self.config.key) > 64:

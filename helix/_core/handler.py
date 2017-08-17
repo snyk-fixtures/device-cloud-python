@@ -5,9 +5,9 @@ This module handles all the underlying functionality of the Client
 import json
 import logging
 import os
-import Queue
 import random
 import ssl
+import sys
 import threading
 from binascii import crc32
 from datetime import datetime
@@ -21,6 +21,12 @@ from helix._core import constants
 from helix._core import defs
 from helix._core import tr50
 from helix._core.tr50 import TR50Command
+
+
+if sys.version_info.major == 2:
+    import Queue as queue
+else:
+    import queue
 
 
 def status_string(error_code):
@@ -101,7 +107,7 @@ class Handler(object):
         self.lock = threading.Lock()
 
         # Queue for any pending publishes (number, string, location, etc.)
-        self.publish_queue = Queue.Queue()
+        self.publish_queue = queue.Queue()
 
         # Dicts to track which messages sent out have not received replies. Also
         # stores any actions to be taken when the reply is received.
@@ -121,7 +127,7 @@ class Handler(object):
 
         # Queue to track any pending work (parsing messages, actions,
         # publishing, file transfer, etc.)
-        self.work_queue = Queue.Queue()
+        self.work_queue = queue.Queue()
 
     def _thing_def_change(self, new_def_key, timeout=0):
         """
@@ -451,7 +457,8 @@ class Handler(object):
             try:
                 os.makedirs(download_dir)
             except OSError as err:
-                print err
+                print(err)
+                self.logger.excpetion(err)
                 status = constants.STATUS_BAD_PARAMETER
 
         # Secure or insecure HTTPS request.
@@ -667,7 +674,7 @@ class Handler(object):
         while not self.publish_queue.empty():
             try:
                 to_publish.append(self.publish_queue.get())
-            except Queue.Empty:
+            except queue.Empty:
                 break
 
         if to_publish:
@@ -743,7 +750,7 @@ class Handler(object):
             work = None
             try:
                 work = self.work_queue.get(timeout=self.config.loop_time)
-            except Queue.Empty:
+            except queue.Empty:
                 pass
             # If work is retrieved from the queue, handle it based on type
             if work:
@@ -856,7 +863,7 @@ class Handler(object):
         Callback when MQTT Client receives a message
         """
 
-        message = defs.Message(msg.topic, json.loads(msg.payload))
+        message = defs.Message(msg.topic, json.loads(msg.payload.decode()))
         self.logger.debug("Received message on topic \"%s\"\n%s", msg.topic,
                           message)
 

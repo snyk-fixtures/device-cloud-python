@@ -30,7 +30,7 @@ def sighandler(signum, frame):
     Signal handler for exiting app.
     """
     global running
-    print "Received signal {}, stopping application...".format(signum)
+    print("Received signal {}, stopping application...".format(signum))
     running = False
 
 def ack_messages(client, path):
@@ -88,8 +88,8 @@ def config_load(cfg_dir=".", cfg_name="iot.cfg"):
             config_data = json.load(cfg_file, \
                 object_hook=lambda d: namedtuple('X', d.keys())(*d.values()))
     except IOError as error:
-        print "Error parsing JSON from iot.cfg"
-        print error
+        print("Error parsing JSON from iot.cfg")
+        print(error)
 
     return config_data
 
@@ -198,7 +198,7 @@ def file_download(client, params, user_data):
                 message = ("Destination directory does not exist and could not "
                            "be created!")
                 client.log(iot.LOGERROR, message)
-                print e
+                print(e)
 
             if result is None:
                 client.log(iot.LOGINFO, "Downloading")
@@ -358,7 +358,7 @@ if __name__ == "__main__":
             os.mkdir(download_dir)
 
     except (OSError, IOError) as e:
-        print e
+        print(e)
         client.log(iot.LOGERROR, ("Could not create one or more runtime "
                                   "directories! Did you run the device manager "
                                   "with sufficient priviliges?"))

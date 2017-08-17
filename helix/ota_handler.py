@@ -295,12 +295,12 @@ class OTAHandler(object):
                         archive.extractall(dir_out)
                         result = iot.STATUS_SUCCESS
                     except (OSError, IOError) as err:
-                        print err
+                        print(err)
                         result = iot.STATUS_IO_ERROR
                     finally:
                         archive.close()
             except (OSError, IOError) as err:
-                print err
+                print(err)
                 result = iot.STATUS_FILE_OPEN_FAILED
 
         return result

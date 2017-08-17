@@ -69,14 +69,14 @@ class Relay(object):
             for sock in read_sockets:
                 if sock == self.wsock:
                     try:
-                        data_in = sock.recv()
+                        op, data_in = sock.recv_data()
                     except websocket.WebSocketConnectionClosedException:
                         self.running = False
                         break
                     if data_in:
                         if self.lsock:
                             self.lsock.send(data_in)
-                        elif data_in == CONNECT_MSG:
+                        elif data_in.decode() == CONNECT_MSG:
                             # If the local socket has not been established yet,
                             # and we have received the connection string, start
                             # local socket.
@@ -96,6 +96,9 @@ class Relay(object):
                                     "%s - Local socket successfully opened",
                                      self.log_name)
                     else:
+                        self.log(logging.INFO,
+                                 "%s - Received NULL from websocket, Stopping",
+                                 self.log_name)
                         self.running = False
                         break
                 elif self.lsock and sock == self.lsock:
@@ -103,6 +106,9 @@ class Relay(object):
                     if data_in:
                         self.wsock.send_binary(data_in)
                     else:
+                        self.log(logging.INFO,
+                                 "%s - Received NULL from socket, Stopping",
+                                 self.log_name)
                         self.running = False
                         break
         if self.lsock:
@@ -149,6 +155,7 @@ class Relay(object):
         Stop piping data between the two connections and stop the loop thread
         """
 
+        self.log(logging.INFO, "%s - Stopping", self.log_name)
         self.running = False
         if self.thread:
             self.thread.join()

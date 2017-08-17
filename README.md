@@ -14,17 +14,16 @@ Python.
 
 Requirements:
 -------------
-- Python 2.7.9 or later
+- Python 2.7.9 or later (Including Python 3)
 - paho-mqtt
 - requests
 - websocket-client
 
 Pip Installation:
 -----------------
-The module can be installed locally for ease of use by running `pip install .`
-in the root directory of the cloned repository. This will install the module and
-its dependencies. The agent can then be imported into other Python scripts as
-normal (`import helix`).
+The module can be installed by running `pip install .` in the root directory of
+the cloned repository. This will install the module and its dependencies. The
+agent can then be imported into other Python scripts as normal (`import helix`).
 
 Configuration:
 --------------
@@ -82,9 +81,10 @@ So far supports:
 - Logging to console with optional logging to a specified file
 - Event message publishing
 - Alarm publishing
-- pytest implementation start. Run `pytest -v .` to run unit tests.
-  `pytest --cov-report=html --cov=helix -v .` Will generate a directory
-  containing an HTML report of coverage.
+- pytest (Install pytest, pytest-mock, pytest-cov with pip. Run `pytest -v .` to
+  run unit tests.  `pytest --cov-report=html --cov=helix -v .` will generate a
+  directory containing an HTML report of coverage. Prepending `python2/python3
+  -m ` will let you specify which version of Python to test.)
 - Websockets (setting the port to 443 will use websockets to send MQTT packets)
 - Connection loss handling (Publishes made while offline will be cached and sent
   when connection is re-established. Now has a keep_alive configuration for how

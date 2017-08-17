@@ -6,15 +6,22 @@ import unittest
 from binascii import crc32
 import mock
 import re
+import sys
 
 from time import sleep
 
 import helix
 import helix.test.test_helpers as helpers
 
+if sys.version_info.major == 2:
+    builtin = "__builtin__"
+else:
+    builtin = "builtins"
+
+
 
 class ClientActionDeregister(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up Mocks
@@ -51,7 +58,7 @@ class ClientActionDeregister(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionReregisterNotExist(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
@@ -74,7 +81,7 @@ class ClientActionReregisterNotExist(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionRegisterCallback(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
@@ -104,7 +111,7 @@ class ClientActionRegisterCallback(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionRegisterCallbackExists(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
@@ -148,7 +155,7 @@ class ClientActionRegisterCallbackExists(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionRegisterCommand(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
@@ -173,7 +180,7 @@ class ClientActionRegisterCommand(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientActionRegisterCommandExists(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
@@ -207,7 +214,7 @@ class ClientActionRegisterCommandExists(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientAlarmPublish(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     @mock.patch("time.sleep")
     @mock.patch("paho.mqtt.client.Client")
@@ -241,7 +248,7 @@ class ClientAlarmPublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientAttributePublish(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     @mock.patch("time.sleep")
     @mock.patch("paho.mqtt.client.Client")
@@ -272,7 +279,7 @@ class ClientAttributePublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientConnectFailure(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.isfile")
     @mock.patch("os.path.exists")
     @mock.patch("time.sleep")
@@ -312,7 +319,7 @@ class ClientConnectFailure(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientConnectSuccess(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.isfile")
     @mock.patch("os.path.exists")
     @mock.patch("time.sleep")
@@ -353,7 +360,7 @@ class ClientConnectSuccess(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientDisconnectFailure(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.isfile")
     @mock.patch("os.path.exists")
     @mock.patch("time.sleep")
@@ -397,7 +404,7 @@ class ClientDisconnectFailure(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientEventPublish(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     @mock.patch("time.sleep")
     @mock.patch("paho.mqtt.client.Client")
@@ -426,7 +433,7 @@ class ClientEventPublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientFileDownloadAsyncSuccess(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.rename")
     @mock.patch("os.path.isdir")
     @mock.patch("os.path.isfile")
@@ -448,7 +455,12 @@ class ClientFileDownloadAsyncSuccess(unittest.TestCase):
         mock_get.return_value.status_code = 200
         file_content = ["This ", "is ", "totally ", "a ", "file.\n",
                         "What ", "are ", "you ", "talking ", "about.\n"]
-        mock_get.return_value.iter_content.return_value = file_content
+
+        file_bytes = []
+        for i in range(len(file_content)):
+            file_bytes.append(file_content[i].encode())
+
+        mock_get.return_value.iter_content.return_value = file_bytes
         written_arr = []
         mock_handle_write.side_effect = written_arr.append
         download_callback = mock.Mock()
@@ -479,21 +491,23 @@ class ClientFileDownloadAsyncSuccess(unittest.TestCase):
 
         # Set up and 'receive' reply from Cloud
         checksum = 0
-        for content in file_content:
+        for content in file_bytes:
             checksum = crc32(content, checksum)
         checksum &= 0xffffffff
         message = mock.Mock()
         message.payload = json.dumps({"1":{"success":True,
                                            "params":{"fileId":"123456789",
                                                      "fileSize":4532,
-                                                     "crc32":checksum}}})
+                                                     "crc32":checksum}}}).encode()
         message.topic = "reply/0001"
         mqtt.messages.put(message)
         sleep(1)
         #TODO Make a better check for download completion
 
         # Check to see what has been downloaded and written to a file
-        written = "".join(filter(lambda x: x is not None, written_arr))
+        written = "".join(map(lambda y: y.decode(),
+                              filter(lambda x: x is not None,
+                                     written_arr)))
         assert written == "This is totally a file.\nWhat are you talking about.\n"
         args = download_callback.call_args_list[0][0]
         assert args[0] is self.client
@@ -511,7 +525,7 @@ class ClientFileDownloadAsyncSuccess(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientFileUploadAsyncSuccess(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.isfile")
     @mock.patch("os.path.exists")
     @mock.patch("time.sleep")
@@ -526,8 +540,9 @@ class ClientFileUploadAsyncSuccess(unittest.TestCase):
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
         file_content = "This is totally a file.\nWhat are you talking about.\n"
+        file_bytes = file_content.encode()
         mock_iter = mock_open.return_value.__enter__.return_value.__iter__
-        mock_iter.return_value = iter(file_content)
+        mock_iter.return_value = iter(map(lambda x: x.encode(), file_content))
         mock_mqtt.return_value = helpers.init_mock_mqtt()
         post_kwargs = {}
         def post_func(url, data=None, verify=None):
@@ -554,7 +569,7 @@ class ClientFileUploadAsyncSuccess(unittest.TestCase):
                                          callback=upload_callback)
         assert result == helix.STATUS_SUCCESS
         checksum = 0
-        checksum = crc32(file_content, checksum)
+        checksum = crc32(file_bytes, checksum)
         checksum &= 0xffffffff
         upload_callback.assert_not_called()
         args = mqtt.publish.call_args_list[0][0]
@@ -568,7 +583,7 @@ class ClientFileUploadAsyncSuccess(unittest.TestCase):
         # Set up and 'receive' reply from Cloud
         message = mock.Mock()
         message.payload = json.dumps({"1":{"success":True,
-                                           "params":{"fileId":"123456789"}}})
+                                           "params":{"fileId":"123456789"}}}).encode()
         message.topic = "reply/0001"
         mqtt.messages.put(message)
         sleep(1)
@@ -594,7 +609,7 @@ class ClientFileUploadAsyncSuccess(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientInitFailFindConfig(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
@@ -618,7 +633,7 @@ class ClientInitFailFindConfig(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientInitFailReadConfig(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
@@ -644,7 +659,7 @@ class ClientInitFailReadConfig(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientInitFailReadDevId(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
@@ -671,7 +686,7 @@ class ClientInitFailReadDevId(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientInitFailWriteDevId(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
@@ -699,7 +714,7 @@ class ClientInitFailWriteDevId(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientInitMissingAppId(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
@@ -727,7 +742,7 @@ class ClientInitMissingAppId(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientInitOverlengthAppId(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
@@ -755,7 +770,7 @@ class ClientInitOverlengthAppId(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientLocationPublish(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     @mock.patch("time.sleep")
     @mock.patch("paho.mqtt.client.Client")
@@ -792,7 +807,7 @@ class ClientLocationPublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientTelemetryPublish(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     @mock.patch("time.sleep")
     @mock.patch("paho.mqtt.client.Client")
@@ -822,7 +837,7 @@ class ClientTelemetryPublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ConfigMissingHost(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
@@ -853,7 +868,7 @@ class ConfigMissingHost(unittest.TestCase):
         del self.config_args["cloud"]["host"]
 
 class ConfigMissingPort(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
@@ -884,7 +899,7 @@ class ConfigMissingPort(unittest.TestCase):
         del self.config_args["cloud"]["port"]
 
 class ConfigMissingToken(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
@@ -915,7 +930,7 @@ class ConfigMissingToken(unittest.TestCase):
         del self.config_args["cloud"]["token"]
 
 class ConfigReadFile(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
@@ -945,7 +960,7 @@ class ConfigReadFile(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ConfigReadDefaults(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.isfile")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_isfile, mock_open):
@@ -1022,7 +1037,7 @@ class ConfigWriteReadDeviceID(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class HandleActionExecCallbackSuccess(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.isfile")
     @mock.patch("os.path.exists")
     @mock.patch("time.sleep")
@@ -1063,7 +1078,7 @@ class HandleActionExecCallbackSuccess(unittest.TestCase):
         notify_payload = {"sessionId":"thisdoesntreallyneedtobehere",
                           "thingKey":thing_key}
         message_1 = mock.Mock()
-        message_1.payload = json.dumps(notify_payload)
+        message_1.payload = json.dumps(notify_payload).encode()
         message_1.topic = "notify/mailbox_activity"
         mqtt.messages.put(message_1)
         sleep(1)
@@ -1087,7 +1102,7 @@ class HandleActionExecCallbackSuccess(unittest.TestCase):
                                                               "params":params},
                                                     "thingKey":thing_key}]}}}
         message_2 = mock.Mock()
-        message_2.payload = json.dumps(exec_payload)
+        message_2.payload = json.dumps(exec_payload).encode()
         message_2.topic = "reply/0001"
         mqtt.messages.put(message_2)
         sleep(1)
@@ -1115,7 +1130,7 @@ class HandleActionExecCallbackSuccess(unittest.TestCase):
         # Set up and 'receive' reply from Cloud
         ack_payload = {"1":{"success":True}}
         message_3 = mock.Mock()
-        message_3.payload = json.dumps(ack_payload)
+        message_3.payload = json.dumps(ack_payload).encode()
         message_3.topic = "reply/0002"
         mqtt.messages.put(message_3)
         sleep(1)
@@ -1133,7 +1148,7 @@ class HandleActionExecCallbackSuccess(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class HandlePublishAllTypes(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.isfile")
     @mock.patch("os.path.exists")
     @mock.patch("time.sleep")
@@ -1215,7 +1230,7 @@ class HandlePublishAllTypes(unittest.TestCase):
                        "4":{"success":True},
                        "5":{"success":True}}
         message = mock.Mock()
-        message.payload = json.dumps(ack_payload)
+        message.payload = json.dumps(ack_payload).encode()
         message.topic = "reply/0001"
         mqtt.messages.put(message)
         sleep(1)
@@ -1233,7 +1248,7 @@ class HandlePublishAllTypes(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class HandlerInitMissingKey(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     @mock.patch("time.sleep")
     @mock.patch("paho.mqtt.client.Client")
@@ -1257,7 +1272,7 @@ class HandlerInitMissingKey(unittest.TestCase):
 
 
 class HandlerInitWebsockets(unittest.TestCase):
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     @mock.patch("time.sleep")
     @mock.patch("paho.mqtt.client.Client")
@@ -1464,7 +1479,7 @@ class OTAPackageUnzipExtractException(unittest.TestCase):
 class OTAReadUpdateJSON(unittest.TestCase):
     @mock.patch("json.load")
     @mock.patch("os.path.isfile")
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     def runTest(self, mock_open, mock_isfile, mock_json):
         mock_isfile.return_value = True
 
@@ -1476,7 +1491,7 @@ class OTAReadUpdateJSON(unittest.TestCase):
 class OTAReadUpdateJSONBadFormat(unittest.TestCase):
     @mock.patch("json.load")
     @mock.patch("os.path.isfile")
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     def runTest(self, mock_open, mock_isfile, mock_json):
         mock_json.side_effect = ValueError
         mock_isfile.return_value = True
@@ -1498,7 +1513,7 @@ class OTAReadUpdateJSONNonExistant(unittest.TestCase):
 
 class OTAUpdateCallback(unittest.TestCase):
     @mock.patch("os.path.isfile")
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("threading.Thread.start")
     def runTest(self, mock_start, mock_open, mock_isfile):
         mock_isfile.return_value = False
@@ -1511,7 +1526,7 @@ class OTAUpdateCallback(unittest.TestCase):
 
 class OTAUpdateCallbackInProgress(unittest.TestCase):
     @mock.patch("os.path.isfile")
-    @mock.patch("__builtin__.open")
+    @mock.patch(builtin + ".open")
     @mock.patch("threading.Thread.start")
     def runTest(self, mock_start, mock_open, mock_isfile):
         mock_isfile.return_value = True

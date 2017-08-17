@@ -23,14 +23,14 @@ def sighandler(signum, frame):
     """
     global running
     if signum == signal.SIGINT:
-        print "Received SIGINT, stopping application..."
+        print("Received SIGINT, stopping application...")
         running = False
 
 def basic_action():
     """
     Simple action callback that takes no parameters.
     """
-    print "I'm an action!"
+    print("I'm an action!")
     return (iot.STATUS_SUCCESS, "")
 
 def send_event(client):
@@ -48,7 +48,7 @@ def parameter_action(client, params):
     when the action is executed.
     """
     message = params.get("message", "")
-    print message
+    print(message)
     return (iot.STATUS_SUCCESS, "")
 
 def file_upload(client, params, user_data):

@@ -25,7 +25,7 @@ def sighandler(signum, frame):
     """
     global running
     if signum == signal.SIGINT:
-        print "Received SIGINT, stopping application..."
+        print("Received SIGINT, stopping application...")
         running = False
 
 def toggle_telem():
