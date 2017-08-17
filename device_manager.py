@@ -20,11 +20,10 @@ import uuid
 
 from helix import osal
 from helix import ota_handler
-from helix.relay import Relay
+from helix import relay
 import helix as iot
 
 running = True
-relay = None
 
 def sighandler(signum, frame):
     """
@@ -319,21 +318,18 @@ def remote_access(client, params):
     service and securely tunnel information between the two. Used primarily for
     Telnet.
     """
-    global relay
     url = params["url"]
     host = params["host"]
     protocol = int(params["protocol"])
-    if relay and relay.running:
-        return (iot.STATUS_EXISTS, "Already started remote access!")
-    else:
-        secure = client.config.validate_cloud_cert is not False
-        relay = Relay(url, host, protocol, secure=secure, log_func=client.info)
-        try:
-            result = relay.start()
-            return (iot.STATUS_SUCCESS, "")
-        except Exception as error:
-            client.error(str(error))
-            return (iot.STATUS_FAILURE, str(error))
+
+    secure = client.config.validate_cloud_cert is not False
+    try:
+        relay.create_relay(url, host, protocol, secure=secure,
+                           log_func=client.log)
+        return (iot.STATUS_SUCCESS, "")
+    except Exception as error:
+        client.error(str(error))
+        return (iot.STATUS_FAILURE, str(error))
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, sighandler)
@@ -423,9 +419,7 @@ if __name__ == "__main__":
                 raise
 
     # Stop remote access
-    if relay and relay.running:
-        relay.stop()
-        relay = None
+    relay.stop_relays()
 
     # Wait for any OTA operations to finish
     if ota.is_running():

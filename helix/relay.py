@@ -4,6 +4,8 @@ local socket connection. This is useful for Telnet which is not secure by
 default.
 """
 
+import logging
+import random
 import select
 import socket
 import ssl
@@ -20,7 +22,7 @@ class Relay(object):
     """
 
     def __init__(self, wsock_host, sock_host, sock_port, secure=True,
-                 log_func=None):
+                 log=None):
         """
         Initialize a relay object for piping data between a websocket and a
         local socket
@@ -30,7 +32,19 @@ class Relay(object):
         self.sock_host = sock_host
         self.sock_port = sock_port
         self.secure = secure
-        self.log = log_func
+        self.log = log
+        self.log_name = "Relay:{}:{}({:0>5})".format(self.sock_host,
+                                                    self.sock_port,
+                                                    random.randint(0,99999))
+
+        if self.log is None:
+            self.logger = logging.getLogger(self.log_name)
+            log_handler = logging.StreamHandler()
+            #log_formatter = logging.Formatter(constants.LOG_FORMAT, datefmt=constants.LOG_TIME_FORMAT)
+            #log_handler.setFormatter(log_formatter)
+            self.logger.addHandler(log_handler)
+            self.logger.setLevel(logging.DEBUG)
+            self.log = self.logger.log
 
         self.running = False
         self.thread = None
@@ -73,18 +87,14 @@ class Relay(object):
                                                     self.sock_port))
                             except socket.error:
                                 self.running = False
-                                log_msg = "Failed to open local socket"
-                                if self.log:
-                                    self.log(log_msg)
-                                else:
-                                    print log_msg
+                                self.log(logging.ERROR,
+                                         "%s - Failed to open local socket",
+                                         self.log_name)
                                 break
 
-                            log_msg = "Local socket successfully opened"
-                            if self.log:
-                                self.log(log_msg)
-                            else:
-                                print log_msg
+                            self.log(logging.INFO,
+                                    "%s - Local socket successfully opened",
+                                     self.log_name)
                     else:
                         self.running = False
                         break
@@ -100,11 +110,7 @@ class Relay(object):
             self.lsock = None
         self.wsock.close()
         self.wsock = None
-        log_msg = "Sockets Closed"
-        if self.log:
-            self.log(log_msg)
-        else:
-            print log_msg
+        self.log(logging.INFO, "%s - Sockets Closed", self.log_name)
 
     def start(self):
         """
@@ -126,24 +132,17 @@ class Relay(object):
                 self.running = False
                 self.wsock.close()
                 self.wsock = None
-                log_msg = "Failed to open Websocket"
-                if self.log:
-                    self.log(log_msg)
-                else:
-                    print log_msg
+                self.log(logging.ERROR, "%s - Failed to open Websocket",
+                         self.log_name)
                 raise error
 
-            log_msg = "Websocket Opened"
-            if self.log:
-                self.log(log_msg)
-            else:
-                print log_msg
+            self.log(logging.INFO, "%s - Websocket Opened", self.log_name)
 
             self.thread = threading.Thread(target=self.loop)
             self.thread.start()
 
         else:
-            raise RuntimeError("Relay is already running!")
+            raise RuntimeError("{} - Already running!".format(self.log_name))
 
     def stop(self):
         """
@@ -154,4 +153,27 @@ class Relay(object):
         if self.thread:
             self.thread.join()
             self.thread = None
+
+
+relays = []
+
+def create_relay(url, host, port, secure=True, log_func=None):
+    global relays
+
+    newrelay = Relay(url, host, port, secure=secure, log=log_func)
+    newrelay.start()
+    relays.append(newrelay)
+
+def stop_relays():
+    global relays
+
+    threads = []
+    while relays:
+        relay = relays.pop()
+        thread = threading.Thread(target=relay.stop)
+        thread.start()
+        threads.append(thread)
+
+    for thread in threads:
+        thread.join()
 
