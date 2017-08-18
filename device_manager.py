@@ -42,10 +42,7 @@ def ack_messages(client, path):
         with open(path, 'r') as id_file:
             msg_id = id_file.read()
             if msg_id:
-                result_args = {"mail_id":msg_id}
-                mailbox_ack = iot.tr50.create_mailbox_ack(**result_args)
-                message = iot.defs.OutMessage(mailbox_ack, "Restart Complete")
-                client.handler.send(message)
+                client.action_acknowledge(msg_id)
 
         os.remove(path)
 

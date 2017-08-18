@@ -59,7 +59,7 @@ def os_name():
     name = "Unknown"
     if LINUX:
         distro = platform.linux_distribution()
-        plat = subprocess.check_output(["uname", "-o"])[:-1]
+        plat = subprocess.check_output(["uname", "-o"])[:-1].decode()
         name = "{} ({})".format(distro[0], plat)
     elif WIN32:
         name = platform.system()
