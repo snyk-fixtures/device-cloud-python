@@ -129,4 +129,5 @@ def generate():
 
 if __name__ == "__main__":
     status = generate()
+    input("Press enter to finish...")
     sys.exit(status)
