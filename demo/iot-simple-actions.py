@@ -125,8 +125,6 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--config_dir", help="Custom config directory")
     parser.add_argument("-f", "--config_file", help="Custom config file name "
                         "(in config directory)")
-    parser.add_argument("-d", "--thing_definition", help="Custom thing "
-                        "definition key")
     args = parser.parse_args(sys.argv[1:])
 
     # Initialize client default called 'python-demo-app'
@@ -134,13 +132,6 @@ if __name__ == "__main__":
     if args.app_id:
         app_id = args.app_id
     client = iot.Client(app_id)
-
-    # Ensure this thing is using the args.thing_definition definition
-    # This can alternatively be set in the configuration file
-    if args.thing_definition:
-        client.config.thing_def_key = args.thing_definition
-    else:
-        client.config.thing_def_key = "iot_simple_actions"
 
     # Use the demo-connect.cfg file inside the config directory
     # (Default would be python-demo-app-connect.cfg)

@@ -129,37 +129,6 @@ class Handler(object):
         # publishing, file transfer, etc.)
         self.work_queue = queue.Queue()
 
-    def _thing_def_change(self, new_def_key, timeout=0):
-        """
-        Change current thing's thing definition
-        """
-
-        current_time = datetime.utcnow()
-        end_time = current_time + timedelta(seconds=timeout)
-        status = constants.STATUS_FAILURE
-        reply_success = []
-
-        cmd = tr50.create_thing_def_change(self.config.key, new_def_key)
-        message = defs.OutMessage(cmd, "Change Thing Definition to "
-                                  "{}".format(new_def_key), data=reply_success)
-        self.send(message)
-
-        while (timeout == 0 or current_time < end_time) and not reply_success:
-            sleep(0.1)
-
-        success = None
-        if reply_success:
-            success = reply_success.pop()
-
-        if success is None:
-            status = constants.STATUS_TIMED_OUT
-        elif success is True:
-            status = constants.STATUS_SUCCESS
-        else:
-            status = constants.STATUS_FAILURE
-
-        return status
-
     def action_deregister(self, action_name):
         """
         Disassociate any function or command from an action in the Cloud
@@ -309,18 +278,6 @@ class Handler(object):
                     target=self.handle_work_loop))
             for thread in self.worker_threads:
                 thread.start()
-
-            # If a thing definition is defined in the config, switch this thing
-            # to that thing definition
-            if self.config.thing_def_key:
-                change_timeout = (0 if timeout == 0 else
-                                  (end_time - current_time).total_seconds())
-                status = self._thing_def_change(self.config.thing_def_key,
-                                                change_timeout)
-                if status != constants.STATUS_SUCCESS:
-                    self.logger.error("Failed to change thing def. %s",
-                                      status_string(status))
-                    self.disconnect()
 
         else:
             # Not connected. Stop main loop.
@@ -653,10 +610,6 @@ class Handler(object):
                                 work = defs.Work(constants.WORK_ACTION,
                                                  action_request)
                                 self.queue_work(work)
-
-                elif sent_command_type == TR50Command.thing_def_change:
-                    # Received a reply for a thing definition change
-                    sent_message.data.append(reply.get("success"))
 
             status = constants.STATUS_SUCCESS
 

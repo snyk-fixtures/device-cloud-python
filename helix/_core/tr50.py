@@ -50,7 +50,6 @@ class TR50Command(object):
     mailbox_check = "mailbox.check"
     mailbox_update = "mailbox.update"
     property_publish = "property.publish"
-    thing_def_change = "thing.def.change"
     thing_find = "thing.find"
 
 
@@ -280,23 +279,6 @@ def create_property_publish(thing_key, key, value, timestamp=None, corr_id=None,
         "aggregate":aggregate
     }
     cmd = {"command":TR50Command.property_publish}
-    cmd["params"] = _generate_params(kwargs)
-    return cmd
-
-def create_thing_def_change(key, new_def_key, drop_properties=True,
-                            drop_attributes=True, drop_alarms=True):
-    """
-    Generate a TR50 JSON request for changing a thing's thing definition
-    """
-
-    kwargs = {
-        "key":key,
-        "newDefKey":new_def_key,
-        "dropProps":drop_properties,
-        "dropAttrs":drop_attributes,
-        "dropAlarms":drop_alarms
-    }
-    cmd = {"command":TR50Command.thing_def_change}
     cmd["params"] = _generate_params(kwargs)
     return cmd
 

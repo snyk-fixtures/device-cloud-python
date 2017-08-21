@@ -46,7 +46,6 @@ Configuration Options:
   - token: "tokenfromcloud"
 - validate_cloud_cert: true/false
 - ca_bundle_file: "/path/to/cert/bundle" (default will use included file)
-- thing_def_key: "some_thing_def_key"
 - log_file: "/path/to/a/log/file.log"
 - keep_alive: ##
 - loop_time: ##
@@ -75,8 +74,6 @@ So far supports:
   file transfer)
 - Configuration files (see Configuration)
 - device_id uuid (Generates a unique device_id if one is not found)
-- Change thing definition (add "thing_def_key" field to configuration to
-  immediately change the definition of your thing after connecting)
 - Example apps (example of most APIs in use, but also still a work in progress)
 - Logging to console with optional logging to a specified file
 - Event message publishing
