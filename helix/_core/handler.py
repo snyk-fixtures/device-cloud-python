@@ -423,54 +423,59 @@ class Handler(object):
         temp_path = os.path.join(download_dir, temp_file_name)
 
         # Ensure download directory exists
-        if not os.path.exists(download_dir) or not os.path.isdir(download_dir):
+        if not os.path.exists(download_dir):
             try:
                 os.makedirs(download_dir)
             except OSError as err:
-                print(err)
-                self.logger.excpetion(err)
+                self.logger.exception(err)
                 status = constants.STATUS_BAD_PARAMETER
-
-        # Secure or insecure HTTPS request.
-        response = None
-        if (self.config.validate_cloud_cert is False or
-                not self.config.ca_bundle_file):
-            response = requests.get(url, stream=True, verify=False)
-        else:
-            cert_location = self.config.ca_bundle_file
-            response = requests.get(url, stream=True, verify=cert_location)
-
-        if response.status_code == 200:
-            # Write to temporary file, while simultaneously calculating checksum
-            checksum = 0
-            with open(temp_path, "wb") as temp_file:
-                for chunk in response.iter_content(512):
-                    temp_file.write(chunk)
-                    checksum = crc32(chunk, checksum)
-            checksum &= 0xffffffff
-
-            # Ensure the downloaded file matches the checksum sent by the
-            # Cloud.
-            if checksum == download.file_checksum:
-                # Checksums match, move temporary file to real file position
-                os.rename(temp_path, download.file_path)
-                self.logger.info("Successfully downloaded \"%s\"",
-                                 download.file_name)
-                status = constants.STATUS_SUCCESS
-            else:
-                # Checksums do not match, remove temporary file and fail
-                self.logger.error("Failed to download \"%s\" "
-                                  "(checksums do not match)",
-                                  download.file_name)
-                os.remove(temp_path)
-                status = constants.STATUS_FAILURE
-
-        else:
-            # Request was unsuccessful
-            self.logger.error("Failed to download \"%s\" (download error)",
+        elif not os.path.isdir(download_dir):
+            self.logger.error("Failed to download \"%s\" (destination error)",
                               download.file_name)
-            self.logger.error(".... %s", response.content)
-            status = constants.STATUS_FAILURE
+            status = constants.STATUS_IO_ERROR
+
+        if status == constants.STATUS_SUCCESS:
+            # Secure or insecure HTTPS request.
+            response = None
+            if (self.config.validate_cloud_cert is False or
+                    not self.config.ca_bundle_file):
+                response = requests.get(url, stream=True, verify=False)
+            else:
+                cert_location = self.config.ca_bundle_file
+                response = requests.get(url, stream=True, verify=cert_location)
+
+            if response.status_code == 200:
+                # Write to temporary file, while simultaneously calculating
+                # checksum
+                checksum = 0
+                with open(temp_path, "wb") as temp_file:
+                    for chunk in response.iter_content(512):
+                        temp_file.write(chunk)
+                        checksum = crc32(chunk, checksum)
+                checksum &= 0xffffffff
+
+                # Ensure the downloaded file matches the checksum sent by the
+                # Cloud.
+                if checksum == download.file_checksum:
+                    # Checksums match, move temporary file to real file position
+                    os.rename(temp_path, download.file_path)
+                    self.logger.info("Successfully downloaded \"%s\"",
+                                     download.file_name)
+                    status = constants.STATUS_SUCCESS
+                else:
+                    # Checksums do not match, remove temporary file and fail
+                    self.logger.error("Failed to download \"%s\" "
+                                      "(checksums do not match)",
+                                      download.file_name)
+                    os.remove(temp_path)
+                    status = constants.STATUS_FAILURE
+
+            else:
+                # Request was unsuccessful
+                self.logger.error("Failed to download \"%s\" (download error)",
+                                  download.file_name)
+                self.logger.error(".... %s", response.content)
+                status = constants.STATUS_FAILURE
 
         # Update file transfer status
         download.status = status

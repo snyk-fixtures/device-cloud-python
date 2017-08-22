@@ -185,34 +185,42 @@ def file_download(client, params, user_data):
     cloud to the local system.
     """
     file_name = None
-    file_dest = None
+    file_path = None
     result = None
     if params:
         file_name = params.get("file_name")
-        file_dest = params.get("file_dest")
-        if not file_dest:
-            file_dest = abspath(os.path.join(user_data[0], "download"))
+        file_path = params.get("file_path")
 
-        file_global = params.get("global", False)
+        if file_name and not file_path:
+            file_path = abspath(os.path.join(user_data[0], "download",
+                                             file_name))
+        if file_path and not file_name:
+            file_name = os.path.basename(file_path)
+        if file_path.startswith('~'):
+            result = iot.STATUS_BAD_PARAMETER
+            message = "Paths cannot use '~' to reference a home directory"
+        elif not os.path.isabs(file_path):
+            file_path = abspath(os.path.join(user_data[0], "download",
+                                             file_path))
 
-    if file_name:
-        if not file_dest.startswith('~'):
-            if not file_dest.startswith('/'):
-                file_dest = abspath(os.path.join(user_data[0], file_dest))
+        file_global = params.get("use_global_store", False)
 
-            try:
-                if not os.path.isdir(file_dest):
-                    os.makedirs(file_dest)
-            except (OSError, IOError) as e:
-                result = iot.STATUS_IO_ERROR
-                message = ("Destination directory does not exist and could not "
-                           "be created!")
-                client.log(iot.LOGERROR, message)
-                print(e)
+    if result is None:
+        if file_name and file_path:
+            dir_path = os.path.dirname(file_path)
+            if not os.path.exists(dir_path):
+                try:
+                    os.makedirs(dir_path)
+                except (OSError, IOError) as e:
+                    result = iot.STATUS_IO_ERROR
+                    message = ("Destination directory does not exist and could "
+                               "not be created!")
+                    client.error(message)
+                    print(e)
 
             if result is None:
                 client.log(iot.LOGINFO, "Downloading")
-                result = client.file_download(file_name, file_dest, \
+                result = client.file_download(file_name, file_path, \
                                               blocking=True, timeout=15, \
                                               file_global=file_global)
                 if result == iot.STATUS_SUCCESS:
@@ -221,11 +229,8 @@ def file_download(client, params, user_data):
                     message = iot.status_string(result)
 
         else:
-            message = "Paths cannot use '~' to reference a home directory"
             result = iot.STATUS_BAD_PARAMETER
-    else:
-        result = iot.STATUS_BAD_PARAMETER
-        message = "No file name and/or destination given"
+            message = "No file name or destination given"
 
     return (result, message)
 
@@ -236,36 +241,40 @@ def file_upload(client, params, user_data):
     cloud to the local system. Wildcards in the file name are supported.
     """
     file_name = None
+    file_path = None
+    result = None
     if params:
         file_name = params.get("file_name")
-        if "dest_name" in params:
-            dest_name = params.get("dest_name")
-        else:
-            dest_name = None
+        file_path = params.get("file_path")
 
-        file_global = params.get("global", False)
+        if file_name and not file_path:
+            file_path = abspath(os.path.join(user_data[0], "upload", file_name))
+        if file_path and not file_name:
+            file_name = os.path.basename(file_path)
+        if file_path.startswith('~'):
+            result = iot.STATUS_BAD_PARAMETER
+            message = "Paths cannot use '~' to reference a home directory"
+        elif not os.path.isabs(file_path):
+            file_path = abspath(os.path.join(user_data[0], "upload",
+                                             file_path))
 
-    if file_name:
-        if not file_name.startswith('~'):
-            if not file_name.startswith('/'):
-                file_name = abspath(os.path.join(user_data[0], "upload", \
-                                    file_name))
+        file_global = params.get("use_global_store", False)
+
+    if result is None:
+        if file_name and file_path:
             client.log(iot.LOGINFO, "Uploading {}".format(file_name))
-            result = client.file_upload(file_name, upload_name=dest_name, \
+            result = client.file_upload(file_path, upload_name=file_name, \
                                         blocking=True, timeout=240, \
                                         file_global=file_global)
             if result == iot.STATUS_SUCCESS:
                 message = ""
-                if user_data[1] and file_name.startswith(user_data[0]):
+                if user_data[1] and file_path.startswith(user_data[0]):
                     os.remove(file_name)
             else:
                 message = iot.status_string(result)
         else:
-            message = "Paths cannot use '~' to reference a home directory"
             result = iot.STATUS_BAD_PARAMETER
-    else:
-        result = iot.STATUS_BAD_PARAMETER
-        message = "No file name given"
+            message = "No file name or location given"
 
     return (result, message)
 
