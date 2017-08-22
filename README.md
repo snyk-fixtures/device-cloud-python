@@ -64,6 +64,14 @@ is compatible with the HDC OTA package format. To run the device manager as a
 service, the `share` directory contains service files for systemd and init.d
 along with a readme on how to use them.
 
+Validation:
+-----------
+Running `./validate_script.py` will validate that all the features of the helix
+API work on the host. It requires that validate_app.py and generate_config.py
+are in the same directory. It will prompt you for a Cloud address and
+credentials to check values in that Cloud. you can also set environment
+variables HDCADDRESS, HDCUSERNAME, and HDCPASSWORD to skip this step.
+
 So far supports:
 ----------------
 - Documented user APIs (can be obtained by running `pydoc helix`)
