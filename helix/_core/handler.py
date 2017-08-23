@@ -237,19 +237,24 @@ class Handler(object):
             # Start a secure connection if using a secure port and the cert file
             # is available
             if self.config.cloud.port in constants.SECURE_PORTS:
-                if not self.config.ca_bundle_file:
+                if self.config.validate_cloud_cert is False:
+                    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+                    context.verify_mode = ssl.CERT_NONE
+                    context.check_hostname = False
+                    self.mqtt.tls_set_context(context)
+                elif not self.config.ca_bundle_file:
                     self.logger.error("Missing certificate bundle from configuration")
                     status = constants.STATUS_BAD_PARAMETER
                 elif not os.path.isfile(self.config.ca_bundle_file):
                     self.logger.error("Certificate bundle not found")
                     status = constants.STATUS_NOT_FOUND
                 else:
-                    self.mqtt.tls_set(self.config.ca_bundle_file,
-                                      tls_version=ssl.PROTOCOL_TLSv1_2)
+                    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+                    context.load_verify_locations(cafile=self.config.ca_bundle_file)
+                    context.verify_mode = ssl.CERT_REQUIRED
+                    context.check_hostname = True
+                    self.mqtt.tls_set_context(context)
 
-                    # Start an insecure connection if not validate_cloud_cert
-                    self.mqtt.tls_insecure_set(self.config.validate_cloud_cert
-                                               is False)
 
             # status != bad_parameter or not_found
             if status == constants.STATUS_FAILURE:
@@ -257,9 +262,10 @@ class Handler(object):
                 try:
                     result = self.mqtt.connect(self.config.cloud.host,
                                                self.config.cloud.port, 60)
-                except gaierror as error:
-                    self.logger.error(str(error))
+                except Exception as error:
+                    # socket.gaierror or ssl.SSLError
                     self.state = constants.STATE_DISCONNECTED
+                    self.logger.error(str(error))
 
         if result == 0:
             # Successful MQTT connection

@@ -296,13 +296,14 @@ class ClientAttributePublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientConnectFailure(unittest.TestCase):
+    @mock.patch("ssl.SSLContext")
     @mock.patch(builtin + ".open")
     @mock.patch("os.path.isfile")
     @mock.patch("os.path.exists")
     @mock.patch("time.sleep")
     @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
-                mock_open):
+                mock_open, mock_context):
         # Set up mocks
         mock_exists.side_effect = [True, True]
         mock_isfile.side_effect = [True]
@@ -336,13 +337,14 @@ class ClientConnectFailure(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientConnectSuccess(unittest.TestCase):
+    @mock.patch("ssl.SSLContext")
     @mock.patch(builtin + ".open")
     @mock.patch("os.path.isfile")
     @mock.patch("os.path.exists")
     @mock.patch("time.sleep")
     @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
-                mock_open):
+                mock_open, mock_context):
         # Set up mocks
         mock_exists.side_effect = [True, True]
         mock_isfile.side_effect = [True]
@@ -377,13 +379,14 @@ class ClientConnectSuccess(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientDisconnectFailure(unittest.TestCase):
+    @mock.patch("ssl.SSLContext")
     @mock.patch(builtin + ".open")
     @mock.patch("os.path.isfile")
     @mock.patch("os.path.exists")
     @mock.patch("time.sleep")
     @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
-                mock_open):
+                mock_open, mock_context):
         # Set up mocks
         mock_exists.side_effect = [True, True]
         mock_isfile.side_effect = [True]
@@ -450,6 +453,7 @@ class ClientEventPublish(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ClientFileDownloadAsyncSuccess(unittest.TestCase):
+    @mock.patch("ssl.SSLContext")
     @mock.patch(builtin + ".open")
     @mock.patch("os.rename")
     @mock.patch("os.path.isdir")
@@ -459,7 +463,7 @@ class ClientFileDownloadAsyncSuccess(unittest.TestCase):
     @mock.patch("paho.mqtt.client.Client")
     @mock.patch("requests.get")
     def runTest(self, mock_get, mock_mqtt, mock_sleep, mock_exists,
-                mock_isfile, mock_isdir, mock_rename, mock_open):
+                mock_isfile, mock_isdir, mock_rename, mock_open, mock_context):
         # Set up mocks
         mock_exists.side_effect = [True, True, True]
         mock_isdir.side_effect = [False, True]
@@ -542,6 +546,7 @@ class ClientFileDownloadAsyncSuccess(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientFileUploadAsyncSuccess(unittest.TestCase):
+    @mock.patch("ssl.SSLContext")
     @mock.patch(builtin + ".open")
     @mock.patch("os.path.isfile")
     @mock.patch("os.path.exists")
@@ -549,7 +554,7 @@ class ClientFileUploadAsyncSuccess(unittest.TestCase):
     @mock.patch("paho.mqtt.client.Client")
     @mock.patch("requests.post")
     def runTest(self, mock_post, mock_mqtt, mock_sleep, mock_exists,
-                mock_isfile, mock_open):
+                mock_isfile, mock_open, mock_context):
         # Set up mocks
         mock_exists.side_effect = [True, True, True]
         mock_isfile.side_effect = [True, True]
@@ -1053,6 +1058,7 @@ class ConfigWriteReadDeviceID(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class HandleActionExecCallbackSuccess(unittest.TestCase):
+    @mock.patch("ssl.SSLContext")
     @mock.patch(builtin + ".open")
     @mock.patch("os.path.isfile")
     @mock.patch("os.path.exists")
@@ -1060,7 +1066,7 @@ class HandleActionExecCallbackSuccess(unittest.TestCase):
     @mock.patch("helix._core.defs.inspect")
     @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_inspect, mock_sleep, mock_exists,
-                mock_isfile, mock_open):
+                mock_isfile, mock_open, mock_context):
         # Set up mocks
         mock_exists.side_effect = [True, True]
         mock_isfile.side_effect = [True]
@@ -1164,13 +1170,14 @@ class HandleActionExecCallbackSuccess(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class HandlePublishAllTypes(unittest.TestCase):
+    @mock.patch("ssl.SSLContext")
     @mock.patch(builtin + ".open")
     @mock.patch("os.path.isfile")
     @mock.patch("os.path.exists")
     @mock.patch("time.sleep")
     @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
-                mock_open):
+                mock_open, mock_context):
         # Set up mocks
         mock_exists.side_effect = [True, True]
         mock_isfile.side_effect = [True]
