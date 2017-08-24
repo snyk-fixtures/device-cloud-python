@@ -1,0 +1,6 @@
+{
+	"year":"2016-2017",
+	"author": "Wind River Systems, Inc.",
+	"exclude": "*.md,*.bat,*.sh,.pylintrc",
+	"license": "wr_helix"
+}

@@ -110,3 +110,17 @@ Not yet supported:
 Publishing:
 -----------
 *See `PUBLISHING.md` for instructions on uploading the module to Pypi*
+
+Copyright Updates:
+------------------
+Configuration files for the Python [`copyright`](https://github.com/rsmz/copyright) module can be found in the
+`copyright` directory in this repo. To automatically update the copyright
+blurbs present in this project, first install the copyright module:
+`pip install copyright`. Next, update the wr_config.json file (or use command
+line flags) to reflect the new values. Finally, run `copyright -c
+copyright/wr_config.json -t copyright/wr_template.json .` from the repo root.
+The [current documentation](https://github.com/rsmz/copyright) for the `copyright` tool is quite sparse, but does show a few other examples for how the
+tool works.
+*Note: This will affect multiple files in the repo. The `wr_config.json` file
+has been configured to ignore certain files and file types, however you should
+double-check that no unexpected files were changed by the tool.*
