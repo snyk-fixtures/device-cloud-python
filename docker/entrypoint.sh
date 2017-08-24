@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TOKEN="Klza2g56b2PaqPeS"
+TOKEN="jhfeRnIWk77HPEl8"
 CLOUD="api.devicewise.com"
 PORT="8883"
 DEVICE=""
