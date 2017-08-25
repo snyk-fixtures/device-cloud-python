@@ -2,12 +2,12 @@
 
 '''
     Copyright (c) 2016-2017 Wind River Systems, Inc.
-    
+
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at:
     http://www.apache.org/licenses/LICENSE-2.0
-    
+
     Unless required by applicable law or agreed to in writing, software  distributed
     under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
     OR CONDITIONS OF ANY KIND, either express or implied.
@@ -2131,6 +2131,7 @@ class RelayLoopLocalReadError(unittest.TestCase):
         assert self.relay.lsock == None
 
 class ClientFileDownloadAsyncChecksumFail(unittest.TestCase):
+    @mock.patch("ssl.SSLContext")
     @mock.patch("os.remove")
     @mock.patch(builtin + ".open")
     @mock.patch("os.rename")
@@ -2141,7 +2142,8 @@ class ClientFileDownloadAsyncChecksumFail(unittest.TestCase):
     @mock.patch("paho.mqtt.client.Client")
     @mock.patch("requests.get")
     def runTest(self, mock_get, mock_mqtt, mock_sleep, mock_exists,
-                mock_isfile, mock_isdir, mock_rename, mock_open, mock_remove):
+                mock_isfile, mock_isdir, mock_rename, mock_open, mock_remove,
+                mock_context):
         # Set up mocks
         mock_exists.side_effect = [True, True, True]
         mock_isdir.side_effect = [False, True]
@@ -2221,6 +2223,7 @@ class ClientFileDownloadAsyncChecksumFail(unittest.TestCase):
             self.client.handler.main_thread.join()
 
 class ClientFileDownloadAsyncRequestFail(unittest.TestCase):
+    @mock.patch("ssl.SSLContext")
     @mock.patch("os.remove")
     @mock.patch(builtin + ".open")
     @mock.patch("os.rename")
@@ -2231,7 +2234,8 @@ class ClientFileDownloadAsyncRequestFail(unittest.TestCase):
     @mock.patch("paho.mqtt.client.Client")
     @mock.patch("requests.get")
     def runTest(self, mock_get, mock_mqtt, mock_sleep, mock_exists,
-                mock_isfile, mock_isdir, mock_rename, mock_open, mock_remove):
+                mock_isfile, mock_isdir, mock_rename, mock_open, mock_remove,
+                mock_context):
         # Set up mocks
         mock_exists.side_effect = [True, True, True]
         mock_isdir.side_effect = [False, True]
