@@ -2,6 +2,7 @@
 ## Folder Contents
  * `hdc-dev-mgr.service` - Example systemd service configuration file
  * `hdc-dev-mgr.sh` - Example init.d service script
+ * `create_ota_package.sh` - Python script that will generate OTA packages
 
 ## Running the HDC Device Manager as a Service
 Prior to using either the systemd or init.d files to setup the device manager
@@ -48,3 +49,9 @@ system Python packages folder, not your local one. To do this, you can run:
  *Note: Most modern full-featured Linux-based operating systems use systemd to
  control the legacy init.d scripts. If you're using a system that has systemd,
  it is recommended you use the specific systemd service file as described above*
+
+## Using the OTA Package Generator
+The OTA package generator allows you to create OTA update packages for your
+devices. It can be run with or without parameters and can be run in a
+"headless" mode to allow for fast package generation via the command line.
+See `create_ota_package.py --help` for a list of valid parameters.
