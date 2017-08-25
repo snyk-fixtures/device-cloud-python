@@ -343,7 +343,7 @@ def remote_access(client, params):
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, sighandler)
-    if osal.LINUX:
+    if osal.POSIX:
         signal.signal(signal.SIGQUIT, sighandler)
 
     # Initialize client called 'device_manager_py'

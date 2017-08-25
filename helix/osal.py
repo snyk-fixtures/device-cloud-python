@@ -61,7 +61,7 @@ def os_kernel():
     ker = "Unknown"
     if LINUX:
         ker = platform.release()
-    elif WIN32:
+    elif WIN32 or MACOS:
         ker = platform.version()
     return ker
 
@@ -76,6 +76,8 @@ def os_name():
         name = "{} ({})".format(distro[0], plat)
     elif WIN32:
         name = platform.system()
+    elif MACOS:
+        name = "macOS"
     return name
 
 def os_version():
@@ -88,6 +90,8 @@ def os_version():
         ver = "{}-{}".format(distro[1], distro[2])
     elif WIN32:
         ver = platform.release()
+    elif MACOS:
+        ver = platform.mac_ver()[0]
     return ver
 
 def system_reboot(delay=0, force=True):
