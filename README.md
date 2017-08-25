@@ -79,9 +79,10 @@ So far supports:
 - Event message publishing
 - Alarm publishing
 - pytest (Install pytest, pytest-mock, pytest-cov with pip. Run `pytest -v .` to
-  run unit tests.  `pytest --cov-report=html --cov=helix -v .` will generate a
-  directory containing an HTML report of coverage. Prepending `python2/python3
-  -m ` will let you specify which version of Python to test.)
+  run unit tests.  `pytest --cov-report=html --cov=helix --cov-config 
+  .coveragerc -v .` will generate a directory containing an HTML report of 
+  coverage. Prepending `python2/python3 -m ` will let you specify which version
+  of Python to test.)
 - Websockets (setting the port to 443 will use websockets to send MQTT packets)
 - Connection loss handling (Publishes made while offline will be cached and sent
   when connection is re-established. Now has a keep_alive configuration for how

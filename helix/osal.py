@@ -42,8 +42,6 @@ def execl(*args):
     return.
     """
     retval = EXECUTION_FAILURE
-    if len(args) < 2:
-        retval = BAD_PARAMETER
 
     if POSIX:
         os.execvp(args[0], args)

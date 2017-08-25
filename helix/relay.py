@@ -64,7 +64,7 @@ class Relay(object):
         self.lsock = None
         self.wsock = None
 
-    def loop(self):
+    def _loop(self):
         """
         Main loop that pipes all data from one socket to the next. The websocket
         connection is established first so this is also where the local socket
@@ -157,7 +157,7 @@ class Relay(object):
 
             self.log(logging.INFO, "%s - Websocket Opened", self.log_name)
 
-            self.thread = threading.Thread(target=self.loop)
+            self.thread = threading.Thread(target=self._loop)
             self.thread.start()
 
         else:

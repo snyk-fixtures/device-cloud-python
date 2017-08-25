@@ -18,8 +18,12 @@ import os
 import unittest
 from binascii import crc32
 import mock
+import platform
 import re
+import socket
+import ssl
 import sys
+import websocket
 
 from time import sleep
 
@@ -1605,7 +1609,7 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.update_data = {"pre_install": "pre", \
                             "install": "install", \
                             "post_install": "post", \
-                            "err_action": "err"}
+                            "error_action": "err"}
 
         self.mock_path.isdir.return_value = False
         self.mock_path.isfile.return_value = False
@@ -1678,7 +1682,7 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_dl.assert_called_once()
         self.mock_unzip.assert_called_once()
         self.mock_read.assert_called_once()
-        assert self.mock_execute.call_count == 1
+        assert self.mock_execute.call_count == 2
         assert mock.call(helix.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
         assert mock.call(helix.LOGERROR, "Pre-Install Failed!") in self.client.log.call_args_list
         assert mock.call(helix.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
@@ -1692,21 +1696,21 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_dl.assert_called_once()
         self.mock_unzip.assert_called_once()
         self.mock_read.assert_called_once()
-        assert self.mock_execute.call_count == 2
+        assert self.mock_execute.call_count == 3
         assert mock.call(helix.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
         assert mock.call(helix.LOGERROR, "Install Failed!") in self.client.log.call_args_list
         assert mock.call(helix.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
 
     def postInstallFailCase(self):
         self.resetMocks()
-        self.mock_execute.side_effect = [helix.STATUS_SUCCESS, helix.STATUS_SUCCESS, helix.STATUS_EXECUTION_ERROR]
+        self.mock_execute.side_effect = [helix.STATUS_SUCCESS, helix.STATUS_SUCCESS, helix.STATUS_EXECUTION_ERROR, helix.STATUS_SUCCESS]
 
         self.ota._update_software(self.client, self.params, self.request)
 
         self.mock_dl.assert_called_once()
         self.mock_unzip.assert_called_once()
         self.mock_read.assert_called_once()
-        assert self.mock_execute.call_count == 3
+        assert self.mock_execute.call_count == 4
         assert mock.call(helix.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
         assert mock.call(helix.LOGERROR, "Post-Install Failed!") in self.client.log.call_args_list
         assert mock.call(helix.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
@@ -1738,3 +1742,629 @@ class OTAUpdateSoftware(unittest.TestCase):
         assert mock.call(helix.LOGINFO, "OTA Successful!") in self.client.log.call_args_list
         assert mock.call(helix.LOGERROR, "Post-Install Failed!") not in self.client.log.call_args_list
         assert mock.call(helix.LOGERROR, "OTA Failed!") not in self.client.log.call_args_list
+
+
+class ActionAcknowledge(unittest.TestCase):
+    @mock.patch("helix._core.tr50.create_mailbox_ack")
+    @mock.patch(builtin + ".open")
+    @mock.patch("os.path.exists")
+    def runTest(self, mock_exists, mock_open, mock_ack):
+        mock_exists.side_effect = [True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_read = mock_open.return_value.__enter__.return_value.read
+        mock_read.side_effect = read_strings
+
+        self.client = helix.Client("testing-client")
+        self.client.initialize()
+
+        self.client.handler.send = mock.Mock()
+        self.client.handler.send.return_value = helix.STATUS_SUCCESS
+
+        result = self.client.action_acknowledge("message_id", 0, "")
+        assert result == helix.STATUS_SUCCESS
+        self.client.handler.send.assert_called_once()
+        mock_ack.assert_called_once()
+
+    def setUp(self):
+        self.config_args = helpers.config_file_default()
+
+class ActionProgressUpdate(unittest.TestCase):
+    @mock.patch("helix._core.tr50.create_mailbox_update")
+    @mock.patch(builtin + ".open")
+    @mock.patch("os.path.exists")
+    def runTest(self, mock_exists, mock_open, mock_update):
+        mock_exists.side_effect = [True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_read = mock_open.return_value.__enter__.return_value.read
+        mock_read.side_effect = read_strings
+
+        self.client = helix.Client("testing-client")
+        self.client.initialize()
+
+        self.client.handler.send = mock.Mock()
+        self.client.handler.send.return_value = helix.STATUS_SUCCESS
+
+        result = self.client.action_progress_update("message_id", "update msg")
+        assert result == helix.STATUS_SUCCESS
+        self.client.handler.send.assert_called_once()
+        mock_update.assert_called_once()
+
+    def setUp(self):
+        self.config_args = helpers.config_file_default()
+
+class OSALExecl(unittest.TestCase):
+    @mock.patch("os.execvp")
+    def runTest(self, mock_exec):
+        mock_exec.return_value = 0
+        result = helix.osal.execl(["python", "hello.py"])
+        assert result == helix.osal.EXECUTION_FAILURE
+        mock_exec.assert_called_once()
+
+class OSALSystemShutdown(unittest.TestCase):
+    @mock.patch("os.system")
+    def runTest(self, mock_system):
+        mock_system.return_value = 0
+        result = helix.osal.system_shutdown()
+        assert result == 0
+        mock_system.assert_called_once()
+
+class OSALSystemReboot(unittest.TestCase):
+    @mock.patch("os.system")
+    def runTest(self, mock_system):
+        mock_system.return_value = 0
+        result = helix.osal.system_reboot()
+        assert result == 0
+        mock_system.assert_called_once()
+
+class OSALOSKernel(unittest.TestCase):
+    def runTest(self):
+        result = helix.osal.os_kernel()
+        if helix.osal.LINUX:
+            assert result == platform.release()
+        elif helix.osal.WIN32:
+            assert result == platform.version()
+        else:
+            assert result == "Unknown"
+
+class OSALOSVersion(unittest.TestCase):
+    def runTest(self):
+        result = helix.osal.os_version()
+        if helix.osal.LINUX:
+            expect = "{}-{}".format(platform.linux_distribution()[1], platform.linux_distribution()[2])
+            assert result == expect
+        elif helix.osal.WIN32:
+            assert result == platform.release()
+        else:
+            assert result == "Unknown"
+
+class OSALOSName(unittest.TestCase):
+    def runTest(self):
+        result = helix.osal.os_name()
+        if helix.osal.LINUX:
+            rgx = re.compile("^.* \\(.*\\)$")
+            assert rgx.match(result) != None
+        elif helix.osal.WIN32:
+            assert result == platform.system()
+        else:
+            assert result == "Unknown"
+
+class ActionCommandExecuteBasic(unittest.TestCase):
+    @mock.patch("helix._core.defs.Action")
+    @mock.patch("subprocess.Popen")
+    def runTest(self, mock_popen, mock_action):
+        mock_proc = mock.Mock()
+        mock_proc.communicate.return_value = ("", "")
+        mock_proc.returncode = 0
+        mock_popen.return_value = mock_proc
+
+        action = helix._core.defs.ActionCommand("name", "cmd", None)
+
+        request = mock.Mock()
+        request.params = None
+
+        result = action.execute(request)
+        assert result == (0, "command: ['cmd']  ,  stdout:   ,  stderr: ")
+        mock_popen.assert_called_once()
+
+class ActionCommandExecuteParams(unittest.TestCase):
+    @mock.patch("helix._core.defs.Action")
+    @mock.patch("subprocess.Popen")
+    def runTest(self, mock_popen, mock_action):
+        mock_proc = mock.Mock()
+        mock_proc.communicate.return_value = ("", "")
+        mock_proc.returncode = 0
+        mock_popen.return_value = mock_proc
+
+        action = helix._core.defs.ActionCommand("name", "cmd", None)
+
+        request = mock.Mock()
+        request.params = {"t": True, "f": False, "v":"val"}
+
+        result = action.execute(request)
+        assert result == (0, "command: ['cmd', '--v=val', '--t']  ,  stdout:   ,  stderr: ")
+        mock_popen.assert_called_once()
+
+class HandlerHandleActionException(unittest.TestCase):
+    @mock.patch(builtin + ".open")
+    @mock.patch("os.path.exists")
+    def runTest(self, mock_exists, mock_open):
+        mock_exists.side_effect = [True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_read = mock_open.return_value.__enter__.return_value.read
+        mock_read.side_effect = read_strings
+
+        self.client = helix.Client("testing-client")
+        self.client.initialize()
+
+        self.client.handler.callbacks.execute_action = mock.Mock()
+        self.client.handler.callbacks.execute_action.side_effect = Exception
+        self.client.handler.logger.error = mock.Mock()
+        self.client.handler.send = mock.Mock()
+        self.client.handler.send.return_value = helix.STATUS_SUCCESS
+        request = mock.Mock()
+        request.name = "req"
+
+        result = self.client.handler.handle_action(request)
+
+        assert result == helix.STATUS_SUCCESS
+        self.client.handler.callbacks.execute_action.assert_called_once()
+        assert self.client.handler.logger.error.call_count == 2
+
+    def setUp(self):
+        self.config_args = helpers.config_file_default()
+
+class RelayInitNoLogger(unittest.TestCase):
+    def runTest(self):
+        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345, True, None)
+        assert self.relay
+        assert self.relay.running == False
+        assert self.relay.thread == None
+        assert self.relay.log != None
+
+class RelayStartAlreadyRunning(unittest.TestCase):
+    def runTest(self):
+        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay.running = True
+        self.assertRaises(RuntimeError, self.relay.start)
+
+class RelayStartSSLFail(unittest.TestCase):
+    @mock.patch("websocket.WebSocket.connect")
+    def runTest(self, mock_connect):
+        mock_connect.side_effect = ssl.SSLError
+        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.assertRaises(ssl.SSLError, self.relay.start)
+        assert self.relay.running == False
+        assert self.relay.wsock == None
+
+class RelayStartSuccess(unittest.TestCase):
+    @mock.patch("threading.Thread.start")
+    @mock.patch("websocket.WebSocket.connect")
+    def runTest(self, mock_connect, mock_tstart):
+        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay.start()
+        assert self.relay.running == True
+        assert self.relay.wsock != None
+        assert self.relay.thread != None
+
+class RelayStartInsecure(unittest.TestCase):
+    @mock.patch("threading.Thread.start")
+    @mock.patch("websocket.WebSocket.connect")
+    def runTest(self, mock_connect, mock_tstart):
+        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345, False)
+        self.relay.start()
+        assert self.relay.running == True
+        assert self.relay.wsock != None
+        assert self.relay.thread != None
+
+class RelayStop(unittest.TestCase):
+    def runTest(self):
+        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay.running = True
+        mock_thread = mock.Mock()
+        self.relay.thread = mock_thread
+
+        self.relay.stop()
+        mock_thread.join.assert_called_once()
+        assert self.relay.thread == None
+
+class RelayCreateRelay(unittest.TestCase):
+    @mock.patch("threading.Thread.join")
+    @mock.patch("threading.Thread.start")
+    @mock.patch("websocket.WebSocket.connect")
+    def runTest(self, mock_connect, mock_tstart, mock_tjoin):
+        helix.relay.create_relay("host1.aaa", "host2.aaa", 12345)
+        assert helix.relay.relays[0]
+
+        self.relay = helix.relay.relays[0]
+        assert self.relay.running == True
+        assert self.relay.wsock != None
+        assert self.relay.thread != None
+
+        self.relay.stop()
+        del helix.relay.relays[0]
+
+class RelayStopRelays(unittest.TestCase):
+    @mock.patch("threading.Thread.join")
+    @mock.patch("threading.Thread.start")
+    @mock.patch("websocket.WebSocket.connect")
+    def runTest(self, mock_connect, mock_tstart, mock_tjoin):
+        helix.relay.create_relay("host1.aaa", "host2.aaa", 12345)
+        assert helix.relay.relays[0]
+        helix.relay.create_relay("host3.aaa", "host4.aaa", 6789)
+        assert helix.relay.relays[1]
+        helix.relay.stop_relays()
+        assert len(helix.relay.relays) == 0
+
+class RelayLoopNotRunning(unittest.TestCase):
+    def runTest(self):
+        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay.running = False
+        self.relay.wsock = mock.Mock()
+        self.relay.lsock = mock.Mock()
+        self.relay._loop()
+        assert self.relay.wsock == None
+        assert self.relay.lsock == None
+
+class RelayLoopWSClosed(unittest.TestCase):
+    @mock.patch("select.select")
+    def runTest(self, mock_select):
+        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay.running = True
+        self.relay.wsock = mock.Mock()
+        self.relay.lsock = mock.Mock()
+        mock_select.return_value = ([self.relay.wsock, self.relay.lsock], None, None)
+        mock_recv = mock.Mock()
+        mock_recv.side_effect = websocket.WebSocketConnectionClosedException
+        self.relay.wsock.recv_data = mock_recv
+
+        self.relay._loop()
+        assert mock_recv.call_count == 1
+        assert self.relay.wsock == None
+        assert self.relay.lsock == None
+
+class RelayLoopNoData(unittest.TestCase):
+    @mock.patch("select.select")
+    def runTest(self, mock_select):
+        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay.running = True
+        self.relay.wsock = mock.Mock()
+        self.relay.lsock = mock.Mock()
+        mock_select.return_value = ([self.relay.wsock, self.relay.lsock], None, None)
+        mock_recv = mock.Mock()
+        mock_recv.return_value = (0, "")
+        self.relay.wsock.recv_data = mock_recv
+
+        self.relay._loop()
+        assert mock_recv.call_count == 1
+        assert self.relay.wsock == None
+        assert self.relay.lsock == None
+
+class RelayLoopWithData(unittest.TestCase):
+    @mock.patch("select.select")
+    def runTest(self, mock_select):
+        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay.running = True
+        self.relay.wsock = mock.Mock()
+        self.relay.lsock = mock.Mock()
+        mock_select.return_value = ([self.relay.wsock, self.relay.lsock], None, None)
+        mock_recv = mock.Mock()
+        mock_recv.return_value = (0, "data")
+        self.relay.wsock.recv_data = mock_recv
+        self.relay.lsock.send = mock.Mock(side_effect=self.send_side_effect)
+
+        self.relay._loop()
+        assert mock_recv.call_count == 1
+        assert self.relay.wsock == None
+        assert self.relay.lsock == None
+
+    def send_side_effect(self, *args):
+        self.relay.running = False
+
+class RelayLoopNoLocal(unittest.TestCase):
+    @mock.patch("socket.socket")
+    @mock.patch("select.select")
+    def runTest(self, mock_select, mock_socket):
+        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay.running = True
+        self.relay.wsock = mock.Mock()
+        mock_select.return_value = ([self.relay.wsock], None, None)
+        mock_socket.side_effect = self.socket_side_effect
+        mock_recv = mock.Mock()
+        mock_recv.return_value = (0, helix.relay.CONNECT_MSG)
+        self.relay.wsock.recv_data = mock_recv
+
+        self.relay._loop()
+        assert mock_recv.call_count == 1
+        assert mock_socket.call_count == 1
+        assert self.relay.wsock == None
+        assert self.relay.lsock == None
+
+    def socket_side_effect(self, *args):
+        s = mock.Mock()
+        s.connect = mock.Mock()
+        self.relay.running = False
+        return s
+
+class RelayLoopNoLocalError(unittest.TestCase):
+    @mock.patch("socket.socket")
+    @mock.patch("select.select")
+    def runTest(self, mock_select, mock_socket):
+        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay.running = True
+        self.relay.wsock = mock.Mock()
+        mock_select.return_value = ([self.relay.wsock], None, None)
+        mock_socket.side_effect = socket.error
+        mock_recv = mock.Mock()
+        mock_recv.return_value = (0, helix.relay.CONNECT_MSG)
+        self.relay.wsock.recv_data = mock_recv
+
+        self.relay._loop()
+        assert mock_recv.call_count == 1
+        assert mock_socket.call_count == 1
+        assert self.relay.wsock == None
+        assert self.relay.lsock == None
+
+class RelayLoopLocalReadError(unittest.TestCase):
+    @mock.patch("socket.socket")
+    @mock.patch("select.select")
+    def runTest(self, mock_select, mock_socket):
+        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay.running = True
+        self.relay.wsock = mock.Mock(name="w")
+        self.relay.lsock = mock.Mock(name="l")
+        mock_select.return_value = ([self.relay.lsock, self.relay.wsock], None, None)
+        mock_recv = mock.Mock()
+        mock_recv.return_value = ""
+        self.relay.lsock.recv = mock_recv
+
+        self.relay._loop()
+        assert mock_recv.call_count == 1
+        assert mock_socket.call_count == 0
+        assert self.relay.wsock == None
+        assert self.relay.lsock == None
+
+class ClientFileDownloadAsyncChecksumFail(unittest.TestCase):
+    @mock.patch("os.remove")
+    @mock.patch(builtin + ".open")
+    @mock.patch("os.rename")
+    @mock.patch("os.path.isdir")
+    @mock.patch("os.path.isfile")
+    @mock.patch("os.path.exists")
+    @mock.patch("time.sleep")
+    @mock.patch("paho.mqtt.client.Client")
+    @mock.patch("requests.get")
+    def runTest(self, mock_get, mock_mqtt, mock_sleep, mock_exists,
+                mock_isfile, mock_isdir, mock_rename, mock_open, mock_remove):
+        # Set up mocks
+        mock_exists.side_effect = [True, True, True]
+        mock_isdir.side_effect = [False, True]
+        mock_isfile.side_effect = [True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_client_read = mock_open.return_value.__enter__.return_value.read
+        mock_client_read.side_effect = read_strings
+        mock_handle_write = mock_open.return_value.__enter__.return_value.write
+        mock_mqtt.return_value = helpers.init_mock_mqtt()
+        mock_get.return_value.status_code = 200
+        file_content = ["This ", "is ", "totally ", "a ", "file.\n",
+                        "What ", "are ", "you ", "talking ", "about.\n"]
+
+        file_bytes = []
+        for i in range(len(file_content)):
+            file_bytes.append(file_content[i].encode())
+
+        mock_get.return_value.iter_content.return_value = file_bytes
+        written_arr = []
+        mock_handle_write.side_effect = written_arr.append
+        download_callback = mock.Mock()
+
+        # Initialize client
+        kwargs = {"loop_time":1, "thread_count":1}
+        self.client = helix.Client("testing-client", kwargs)
+        self.client.initialize()
+
+        # Connect client to Cloud
+        mqtt = self.client.handler.mqtt
+        result = self.client.connect()
+        assert result == helix.STATUS_SUCCESS
+        assert self.client.is_connected()
+
+        # Request download
+        result = self.client.file_download("filename.ext",
+                                           "/destination/file.ext",
+                                           callback=download_callback)
+        assert result == helix.STATUS_SUCCESS
+        download_callback.assert_not_called()
+        args = mqtt.publish.call_args_list[0][0]
+        assert args[0] == "api/0001"
+        assert args[2] == 1
+        jload = json.loads(args[1])
+        assert jload["1"]["command"] == "file.get"
+        assert jload["1"]["params"]["fileName"] == "filename.ext"
+
+        # Set up and 'receive' "bad" reply from Cloud
+        checksum = 0
+        message = mock.Mock()
+        message.payload = json.dumps({"1":{"success":True,
+                                           "params":{"fileId":"123456789",
+                                                     "fileSize":4532,
+                                                     "crc32":checksum}}}).encode()
+        message.topic = "reply/0001"
+        mqtt.messages.put(message)
+        sleep(1)
+        #TODO Make a better check for download completion
+
+        # Check to see what has been downloaded and written to a file
+        written = "".join(map(lambda y: y.decode(),
+                              filter(lambda x: x is not None,
+                                     written_arr)))
+        assert written == "This is totally a file.\nWhat are you talking about.\n"
+        args = download_callback.call_args_list[0][0]
+        assert args[0] is self.client
+        assert args[1] == "filename.ext"
+        assert args[2] == helix.STATUS_FAILURE
+
+    def setUp(self):
+        # Configuration to be 'read' from config file
+        self.config_args = helpers.config_file_default()
+
+    def tearDown(self):
+        # Ensure threads have stopped
+        self.client.handler.to_quit = True
+        if self.client.handler.main_thread:
+            self.client.handler.main_thread.join()
+
+class ClientFileDownloadAsyncRequestFail(unittest.TestCase):
+    @mock.patch("os.remove")
+    @mock.patch(builtin + ".open")
+    @mock.patch("os.rename")
+    @mock.patch("os.path.isdir")
+    @mock.patch("os.path.isfile")
+    @mock.patch("os.path.exists")
+    @mock.patch("time.sleep")
+    @mock.patch("paho.mqtt.client.Client")
+    @mock.patch("requests.get")
+    def runTest(self, mock_get, mock_mqtt, mock_sleep, mock_exists,
+                mock_isfile, mock_isdir, mock_rename, mock_open, mock_remove):
+        # Set up mocks
+        mock_exists.side_effect = [True, True, True]
+        mock_isdir.side_effect = [False, True]
+        mock_isfile.side_effect = [True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_client_read = mock_open.return_value.__enter__.return_value.read
+        mock_client_read.side_effect = read_strings
+        mock_handle_write = mock_open.return_value.__enter__.return_value.write
+        mock_mqtt.return_value = helpers.init_mock_mqtt()
+        mock_get.return_value.status_code = 500
+        file_content = ["This ", "is ", "totally ", "a ", "file.\n",
+                        "What ", "are ", "you ", "talking ", "about.\n"]
+
+        file_bytes = []
+        for i in range(len(file_content)):
+            file_bytes.append(file_content[i].encode())
+
+        mock_get.return_value.iter_content.return_value = file_bytes
+        written_arr = []
+        mock_handle_write.side_effect = written_arr.append
+        download_callback = mock.Mock()
+
+        # Initialize client
+        kwargs = {"loop_time":1, "thread_count":1}
+        self.client = helix.Client("testing-client", kwargs)
+        self.client.initialize()
+
+        # Connect client to Cloud
+        mqtt = self.client.handler.mqtt
+        result = self.client.connect()
+        assert result == helix.STATUS_SUCCESS
+        assert self.client.is_connected()
+
+        # Request download
+        result = self.client.file_download("filename.ext",
+                                           "/destination/file.ext",
+                                           callback=download_callback)
+        assert result == helix.STATUS_SUCCESS
+        download_callback.assert_not_called()
+        args = mqtt.publish.call_args_list[0][0]
+        assert args[0] == "api/0001"
+        assert args[2] == 1
+        jload = json.loads(args[1])
+        assert jload["1"]["command"] == "file.get"
+        assert jload["1"]["params"]["fileName"] == "filename.ext"
+
+        # Set up and 'receive' "bad" reply from Cloud
+        checksum = 0
+        message = mock.Mock()
+        message.payload = json.dumps({"1":{"success":True,
+                                           "params":{"fileId":"123456789",
+                                                     "fileSize":4532,
+                                                     "crc32":checksum}}}).encode()
+        message.topic = "reply/0001"
+        mqtt.messages.put(message)
+        sleep(1)
+        #TODO Make a better check for download completion
+
+        # Check to see what has been downloaded and written to a file
+        written = "".join(map(lambda y: y.decode(),
+                              filter(lambda x: x is not None,
+                                     written_arr)))
+        assert written == ""
+        args = download_callback.call_args_list[0][0]
+        assert args[0] is self.client
+        assert args[1] == "filename.ext"
+        assert args[2] == helix.STATUS_FAILURE
+
+    def setUp(self):
+        # Configuration to be 'read' from config file
+        self.config_args = helpers.config_file_default()
+
+    def tearDown(self):
+        # Ensure threads have stopped
+        self.client.handler.to_quit = True
+        if self.client.handler.main_thread:
+            self.client.handler.main_thread.join()
+
+class ClientConnectMissingHost(unittest.TestCase):
+    @mock.patch(builtin + ".open")
+    @mock.patch("os.path.isfile")
+    @mock.patch("os.path.exists")
+    @mock.patch("time.sleep")
+    @mock.patch("paho.mqtt.client.Client")
+    def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
+                mock_open):
+        # Set up mocks
+        mock_exists.side_effect = [True, True]
+        mock_isfile.side_effect = [True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_read = mock_open.return_value.__enter__.return_value.read
+        mock_read.side_effect = read_strings
+        mock_mqtt.return_value = helpers.init_mock_mqtt()
+
+        # Initialize client
+        kwargs = {"loop_time":1, "thread_count":0}
+        self.client = helix.Client("testing-client", kwargs)
+        self.client.initialize()
+
+        self.client.config.cloud.host = ""
+
+        # Connect successfully
+        mqtt = self.client.handler.mqtt
+        assert self.client.connect(timeout=5) == helix.STATUS_BAD_PARAMETER
+        mqtt.connect.assert_not_called()
+        assert self.client.is_connected() is False
+
+    def setUp(self):
+        # Configuration to be 'read' from config file
+        self.config_args = helpers.config_file_default()
+
+class ClientConnectMissingPort(unittest.TestCase):
+    @mock.patch(builtin + ".open")
+    @mock.patch("os.path.isfile")
+    @mock.patch("os.path.exists")
+    @mock.patch("time.sleep")
+    @mock.patch("paho.mqtt.client.Client")
+    def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
+                mock_open):
+        # Set up mocks
+        mock_exists.side_effect = [True, True]
+        mock_isfile.side_effect = [True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_read = mock_open.return_value.__enter__.return_value.read
+        mock_read.side_effect = read_strings
+        mock_mqtt.return_value = helpers.init_mock_mqtt()
+
+        # Initialize client
+        kwargs = {"loop_time":1, "thread_count":0}
+        self.client = helix.Client("testing-client", kwargs)
+        self.client.initialize()
+
+        self.client.config.cloud.port = None
+
+        # Connect successfully
+        mqtt = self.client.handler.mqtt
+        assert self.client.connect(timeout=5) == helix.STATUS_BAD_PARAMETER
+        mqtt.connect.assert_not_called()
+        assert self.client.is_connected() is False
+
+    def setUp(self):
+        # Configuration to be 'read' from config file
+        self.config_args = helpers.config_file_default()
