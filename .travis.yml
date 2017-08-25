@@ -5,3 +5,6 @@ python:
 install: "pip install ."
 # command to run tests
 script: pytest
+
+ notifications:
+    slack: windriver-helix:BFoLaezR6JkK49VORhYzSSw5
