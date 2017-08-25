@@ -123,11 +123,9 @@ def generate():
     print("")
     if len(sys.argv) == 1:
         input("Press enter to finish...")
-
     return 0
 
 
 if __name__ == "__main__":
     status = generate()
-    input("Press enter to finish...")
     sys.exit(status)
