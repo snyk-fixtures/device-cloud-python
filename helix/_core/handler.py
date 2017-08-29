@@ -1,11 +1,11 @@
 '''
     Copyright (c) 2016-2017 Wind River Systems, Inc.
-    
+
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at:
     http://www.apache.org/licenses/LICENSE-2.0
-    
+
     Unless required by applicable law or agreed to in writing, software  distributed
     under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
     OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,13 +19,14 @@ import json
 import logging
 import os
 import random
+import socket
+import socks
 import ssl
 import sys
 import threading
 from binascii import crc32
 from datetime import datetime
 from datetime import timedelta
-from socket import gaierror
 from time import sleep
 import requests
 import paho.mqtt.client as mqttlib
@@ -35,6 +36,7 @@ from helix._core import defs
 from helix._core import tr50
 from helix._core.tr50 import TR50Command
 
+original_socket = socket.socket
 
 if sys.version_info.major == 2:
     import Queue as queue
@@ -95,6 +97,9 @@ class Handler(object):
         # Print configuration
         self.logger.debug("CONFIG:\n%s", self.config)
 
+        # Ensure the paho socket pair is not using proxy sockets
+        socket.socket = original_socket
+
         # Set up MQTT client
         if self.config.cloud.port == 443:
             self.mqtt = mqttlib.Client(self.config.key, transport="websockets")
@@ -105,6 +110,41 @@ class Handler(object):
         self.mqtt.on_message = self.on_message
         self.mqtt.on_publish = self.on_publish
         self.mqtt.username_pw_set(self.config.key, self.config.cloud.token)
+
+        # Set up proxy
+        if ("host" in self.config.proxy or
+                "port" in self.config.proxy or
+                "type" in self.config.proxy):
+            if ("host" in self.config.proxy and
+                    "port" in self.config.proxy and
+                    "type" in self.config.proxy):
+                proxy_type = None
+                if self.config.proxy.type.upper() == "SOCKS4":
+                    proxy_type = socks.SOCKS4
+                elif self.config.proxy.type.upper() == "SOCKS5":
+                    proxy_type = socks.SOCKS5
+                elif self.config.proxy.type.upper() == "HTTP":
+                    proxy_type = socks.HTTP
+                else:
+                    self.logger.error("Invalid proxy type. Supported types are "
+                                      "SOCKS4/SOCKS5/HTTP.")
+                    raise KeyError("Invalid proxy type. Supported types are "
+                                   "SOCKS4/SOCKS5/HTTP.")
+                username = None
+                if "username" in self.config.proxy:
+                    username = self.config.proxy.username
+                password = None
+                if "password" in self.config.proxy:
+                    password = self.config.proxy.password
+                socks.set_default_proxy(proxy_type, self.config.proxy.host,
+                                        self.config.proxy.port, True, username,
+                                        password)
+                socket.socket = socks.socksocket
+            else:
+                self.logger.error("Missing proxy host or proxy port or "
+                                  "proxy type.")
+                raise KeyError("Missing proxy host or proxy port or "
+                               "proxy type.")
 
         # Dict to associate action names with callback functions and any user
         # data

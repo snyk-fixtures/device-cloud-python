@@ -50,6 +50,12 @@ Configuration Options:
   - token: "tokenfromcloud"
 - validate_cloud_cert: true/false
 - ca_bundle_file: "/path/to/cert/bundle" (default will use included file)
+- proxy:
+  - type: "SOCKS4/SOCKS5/HTTP"
+  - host: "someproxyaddress"
+  - port: 1080
+  - username: "user"
+  - password: "pass"
 - log_file: "/path/to/a/log/file.log"
 - keep_alive: ##
 - loop_time: ##
@@ -98,6 +104,9 @@ So far supports:
   connect to, and protocol is the port for the local socket (ie. 23 for Telnet).
   Telnet server on host must be started before executing the remote-access
   action.)
+- Proxy (SOCKS4/SOCKS5/HTTP proxies now supported. Fill in the optional config
+  fields and the agent will attempt to connect to the Cloud through the
+  specified proxy.
 
 Issues:
 -------
@@ -106,11 +115,6 @@ Issues:
 - Current remote login test server has a self-signed certificate.
   validate_cloud_cert must be set to false in iot-connect.cfg in order to
   connect successfully.
-
-Not yet supported:
-------------------
-- Proxy support (may not be possible for paho)
-- Finalized APIs
 
 Publishing:
 -----------
