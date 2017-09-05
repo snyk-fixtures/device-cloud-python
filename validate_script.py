@@ -155,6 +155,14 @@ def get_thing(session_id, thing_key):
     data = {"cmd":{"command":"thing.find","params":data_params}}
     return _send(data, session_id)
 
+def delete_thing(session_id, thing_key):
+    """
+    delete the test thing
+    """
+
+    data_params = {"key":thing_key}
+    data = {"cmd":{"command":"thing.delete","params":data_params}}
+    return _send(data, session_id)
 
 def method_exec(session_id, thing_key, method_name, params=None):
     """
@@ -216,6 +224,7 @@ def main():
     global cloud
     start_time = datetime.utcnow()
     fails = []
+    default_device_id = "c13ae2c8-2eb3-4449-81e5-ffd8bedb63a9"
 
     if not os.path.isfile(app_file):
         error_quit("Could not find app file {}.".format(app_file))
@@ -279,6 +288,21 @@ def main():
     # Remove the downloaded file if it exists from a previous validation
     if os.path.isfile(os.path.abspath("validate_download")):
         os.remove(os.path.abspath("validate_download"))
+
+    # delete the thing in the cloud so that we don't have 100s of new
+    # instances of test apps.  Write the device_id here and then check
+    # the cloud.  Subsequent code will use the device_id.  This test
+    # would normally be run in a docker instance with a new device_id each time.
+    if os.path.isfile("device_id"):
+        print("file device_id exists, using it")
+    else:
+        with open("device_id", "w") as did_file:
+            did_file.write( default_device_id )
+
+    thing_key = default_device_id + "-iot-validate-app"
+    print("Deleting thing key {} for this test".format(thing_key))
+    thing_info = delete_thing(session_id, thing_key)
+    print(json.dumps(thing_info, indent=2, sort_keys=True))
 
     # Start app
     validate_app = subprocess.Popen("."+os.sep+app_file,
@@ -444,7 +468,7 @@ def main():
         time.sleep(0.5)
         files = None
         files_info = get_files(session_id, thing_key)
-        print(json.dumps(files_info, indent=2, sort_keys=True))
+        #print(json.dumps(files_info, indent=2, sort_keys=True))
         if files_info.get("success") is True:
             files = files_info.get("params")
         if files and files.get("result") is not None:
