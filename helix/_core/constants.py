@@ -23,7 +23,8 @@ DEFAULT_CONFIG_DIR = "."
 # {} is replaced with app id
 DEFAULT_CONFIG_FILE = "{}-connect.cfg"
 # Number of seconds to attempt to reconnect if disconnected
-DEFAULT_KEEP_ALIVE = 300
+# 0 means retry forever
+DEFAULT_KEEP_ALIVE = 0
 # Default loop time for MQTT in seconds
 DEFAULT_LOOP_TIME = 1
 # Default number of worker threads
