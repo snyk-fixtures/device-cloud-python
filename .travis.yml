@@ -4,6 +4,7 @@ python:
 install: pip install .
 script:
   - pytest
+# note: the test will create a new app instance
   - ./validate_script.py
 notifications:
   slack: windriver-helix:BFoLaezR6JkK49VORhYzSSw5
