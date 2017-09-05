@@ -438,13 +438,13 @@ def main():
         fails.append("Action failure")
 
     # Check that a file was successfully uploaded to the Cloud
-    tries = 20
+    tries = 50
     while tries > 0:
         tries -= 1
         time.sleep(0.5)
         files = None
         files_info = get_files(session_id, thing_key)
-        #print(json.dumps(files_info, indent=2, sort_keys=True))
+        print(json.dumps(files_info, indent=2, sort_keys=True))
         if files_info.get("success") is True:
             files = files_info.get("params")
         if files and files.get("result") is not None:
