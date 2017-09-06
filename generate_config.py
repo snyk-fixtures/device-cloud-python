@@ -29,9 +29,9 @@ do_validate_desc = "\nValidate SSL certificates (default true) (Optional)"
 no_validate_desc = "\nDo not validate SSL certificates (Optional)"
 cert_desc = "\nLocation of an ssl certificate bundle (If not set will use the bundle included with certifi instead) (Optional)"
 proxy_desc = "\nRoute all traffic through a proxy (default false) (Optional)"
-proxy_type_desc = "\nProxy type (eg. SOCKS4/SOCKS5/HTTP) (Optional)"
-proxy_host_desc = "\nProxy host address (Optional)"
-proxy_port_desc = "\nProxy port (Optional)"
+proxy_type_desc = "\nProxy type (eg. SOCKS4/SOCKS5/HTTP)"
+proxy_host_desc = "\nProxy host address"
+proxy_port_desc = "\nProxy port"
 proxy_username_desc = "\nProxy username (Optional)"
 proxy_password_desc = "\nProxy password (Optional)"
 
@@ -76,8 +76,7 @@ def generate():
         else:
             missing.append("token")
 
-        if (args.proxy_type or args.proxy_host or args.proxy_port or
-                args.proxy_username or args.proxy_password):
+        if (args.proxy_type):
             config["proxy"] = {}
             if args.proxy_type:
                 config["proxy"]["type"] = args.proxy_type
