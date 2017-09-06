@@ -493,7 +493,7 @@ def main():
                 fails.append("File list retrieval")
 
     # Check that a file was successfully downloaded from the Cloud
-    tries = 20
+    tries = 50
     while tries > 0:
         tries -= 1
         time.sleep(0.5)
@@ -502,7 +502,7 @@ def main():
             break
         else:
             if tries == 0:
-                print("Could not found downloaded file - FAIL")
+                print("Could not find downloaded file - FAIL")
                 fails.append("Download file")
 
     stop_app(validate_app)
