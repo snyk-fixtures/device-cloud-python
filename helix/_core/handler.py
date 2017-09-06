@@ -20,7 +20,15 @@ import logging
 import os
 import random
 import socket
-import socks
+
+# proxy support requires PySocks, it is an optional module
+proxy_support = False
+try:
+    import socks
+    proxy_support = True
+except ImportError:
+    pass
+
 import ssl
 import sys
 import threading
@@ -112,39 +120,37 @@ class Handler(object):
         self.mqtt.username_pw_set(self.config.key, self.config.cloud.token)
 
         # Set up proxy
-        if ("host" in self.config.proxy or
-                "port" in self.config.proxy or
-                "type" in self.config.proxy):
-            if ("host" in self.config.proxy and
-                    "port" in self.config.proxy and
-                    "type" in self.config.proxy):
-                proxy_type = None
-                if self.config.proxy.type.upper() == "SOCKS4":
-                    proxy_type = socks.SOCKS4
-                elif self.config.proxy.type.upper() == "SOCKS5":
-                    proxy_type = socks.SOCKS5
-                elif self.config.proxy.type.upper() == "HTTP":
-                    proxy_type = socks.HTTP
-                else:
-                    self.logger.error("Invalid proxy type. Supported types are "
-                                      "SOCKS4/SOCKS5/HTTP.")
-                    raise KeyError("Invalid proxy type. Supported types are "
-                                   "SOCKS4/SOCKS5/HTTP.")
-                username = None
-                if "username" in self.config.proxy:
-                    username = self.config.proxy.username
-                password = None
-                if "password" in self.config.proxy:
-                    password = self.config.proxy.password
-                socks.set_default_proxy(proxy_type, self.config.proxy.host,
-                                        self.config.proxy.port, True, username,
-                                        password)
-                socket.socket = socks.socksocket
-            else:
-                self.logger.error("Missing proxy host or proxy port or "
-                                  "proxy type.")
-                raise KeyError("Missing proxy host or proxy port or "
-                               "proxy type.")
+	if (proxy_support == True):
+		if ("host" in self.config.proxy):
+			proxy_type = None
+			if self.config.proxy.type.upper() == "SOCKS4":
+			    proxy_type = socks.SOCKS4
+			elif self.config.proxy.type.upper() == "SOCKS5":
+			    proxy_type = socks.SOCKS5
+			elif self.config.proxy.type.upper() == "HTTP":
+			    proxy_type = socks.HTTP
+			else:
+			    self.logger.error("Invalid proxy type. Supported types are "
+					      "SOCKS4/SOCKS5/HTTP.")
+			    raise KeyError("Invalid proxy type. Supported types are "
+					   "SOCKS4/SOCKS5/HTTP.")
+			username = None
+			if "username" in self.config.proxy:
+			    username = self.config.proxy.username
+			password = None
+			if "password" in self.config.proxy:
+			    password = self.config.proxy.password
+			socks.set_default_proxy(proxy_type, self.config.proxy.host,
+						self.config.proxy.port, True, username,
+						password)
+			socket.socket = socks.socksocket
+
+	# add error check to print out a useful log
+	elif ("host" in self.config.proxy and proxy_support == False):
+		self.logger.error("PySocks module required for proxy support "
+				 "Install PySocks.")
+		raise KeyError("PySocks module required for proxy support "
+				"Install PySocks.")
 
         # Dict to associate action names with callback functions and any user
         # data
