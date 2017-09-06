@@ -18,6 +18,7 @@ Requirements:
 - paho-mqtt
 - requests
 - websocket-client
+- PySocks if proxy is required
 
 Pip Installation:
 -----------------
