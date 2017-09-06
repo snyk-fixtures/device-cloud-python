@@ -68,8 +68,8 @@ Validation:
 -----------
 Running `./validate_script.py` will validate that all the features of the helix
 API work on the host. It requires that validate_app.py and generate_config.py
-are in the same directory. It will prompt you for a Cloud address and
-credentials to check values in that Cloud. you can also set environment
+are in the same directory. It will prompt you for a cloud address and
+credentials for connecting to the cloud. You can also set the environment
 variables HDCADDRESS, HDCUSERNAME, and HDCPASSWORD to skip this step.
 
 So far supports:
