@@ -472,8 +472,7 @@ def main():
         if files_info.get("success") is True:
             files = files_info.get("params")
         if files and files.get("result") is not None:
-            correct = list(filter(lambda x: x["fileName"] == "validate_upload" and
-                                       strtotime(x["uploadDate"]) > start_time,
+            correct = list(filter(lambda x: x["fileName"] == "validate_upload",
                              files["result"]))
             if len(correct) == 1:
                 print("File uploaded: validate_upload - OK")
