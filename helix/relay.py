@@ -89,7 +89,7 @@ class Relay(object):
                     if data_in:
                         if self.lsock:
                             self.lsock.send(data_in)
-                        elif data_in.decode() == CONNECT_MSG:
+                        elif data_in == CONNECT_MSG:
                             # If the local socket has not been established yet,
                             # and we have received the connection string, start
                             # local socket.

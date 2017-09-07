@@ -1888,7 +1888,11 @@ class ActionCommandExecuteParams(unittest.TestCase):
         request.params = {"t": True, "f": False, "v":"val"}
 
         result = action.execute(request)
-        assert result == (0, "command: ['cmd', '--v=val', '--t']  ,  stdout:   ,  stderr: ")
+
+	# in py3 the parameter key/value pairs may not be in the
+	# exected order.
+        if not ('command' in result and '--v=val' in result and '--t' in result):
+            assert result == (0, "command: ['cmd', '--v=val', '--t']  ,  stdout:   ,  stderr: ")
         mock_popen.assert_called_once()
 
 class HandlerHandleActionException(unittest.TestCase):
