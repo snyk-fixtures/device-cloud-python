@@ -183,7 +183,7 @@ def stop_app(proc):
 
     if proc:
         if proc.poll() is None:
-            out = proc.communicate("\n")
+            out = proc.communicate(b"\n")
             proc.wait()
 
 
@@ -421,9 +421,9 @@ def main():
     if logs_info.get("success") is True:
         logs = logs_info.get("params")
     if logs and logs.get("result") is not None:
-        correct = filter(lambda x: x["msg"] == "logs and such" and
+        correct = list(filter(lambda x: x["msg"] == "logs and such" and
                                    x["thingKey"] == thing_key,
-                         logs["result"])
+                         logs["result"]))
         if len(correct) == 1:
             print("Log: \"{}\" - OK".format(correct[0]["msg"]))
         elif len(correct) == 0:
@@ -472,9 +472,9 @@ def main():
         if files_info.get("success") is True:
             files = files_info.get("params")
         if files and files.get("result") is not None:
-            correct = filter(lambda x: x["fileName"] == "validate_upload" and
+            correct = list(filter(lambda x: x["fileName"] == "validate_upload" and
                                        strtotime(x["uploadDate"]) > start_time,
-                             files["result"])
+                             files["result"]))
             if len(correct) == 1:
                 print("File uploaded: validate_upload - OK")
                 break
