@@ -224,7 +224,9 @@ def main():
     global cloud
     start_time = datetime.utcnow()
     fails = []
-    default_device_id = "TravisCI-session-{}-".format(platform.python_version())
+    default_device_id = "TravisCI-session-py-"
+    py_ver = platform.python_version()
+    default_device_id += py_ver.replace(".","")
 
     if not os.path.isfile(app_file):
         error_quit("Could not find app file {}.".format(app_file))
@@ -295,11 +297,15 @@ def main():
     # would normally be run in a docker instance with a new device_id each time.
     if os.path.isfile("device_id"):
         print("file device_id exists, using it")
+        with open("device_id", "r") as did_file:
+            device_id = did_file.read().strip()
+        thing_key = device_id + "-iot-validate-app"
     else:
         with open("device_id", "w") as did_file:
             did_file.write( default_device_id )
+        device_id = default_device_id
+        thing_key = device_id + "-iot-validate-app"
 
-    thing_key = default_device_id + "-iot-validate-app"
     print("Deleting thing key {} for this test".format(thing_key))
     thing_info = delete_thing(session_id, thing_key)
     print(json.dumps(thing_info, indent=2, sort_keys=True))
@@ -309,21 +315,8 @@ def main():
                                     stdin=subprocess.PIPE,
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
+
     time.sleep(2)
-
-    # Check that the device_id has been created (or at least previously existed)
-    device_id = ""
-    thing_key = ""
-    if os.path.isfile("device_id"):
-        with open("device_id", "r") as did_file:
-            device_id = did_file.read().strip()
-        thing_key = device_id + "-iot-validate-app"
-    if device_id:
-        print("Thing Key: {} - OK".format(thing_key))
-    else:
-        error_quit("Device ID not found - FAIL", validate_app)
-
-    time.sleep(1)
 
     # Check to make sure thing is connected in Cloud
     thing = None
@@ -342,6 +335,7 @@ def main():
     prop = None
     prop_info = get_property(session_id, thing_key, "property")
     #print(json.dumps(prop_info, indent=2, sort_keys=True))
+    time.sleep(1)
     if prop_info.get("success") is True:
         prop = prop_info.get("params")
     if prop:
@@ -412,24 +406,19 @@ def main():
         print("Location not found in Cloud - FAIL")
         fails.append("Location retrieval")
 
-    # Check that the expected log was published to the Cloud
+    # Check that the expected log was published to the Cloud. 
+    # load the json obj and walk it to make sure
     logs = None
     logs_info = get_logs(session_id, thing_key, start=timetostr(start_time))
-    #print(json.dumps(logs_info, indent=2, sort_keys=True))
     if logs_info.get("success") is True:
-        logs = logs_info.get("params")
-    if logs and logs.get("result") is not None:
-        correct = list(filter(lambda x: x["msg"] == "logs and such" and
-                                   x["thingKey"] == thing_key,
-                         logs["result"]))
-        if len(correct) == 1:
-            print("Log: \"{}\" - OK".format(correct[0]["msg"]))
-        elif len(correct) == 0:
-            print("No logs for this thing in the specified time frame - FAIL")
-            fails.append("Log retrieval")
-        else:
-            print("Multiple logs found. Double sending? - FAIL")
-            fails.append("Possible log double-sending")
+         found = False
+         for x in range(len(logs_info['params']['result'])):
+             if "logs and such" in logs_info['params']['result'][x]['msg']:
+                 print("Log: \"{}\" - OK".format(logs_info['params']['result'][x]['msg']))
+                 found = True
+         if found == False:
+                print("No logs for this thing in the specified time frame - FAIL")
+                fails.append("Log retrieval")
     else:
         print("Logs could not be retrieved - FAIL")
         fails.append("Log retrieval")
