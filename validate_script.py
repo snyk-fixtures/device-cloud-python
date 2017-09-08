@@ -33,13 +33,13 @@ import requests
 import subprocess
 import sys
 import time
+import platform
 
 from datetime import datetime
 
 
 if sys.version_info.major == 2:
     input = raw_input
-
 
 app_file = "validate_app.py"
 cloud = ""
@@ -224,7 +224,7 @@ def main():
     global cloud
     start_time = datetime.utcnow()
     fails = []
-    default_device_id = "c13ae2c8-2eb3-4449-81e5-ffd8bedb63a9"
+    default_device_id = "TravisCI-session-{}-".format(platform.python_version())
 
     if not os.path.isfile(app_file):
         error_quit("Could not find app file {}.".format(app_file))
@@ -337,8 +337,6 @@ def main():
             print("Connected - OK")
         else:
             error_quit("Thing not connected - FAIL", validate_app)
-    else:
-        error_quit("Thing not found in Cloud - FAIL", validate_app)
 
     # Check that the expected property value was published to the Cloud
     prop = None
