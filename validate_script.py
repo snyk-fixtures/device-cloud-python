@@ -327,98 +327,108 @@ def main():
 
     # Check to make sure thing is connected in Cloud
     thing = None
-    thing_info = get_thing(session_id, thing_key)
-    #print(json.dumps(thing_info, indent=2, sort_keys=True))
-    if thing_info.get("success") is True:
-        thing = thing_info.get("params")
-    if thing:
-        connected = thing.get("connected")
-        if connected is True:
-            print("Connected - OK")
-        else:
-            error_quit("Thing not connected - FAIL", validate_app)
+    connected = False
+    for i in range(10):
+        thing_info = get_thing(session_id, thing_key)
+        #print(json.dumps(thing_info, indent=2, sort_keys=True))
+        if thing_info.get("success") is True:
+            thing = thing_info.get("params")
+        if thing:
+            connected = thing.get("connected")
+            break
+        time.sleep(1)
+
+    if connected is True:
+       print("Connected - OK")
+    else:
+       error_quit("Thing not connected - FAIL", validate_app)
 
     # Check that the expected property value was published to the Cloud
     prop = None
-    prop_info = get_property(session_id, thing_key, "property")
-    #print(json.dumps(prop_info, indent=2, sort_keys=True))
-    time.sleep(1)
-    if prop_info.get("success") is True:
-        prop = prop_info.get("params")
-    if prop:
-        if (strtotime(prop["ts"]) > start_time and
-                strtotime(prop["ts"]) < datetime.utcnow()):
-            if prop["value"] == 12.34:
-                print("Property: {} - OK".format(prop["value"]))
-            else:
-                print("Wrong property value: {} != 12.34 "
-                      "- FAIL".format(prop["value"]))
-                fails.append("Property value")
-        else:
-            print("Property timestamp out of range of application - FAIL")
-            fails.append("Property time")
-    else:
-        print("Property not found in Cloud - FAIL")
-        fails.append("Property retrieval")
+    for i in range(10):
+        prop_info = get_property(session_id, thing_key, "property")
+        #print(json.dumps(prop_info, indent=2, sort_keys=True))
+        if prop_info.get("success") is True:
+           prop = prop_info.get("params")
+           if prop:
+               if (strtotime(prop["ts"]) > start_time and
+                   strtotime(prop["ts"]) < datetime.utcnow()):
+                   if prop["value"] == 12.34:
+                       print("Property: {} - OK".format(prop["value"]))
+                       break
+                   else:
+                       print("Wrong property value: {} != 12.34 "
+                        "- FAIL".format(prop["value"]))
+                       fails.append("Property value")
+               else:
+                   print("Property timestamp out of range of application - FAIL")
+                   fails.append("Property time")
+           else:
+               print("Property not found in Cloud - FAIL")
+               fails.append("Property retrieval")
 
     # Check that the expected atribute value was published to the Cloud
     attr = None
-    attr_info = get_attribute(session_id, thing_key, "attribute")
-    #print(json.dumps(attr_info, indent=2, sort_keys=True))
-    if attr_info.get("success") is True:
-        attr = attr_info.get("params")
-    if attr:
-        if (strtotime(attr["ts"]) > start_time and
-                strtotime(attr["ts"]) < datetime.utcnow()):
-            if attr["value"] == "text and such":
-                print("Attribute: \"{}\" - OK".format(attr["value"]))
+    for i in range(10):
+        attr_info = get_attribute(session_id, thing_key, "attribute")
+        #print(json.dumps(attr_info, indent=2, sort_keys=True))
+        if attr_info.get("success") is True:
+            attr = attr_info.get("params")
+        if attr:
+            if (strtotime(attr["ts"]) > start_time and
+                    strtotime(attr["ts"]) < datetime.utcnow()):
+                if attr["value"] == "text and such":
+                    print("Attribute: \"{}\" - OK".format(attr["value"]))
+                    break
+                else:
+                    print("Wrong attribute value: {} != \"text and such\" - FAIL".format(attr["value"]))
+                    fails.append("Attribute value")
             else:
-                print("Wrong attribute value: {} != \"text and such\" - FAIL".format(attr["value"]))
-                fails.append("Attribute value")
+                print("Attribute timestamp out of range of application - FAIL")
+                fails.append("Attribute time")
         else:
-            print("Attribute timestamp out of range of application - FAIL")
-            fails.append("Attribute time")
-    else:
-        print("Attribute not found in Cloud - FAIL")
-        fails.append("Attribute retrieval")
+            print("Attribute not found in Cloud - FAIL")
+            fails.append("Attribute retrieval")
 
     # Check that the expected location was published to the Cloud
     loc = None
-    loc_info = get_location(session_id, thing_key)
-    #print(json.dumps(loc_info, indent=2, sort_keys=True))
-    if loc_info.get("success") is True:
-        loc = loc_info.get("params")
-    if loc:
-        errors = []
-        if loc["lat"] != 45.351603:
-            errors.append("lat: {} != 45.351603".format(loc["lat"]))
-        if loc["lng"] != -75.918713:
-            errors.append("lng: {} != ".format(loc["lng"]))
-        if loc["heading"] != 12.34:
-            errors.append("heading: {} != 12.34".format(loc["heading"]))
-        if loc["altitude"] != 1.0:
-            errors.append("altitude: {} != 1.0".format(loc["altitude"]))
-        if loc["speed"] != 2.0:
-            errors.append("speed: {} != 2.0".format(loc["speed"]))
-        if loc["fixAcc"] != 3.0:
-            errors.append("fixAcc: {} != 3.0".format(loc["fixAcc"]))
-        if loc["fixType"] != "crystal ball":
-            errors.append("fix_type: {} != \"crystal ball\"".format(loc["fixType"]))
-        if errors:
-            print("Wrong location: {} - FAIL".format(", ".join(errors)))
-            fails.append("Location")
+    for i in range(10):
+        loc_info = get_location(session_id, thing_key)
+        #print(json.dumps(loc_info, indent=2, sort_keys=True))
+        if loc_info.get("success") is True:
+            loc = loc_info.get("params")
+        if loc:
+            errors = []
+            if loc["lat"] != 45.351603:
+                errors.append("lat: {} != 45.351603".format(loc["lat"]))
+            if loc["lng"] != -75.918713:
+                errors.append("lng: {} != ".format(loc["lng"]))
+            if loc["heading"] != 12.34:
+                errors.append("heading: {} != 12.34".format(loc["heading"]))
+            if loc["altitude"] != 1.0:
+                errors.append("altitude: {} != 1.0".format(loc["altitude"]))
+            if loc["speed"] != 2.0:
+                errors.append("speed: {} != 2.0".format(loc["speed"]))
+            if loc["fixAcc"] != 3.0:
+                errors.append("fixAcc: {} != 3.0".format(loc["fixAcc"]))
+            if loc["fixType"] != "crystal ball":
+                errors.append("fix_type: {} != \"crystal ball\"".format(loc["fixType"]))
+            if errors:
+                print("Wrong location: {} - FAIL".format(", ".join(errors)))
+                fails.append("Location")
+            else:
+                print("Location: lat:{}, lng:{}, etc... - OK".format(loc["lat"], loc["lng"]))
+                break
         else:
-            print("Location: lat:{}, lng:{}, etc... - OK".format(loc["lat"], loc["lng"]))
-    else:
-        print("Location not found in Cloud - FAIL")
-        fails.append("Location retrieval")
+            print("Location not found in Cloud - FAIL")
+            fails.append("Location retrieval")
 
     # Check that the expected log was published to the Cloud. 
     # load the json obj and walk it to make sure
     # recheck for logs if at first it fails
     logs = None
     found = False
-    for i in range(5):
+    for i in range(10):
         logs_info = get_logs(session_id, thing_key, start=timetostr(start_time))
         found = check_for_match(logs_info['params']['result'], "logs and such")
         if found == True:
