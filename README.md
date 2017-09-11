@@ -1,6 +1,6 @@
 Wind River Python Agent for HDC 2.Next
 ======================================
-
+[![Build Status](https://travis-ci.com/Wind-River/hdc-python.svg?token=yc4Y8jiCm8qEF3kCTkqZ&branch=master?branch=master)](https://travis-ci.com/Wind-River/hdc-python)
 Beginning implementation for pure Python agent for the latest iteration of HDC.
 It is being developed alongside the C agent so many things are subject to change
 as features are ironed out on that side, and more input is received. It is
