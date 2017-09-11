@@ -24,11 +24,18 @@ import os
 import signal
 import sys
 from time import sleep
+import coverage
+
+if "VALIDATE_COVERAGE" in os.environ:
+    enable_cov = True
+else:
+    enable_cov = False
 
 if sys.version_info.major == 2:
     input = raw_input
 
 running = True
+
 
 def sighandler(signum, frame):
     """
@@ -52,6 +59,10 @@ def fail_action(client, params, user_data):
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, sighandler)
+
+    if enable_cov == True:
+        cov = coverage.Coverage()
+        cov.start()
 
     client = helix.Client("iot-validate-app")
     client.config.config_file = "validate.cfg"
@@ -82,5 +93,10 @@ if __name__ == "__main__":
     input("Hit enter to exit:")
 
     client.disconnect()
+
+    if enable_cov == True:
+        cov.stop()
+        cov.save()
+        cov.html_report(omit="/usr/local/lib/*")
 
     sys.exit(0)
