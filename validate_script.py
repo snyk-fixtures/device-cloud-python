@@ -215,6 +215,13 @@ def timetostr(dtime):
 
     return dtime.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
+def check_for_match(haystack, needle):
+    found = False
+    for x in range(len(haystack)):
+        if needle in haystack[x]['msg']:
+            print("Log: \"{}\" - OK".format(haystack[x]['msg']))
+            found = True
+    return found
 
 def main():
     """
@@ -408,19 +415,18 @@ def main():
 
     # Check that the expected log was published to the Cloud. 
     # load the json obj and walk it to make sure
+    # recheck for logs if at first it fails
     logs = None
-    logs_info = get_logs(session_id, thing_key, start=timetostr(start_time))
-    if logs_info.get("success") is True:
-         found = False
-         for x in range(len(logs_info['params']['result'])):
-             if "logs and such" in logs_info['params']['result'][x]['msg']:
-                 print("Log: \"{}\" - OK".format(logs_info['params']['result'][x]['msg']))
-                 found = True
-         if found == False:
-                print("No logs for this thing in the specified time frame - FAIL")
-                fails.append("Log retrieval")
-    else:
-        print("Logs could not be retrieved - FAIL")
+    found = False
+    for i in range(5):
+        logs_info = get_logs(session_id, thing_key, start=timetostr(start_time))
+        found = check_for_match(logs_info['params']['result'], "logs and such")
+        if found == True:
+            break
+        time.sleep(1)
+
+    if found == False:
+        print("No logs for this thing in the specified time frame - FAIL")
         fails.append("Log retrieval")
 
     # Check that the pass action executes and returns successfully
