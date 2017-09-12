@@ -44,7 +44,8 @@ if sys.version_info.major == 2:
 app_file = "validate_app.py"
 cloud = ""
 validate_app = None
-
+default_thing_def = "hdc_validate_def"
+default_app_name = "hdc_validate_app"
 
 def _send(data, session_id=None):
     headers = None
@@ -75,12 +76,13 @@ def get_alarm(session_id, thing_key, alarm_name):
     return _send(data, session_id)
 
 
-def get_apps(session_id):
+def get_app(session_id, name):
     """
     Retreive a list of applications and their tokens
     """
 
-    data = {"cmd":{"command":"app.list"}}
+    data_params = {"name":name}
+    data = {"cmd":{"command":"app.find", "params":data_params}}
     return _send(data, session_id)
 
 
@@ -231,7 +233,7 @@ def main():
     global cloud
     start_time = datetime.utcnow()
     fails = []
-    default_device_id = "TravisCI-session-py-"
+    default_device_id = "travisci-session-py-"
     py_ver = platform.python_version()
     default_device_id += py_ver.replace(".","")
 
@@ -241,6 +243,7 @@ def main():
     cloud = os.environ.get("HDCADDRESS")
     username = os.environ.get("HDCUSERNAME")
     password = os.environ.get("HDCPASSWORD")
+    token = os.environ.get("HDCTOKEN")
 
     # Get Cloud credentials
     if not cloud:
@@ -269,21 +272,16 @@ def main():
     # This token is looked for by name, so as long as the cloud has a validation
     # app set up, the token does not need to be retrieved manually.
     validateapps = []
-    app_info = get_apps(session_id)
+    app_info = get_app(session_id, default_app_name)
+    #print(json.dumps(app_info, indent=2, sort_keys=True))
     if app_info.get("success") is True:
         app_list = app_info.get("params")
-        if app_list.get("result") is not None:
-            validateapps = [x for x in app_list["result"]
-                            if "validat" in x["name"]]
-    if len(validateapps) == 1:
-        token = validateapps[0]["token"]
+        token = app_list["token"]
         print("Token: {} - OK".format(token))
-    elif len(validateapps) == 0:
-        error_quit("Failed to get token. An application for validation "
-                   "may not exist.")
     else:
-        error_quit("More than one validation application. "
-                   "Not sure which one to use.")
+        error_quit("Either app does not exist or user does not have\n"
+                   "permission to query the token.\n"
+                   " * Please export HDCTOKEN=<app token> and run again")
 
     # Generate config for app with retrieved token
     generate = subprocess.Popen("./generate_config.py -f validate.cfg "
@@ -315,7 +313,8 @@ def main():
 
     print("Deleting thing key {} for this test".format(thing_key))
     thing_info = delete_thing(session_id, thing_key)
-    print(json.dumps(thing_info, indent=2, sort_keys=True))
+    #print(json.dumps(thing_info, indent=2, sort_keys=True))
+    time.sleep(2)
 
     # Start app
     validate_app = subprocess.Popen("."+os.sep+app_file,
@@ -323,17 +322,16 @@ def main():
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
 
-    time.sleep(2)
 
     # Check to make sure thing is connected in Cloud
     thing = None
     connected = False
+    print("Checking thing key %s for connection" % thing_key)
     for i in range(10):
         thing_info = get_thing(session_id, thing_key)
         #print(json.dumps(thing_info, indent=2, sort_keys=True))
         if thing_info.get("success") is True:
             thing = thing_info.get("params")
-        if thing:
             connected = thing.get("connected")
             break
         time.sleep(1)
@@ -469,26 +467,18 @@ def main():
     while tries > 0:
         tries -= 1
         time.sleep(0.5)
-        files = None
         files_info = get_files(session_id, thing_key)
-        #print(json.dumps(files_info, indent=2, sort_keys=True))
+        loop_done = False
         if files_info.get("success") is True:
-            files = files_info.get("params")
-        if files and files.get("result") is not None:
-            correct = list(filter(lambda x: x["fileName"] == "validate_upload",
-                             files["result"]))
-            if len(correct) == 1:
-                print("File uploaded: validate_upload - OK")
+            # there may be more than one file returned
+            file_results = files_info["params"]["result"]
+            for file in file_results:
+                if file["fileName"]  == "validate_upload":
+                    print("File uploaded: validate_upload - OK")
+                    loop_done = True
+                    break
+            if loop_done == True:
                 break
-            elif len(correct) == 0:
-                if tries == 0:
-                    print("No files found in Cloud with specified name and "
-                          "time frame - FAIL")
-                    fails.append("File not in file list")
-            else:
-                if tries == 0:
-                    print("Multiple files with the same name...? - FAIL")
-                    fails.append("File list contains duplicates")
         else:
             if tries == 0:
                 print("File list could not be retrieved - FAIL")
