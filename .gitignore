@@ -7,3 +7,5 @@ download/
 *testruns/
 runtime/
 build/
+*.swp
+*.swo
