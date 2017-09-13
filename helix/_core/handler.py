@@ -438,8 +438,16 @@ class Handler(object):
                 result_args["error_message"] = "ERROR: " + error_string
 
         # Return status to Cloud
+        # Check for invoked status.  If so, return mail box update not
+        # ack.  Ack is the final notification.  This breaks triggers
+        # etc because it doesn't update the status.
         result_args["error_code"] = tr50.translate_error_code(result_code)
-        mailbox_ack = tr50.create_mailbox_ack(**result_args)
+        if result_code == constants.STATUS_INVOKED:
+                update_args = {"mail_id":action_request.request_id}
+                update_args["message"] = "Invoked"
+                mailbox_ack = tr50.create_mailbox_update(**update_args)
+        else:
+                mailbox_ack = tr50.create_mailbox_ack(**result_args)
 
         message_desc = "Action Complete \"{}\"".format(action_request.name)
         message_desc += " result : {}({})".format(result_code,
