@@ -2,11 +2,12 @@ language: python
 python:
 - '2.7'
 - '3.4'
-install: pip install .
+install:
+- pip install .
+- pip install coverage
 script:
 - pytest
 - "./validate_script.py"
-- cat stdout.log
 
 notifications:
   slack: windriver-helix:BFoLaezR6JkK49VORhYzSSw5
