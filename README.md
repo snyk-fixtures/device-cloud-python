@@ -1,6 +1,6 @@
 Wind River Python Agent for HDC
 ===============================
-[![Build Status](https://travis-ci.com/Wind-River/hdc-python.svg?token=yc4Y8jiCm8qEF3kCTkqZ?branch=master)](https://travis-ci.com/Wind-River/hdc-python)
+[![Build Status](https://travis-ci.com/Wind-River/hdc-python.png?token=yc4Y8jiCm8qEF3kCTkqZ&branch=master)](https://travis-ci.com/Wind-River/hdc-python)
 
 Description:
 ------------
