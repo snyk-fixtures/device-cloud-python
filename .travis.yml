@@ -6,6 +6,8 @@ install: pip install .
 script:
 - pytest
 - "./validate_script.py"
+- cat stdout.log
+
 notifications:
   slack: windriver-helix:BFoLaezR6JkK49VORhYzSSw5
 env:

@@ -233,7 +233,7 @@ def main():
     global cloud
     start_time = datetime.utcnow()
     fails = []
-    default_device_id = "TravisCI-session-py-"
+    default_device_id = "travisci-session-py-"
     py_ver = platform.python_version()
     default_device_id += py_ver.replace(".","")
 
@@ -273,7 +273,7 @@ def main():
     # app set up, the token does not need to be retrieved manually.
     validateapps = []
     app_info = get_app(session_id, default_app_name)
-    #print(json.dumps(app_info, indent=2, sort_keys=True))
+    print(json.dumps(app_info, indent=2, sort_keys=True))
     if app_info.get("success") is True:
         app_list = app_info.get("params")
         token = app_list["token"]
@@ -314,6 +314,7 @@ def main():
     print("Deleting thing key {} for this test".format(thing_key))
     thing_info = delete_thing(session_id, thing_key)
     #print(json.dumps(thing_info, indent=2, sort_keys=True))
+    time.sleep(2)
 
     # Start app
     validate_app = subprocess.Popen("."+os.sep+app_file,
@@ -321,17 +322,16 @@ def main():
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
 
-    time.sleep(2)
 
     # Check to make sure thing is connected in Cloud
     thing = None
     connected = False
+    print("Checking thing key %s for connection" % thing_key)
     for i in range(10):
         thing_info = get_thing(session_id, thing_key)
-        #print(json.dumps(thing_info, indent=2, sort_keys=True))
+        print(json.dumps(thing_info, indent=2, sort_keys=True))
         if thing_info.get("success") is True:
             thing = thing_info.get("params")
-        if thing:
             connected = thing.get("connected")
             break
         time.sleep(1)
@@ -340,6 +340,8 @@ def main():
        print("Connected - OK")
     else:
        error_quit("Thing not connected - FAIL", validate_app)
+    #with open("stdout.log", "r") as log_file:
+            #print log_file.read()
 
     # Check that the expected property value was published to the Cloud
     prop = None

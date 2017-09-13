@@ -26,6 +26,12 @@ import sys
 from time import sleep
 import coverage
 
+log_file = open("stdout.log", "w")
+
+def dump(msg):
+    global log_file
+    log_file.write(msg + "\n")
+
 if "VALIDATE_COVERAGE" in os.environ:
     enable_cov = True
 else:
@@ -64,6 +70,7 @@ if __name__ == "__main__":
         cov = coverage.Coverage()
         cov.start()
 
+    dump("starting")
     client = helix.Client("iot-validate-app")
     client.config.config_file = "validate.cfg"
 
@@ -74,22 +81,33 @@ if __name__ == "__main__":
 
     if client.connect(timeout=10) != helix.STATUS_SUCCESS:
         print("Failed to connect")
+        dump("Failed to connect")
         sys.exit(1)
+    else:
+        dump("connected ok")
 
+    dump("publishing telemetry")
     client.telemetry_publish("property", 12.34)
+    dump("publishing attributes")
     client.attribute_publish("attribute", "text and such")
+    dump("publishing location")
     client.location_publish(45.351603, -75.918713, heading=12.34, altitude=1.0,
                             speed=2.0, accuracy=3.0, fix_type="crystal ball")
+    dump("triggering event")
     client.event_publish("logs and such")
+    dump("triggering alarm")
     client.alarm_publish("alarm", 1, "very serious alarm")
 
+    dump("triggering file upload")
     client.file_upload(os.path.abspath(__file__), upload_name="validate_upload",
                        blocking=True, timeout=30)
 
+    dump("triggering file download")
     client.file_download("validate_upload",
                          os.path.abspath("validate_download"),
                          blocking=True, timeout=30)
 
+    dump("done")
     input("Hit enter to exit:")
 
     client.disconnect()
