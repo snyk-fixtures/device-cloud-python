@@ -24,9 +24,9 @@ import os
 import signal
 import sys
 from time import sleep
-import coverage
 
 if "VALIDATE_COVERAGE" in os.environ:
+    import coverage
     enable_cov = True
 else:
     enable_cov = False
