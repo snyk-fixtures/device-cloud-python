@@ -209,11 +209,7 @@ def main():
     cloud = os.environ.get("HDCADDRESS")
     username = os.environ.get("HDCUSERNAME")
     password = os.environ.get("HDCPASSWORD")
-<<<<<<< aef7ac3e9bcf1820f898cee4a0ab46a4fa141f34
 
-=======
-    
->>>>>>> share/admin-tools:  add admin tools to setup org
     # ask for Cloud credentials
     if not cloud:
         cloud = input("Cloud Address: ")
@@ -301,7 +297,6 @@ def main():
                     app_def["autoRegThingDefId"] = thing_def_id
                     if update_app_def( session_id, app_def, action ) == False:
                         error_quit("Failed to update app def %s with action %s." % (app_def, action))
-
 
 if __name__ == "__main__":
    main()
