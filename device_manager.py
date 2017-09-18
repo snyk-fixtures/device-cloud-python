@@ -38,7 +38,7 @@ import helix as iot
 
 running = True
 
-default_confg_dir = "."
+default_cfg_dir = "."
 
 def sighandler(signum, frame):
     """
