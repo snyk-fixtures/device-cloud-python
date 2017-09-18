@@ -243,7 +243,7 @@ def main():
     cloud = os.environ.get("HDCADDRESS")
     username = os.environ.get("HDCUSERNAME")
     password = os.environ.get("HDCPASSWORD")
-    token = os.environ.get("HDCTOKEN")
+    token = os.environ.get("HDCAPPTOKEN")
 
     # Get Cloud credentials
     if not cloud:
@@ -271,7 +271,7 @@ def main():
     # Look for the app token created for this validation test.
     # This token is looked for by name, so as long as the cloud has a validation
     # app set up, the token does not need to be retrieved manually.
-    # if HDCTOKEN was in the env use it.  Otherwise, query it.
+    # if HDCAPPTOKEN was in the env use it.  Otherwise, query it.
     if not token:
         validateapps = []
         app_info = get_app(session_id, default_app_name)
@@ -283,7 +283,7 @@ def main():
         else:
             error_quit("Either app does not exist or user does not have\n"
                        "permission to query the token.\n"
-                       " * Please export HDCTOKEN=<app token> and run again")
+                       " * Please export HDCAPPTOKEN=<app token> and run again")
 
     # Generate config for app with retrieved token
     generate = subprocess.Popen("./generate_config.py -f validate.cfg "
