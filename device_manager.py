@@ -38,6 +38,8 @@ import helix as iot
 
 running = True
 
+default_confg_dir = "."
+
 def sighandler(signum, frame):
     """
     Signal handler for exiting app.
@@ -88,7 +90,7 @@ def agent_reset(client, params, user_data, request):
     # If this return is hit, then the device manager did not restart properly
     return (iot.STATUS_FAILURE, "Device Manager Failed to Restart!")
 
-def config_load(cfg_dir=".", cfg_name="iot.cfg"):
+def config_load(cfg_dir=default_cfg_dir, cfg_name="iot.cfg"):
     """
     Open and read configuration information from iot.cfg
     """
@@ -111,10 +113,12 @@ def device_decommission(client, params, user_data):
     """
     global running
 
+    # TODO: fix this for paths use default_cfg_dir and
+    # default_runtime_dir
     files_to_remove = [
-        "iot.cfg",
-        "iot-connect.cfg",
-        "device_id"
+        default_cfg_dir + "iot.cfg",
+        default_cfg_dir + "iot-connect.cfg",
+        runtime_dir + "device_id"
         ]
 
     directories_to_remove = [
@@ -357,7 +361,7 @@ if __name__ == "__main__":
 
     # Initialize client called 'device_manager_py'
     client = iot.Client("device_manager_py")
-    client.config.config_file = "iot-connect.cfg"
+    client.config.config_file = default_cfg_dir + "/iot-connect.cfg"
     client.initialize()
 
     config = config_load()
