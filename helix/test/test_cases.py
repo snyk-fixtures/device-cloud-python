@@ -23,7 +23,12 @@ import re
 import socket
 import ssl
 import sys
-import websocket
+
+# yocto supports websockets, not websocket, so check for that
+try:
+    import websocket
+except ImportError:
+    import websockets as websocket
 
 from time import sleep
 
