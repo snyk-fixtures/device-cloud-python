@@ -23,7 +23,12 @@ import select
 import socket
 import ssl
 import threading
-import websocket
+
+# yocto supports websockets, not websocket, so check for that
+try:
+    import websocket
+except ImportError:
+    import websockets as websocket
 
 CONNECT_MSG = "CONNECTED-129812"
 
