@@ -36,6 +36,9 @@ from datetime import datetime
 if sys.version_info.major == 2:
     input = raw_input
 
+# get the org to switch to if use has multiple orgs
+switch_org = os.environ.get("HDCORG")
+
 app_file = "validate_app.py"
 cloud = ""
 validate_app = None
@@ -167,6 +170,22 @@ def user_is_org_admin( session_id, username ):
                 ret = True
     return ret
 
+def get_org_id(session_id, username):
+    """
+    Get org id
+    """
+    ret = False
+    data_params = {"username":username}
+    data = {"cmd":{"command":"user.find","params":data_params}}
+    result = _send(data, session_id)
+    #print(json.dumps(result, indent=2, sort_keys=True))
+
+    # now get the user ID from this
+    if result.get("success") is True:
+        user_id = result['params']['id']
+        org_id = result['params']['defaultOrgId']
+    return org_id
+
 def get_thing(session_id, thing_key):
     """
     Get information about a specific thing
@@ -194,6 +213,18 @@ def error_quit(*args):
             print(arg)
     sys.exit(1)
 
+def change_session_org(session_id, org):
+    """
+    Change org
+    """
+    ret = False
+    print("Changing org to %s" % org)
+    data_params = {"key":org}
+    data = {"cmd":{"command":"session.org.switch","params":data_params}}
+    result = _send(data, session_id)
+    if result.get("success") == True:
+        ret = True
+    return ret
 
 def main():
     """
@@ -232,6 +263,15 @@ def main():
         print("Session ID: {} - OK".format(session_id))
     else:
         error_quit("Failed to get session id.")
+
+
+    # if the org was specified in the env, switch to it here
+    if switch_org:
+        print("Org ID before switch=%s" % get_org_id(session_id, username))
+        if change_session_org(session_id, switch_org) == False:
+            error_quit("Failed to switch org.")
+        else:
+            print("Org ID after switch=%s" % get_org_id(session_id, username))
 
     # check to see if this user is an org admin
     if user_is_org_admin( session_id, username ) == False:
