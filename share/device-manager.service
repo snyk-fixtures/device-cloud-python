@@ -17,10 +17,11 @@ Description=Helix Device Cloud Python-based Device Manager
 After=network.target
 
 [Service]
-Type=simple
-WorkingDirectory=/path/to/apps/device_manager/
-ExecStart=/usr/bin/python /path/to/apps/device-manager/device_manager.py
-Restart=on-failure
+ExecStart=/usr/bin/device_manager.py
+Restart=always
+StandardOutput=journal
+StandardError=journal
+KillMode=process
 
 [Install]
 WantedBy=multi-user.target
