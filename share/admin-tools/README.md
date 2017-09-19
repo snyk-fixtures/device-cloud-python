@@ -59,7 +59,8 @@ app is new or existing, and then create or update the definition.
 HDCADDRESS=core-api.hdcstg.net
 HDCUSERNAME=(your login user name to the clouid)
 HDCPASSWORD=(your login password to the cloud)
-export HDCADDRESS HDCUSERNAME HDCPASSWORD
+HDCORG=(optional: different org to setup)
+export HDCADDRESS HDCUSERNAME HDCPASSWORD HDCORG
 
 # alternatively, the script will prompt for credentials
 
