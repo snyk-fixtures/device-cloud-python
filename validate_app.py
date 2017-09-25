@@ -94,6 +94,9 @@ if __name__ == "__main__":
 
     client.disconnect()
 
+    if os.path.exists(client.config.config_file):
+        os.remove(client.config.config_file)
+
     if enable_cov == True:
         cov.stop()
         cov.save()
