@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
     # Use the demo-connect.cfg file inside the config directory
     # (Default would be python-demo-app-connect.cfg)
-    config_file = "demo-connect.cfg"
+    config_file = "demo-iot-simple-telemetry.cfg"
     if args.config_file:
         config_file = args.config_file
     client.config.config_file = config_file
