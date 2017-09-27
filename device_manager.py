@@ -30,6 +30,7 @@ import signal
 import sys
 from time import sleep
 import uuid
+import logging
 
 from helix import osal
 from helix import ota_handler
@@ -102,7 +103,6 @@ def config_load(cfg_dir=default_cfg_dir, cfg_name="iot.cfg"):
     except IOError as error:
         print("Error parsing JSON from iot.cfg")
         print(error)
-
     return config_data
 
 def device_decommission(client, params, user_data):
