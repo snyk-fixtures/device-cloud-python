@@ -63,13 +63,33 @@ class Client(object):
 
         # Setup default config structure and file location
         self.config = defs.Config()
+
+	#Get log level
+	log_level_path = os.path.join(DEFAULT_CONFIG_DIR, "iot.cfg")
+	if os.path.exists(log_level_path):
+            try:
+		with open(log_level_path, "r") as level_file:
+		    level = json.load(level_file)
+            except:
+                print("Failed to read log_level")
+                raise IOError("Failed to read log_level")
+        else:
+	    level = {
+		"log_level": "DEBUG"
+	    }
+	    self.handler.logger.warning("log-level path does not exist. DEBUG used as default")
+
+
         default_config = {
             "app_id":app_id,
             "config_dir":DEFAULT_CONFIG_DIR,
             "config_file":DEFAULT_CONFIG_FILE.format(app_id),
             "cloud":{},
-            "proxy":{}
+            "proxy":{},
+	    "log_level": level['log_level']
         }
+
+
         self.config.update(default_config)
 
         # Override config defaults with any passed values

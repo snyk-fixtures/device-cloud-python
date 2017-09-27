@@ -95,7 +95,6 @@ class Handler(object):
             log_file_handler = logging.FileHandler(self.config.log_file)
             log_file_handler.setFormatter(log_formatter)
             self.logger.addHandler(log_file_handler)
-        self.logger.setLevel(logging.DEBUG)
 
         # Ensure we're not missing required configuration information
         if not self.config.key or not self.config.cloud.token:
@@ -104,6 +103,30 @@ class Handler(object):
 
         # Print configuration
         self.logger.debug("CONFIG:\n%s", self.config)
+
+	#Set log level
+	log_level = client.config.log_level
+	if log_level in ('CRITICAL', 'DEBUG', 'ERROR', 'INFO', 'LOG', 'WARNING', 'ALL'):
+		if log_level == 'ALL':
+			log_number = getattr(logging, 'DEBUG')
+			self.logger.setLevel(log_number)
+			self.logger.warning("log_level set as 'ALL', DEBUG used as default")
+		else:
+			log_number = getattr(logging, log_level)
+			self.logger.setLevel(log_number)
+			self.logger.log(logging.INFO, "%s used", log_level)
+	else:
+		self.logger.warning("log_level not found, DEBUG used as default")
+		self.logger.setLevel(logging.DEBUG)
+
+
+	#self.logger.critical("This is a critical")
+	#self.logger.debug("This is a debug")
+	#self.logger.error("This is a error")
+	#self.logger.info("This is a info")
+	#self.logger.log(logging.INFO, "This is a log with info")
+	#self.logger.warning("This is a warning")
+
 
         # Ensure the paho socket pair is not using proxy sockets
         socket.socket = original_socket
