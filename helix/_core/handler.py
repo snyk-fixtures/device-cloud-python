@@ -536,7 +536,7 @@ class Handler(object):
 
                 # Ensure the downloaded file matches the checksum sent by the
                 # Cloud.
-                if checksum == download.file_checksum:
+                if (checksum == download.file_checksum) or (download.file_checksum == None):
                     # Checksums match, move temporary file to real file position
                     os.rename(temp_path, download.file_path)
                     self.logger.info("Successfully downloaded \"%s\"",
