@@ -94,12 +94,11 @@ class Client(object):
         # Read JSON from config file. Does not overwrite any configuration set
         # in application.
         kwargs = {}
-        config_path = os.path.join(self.config.config_dir,
-                                   self.config.config_file)
+        config_path = os.path.join(self.config.config_dir, self.config.config_file)
         if os.path.exists(config_path):
             try:
                 with open(config_path, "r") as config_file:
-		     kwargs.update(json.load(config_file))
+                    kwargs.update(json.load(config_file))
             except IOError as error:
                 print("Error parsing JSON from "
                         "{}".format(self.config.config_file))
@@ -130,24 +129,24 @@ class Client(object):
                 raise IOError("Failed to write device_id")
         self.config.update(kwargs, False)
 
-	kwargs = {}
-	# Check iot.cfg for log_level. If it does not exist, set DEBUG as log_level
-	log_level_path = os.path.join(self.config.config_dir, "iot.cfg")
-	if os.path.exists(log_level_path):
+        kwargs = {}
+        # Check iot.cfg for log_level. If it does not exist, set DEBUG as log_level
+        log_level_path = os.path.join(self.config.config_dir, "iot.cfg")
+        if os.path.exists(log_level_path):
             try:
-		with open(log_level_path, "r") as level_file:
-			try:
-				self.config.log_level = json.load(level_file)['log_level']
-			except:
-				self.config.log_level = "DEBUG"
-				print("log_level path does not exist. DEBUG used as default")
+                with open(log_level_path, "r") as level_file:
+                    try:
+                         self.config.log_level = json.load(level_file)['log_level']
+                    except:
+                         self.config.log_level = "DEBUG"
+                         print("log_level path does not exist. DEBUG used as default")
             except:
                 print("Failed to read log_level file")
                 raise IOError("Failed to read log_level file")
         else:
-	    self.config.log_level = "DEBUG"
-	    print("log_level path does not exist. DEBUG used as default")
-	self.config.update(kwargs, False)
+            self.config.log_level = "DEBUG"
+            print("log_level path does not exist. DEBUG used as default")
+            self.config.update(kwargs, False)
 
         # Check that all necessary configuration has been obtained
         if not self.config.cloud.token:
