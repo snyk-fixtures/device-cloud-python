@@ -47,8 +47,8 @@ class ClientActionDeregister(unittest.TestCase):
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up Mocks
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
 
@@ -84,8 +84,8 @@ class ClientActionReregisterNotExist(unittest.TestCase):
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
 
@@ -107,8 +107,8 @@ class ClientActionRegisterCallback(unittest.TestCase):
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
 
@@ -137,8 +137,8 @@ class ClientActionRegisterCallbackExists(unittest.TestCase):
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
 
@@ -181,8 +181,8 @@ class ClientActionRegisterCommand(unittest.TestCase):
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
 
@@ -206,8 +206,8 @@ class ClientActionRegisterCommandExists(unittest.TestCase):
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
 
@@ -242,8 +242,8 @@ class ClientAlarmPublish(unittest.TestCase):
     @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
         mock_mqtt.return_value = helpers.init_mock_mqtt()
@@ -276,8 +276,8 @@ class ClientAttributePublish(unittest.TestCase):
     @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
         mock_mqtt.return_value = helpers.init_mock_mqtt()
@@ -310,9 +310,9 @@ class ClientConnectFailure(unittest.TestCase):
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
                 mock_open, mock_context):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
+        mock_exists.side_effect = [True, True, True]
         mock_isfile.side_effect = [True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
         mock_mqtt.return_value = helpers.init_mock_mqtt()
@@ -351,9 +351,9 @@ class ClientConnectSuccess(unittest.TestCase):
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
                 mock_open, mock_context):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
+        mock_exists.side_effect = [True, True, True]
         mock_isfile.side_effect = [True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
         mock_mqtt.return_value = helpers.init_mock_mqtt()
@@ -393,9 +393,9 @@ class ClientDisconnectFailure(unittest.TestCase):
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
                 mock_open, mock_context):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
+        mock_exists.side_effect = [True, True, True]
         mock_isfile.side_effect = [True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
         mock_mqtt.return_value = helpers.init_mock_mqtt()
@@ -435,8 +435,8 @@ class ClientEventPublish(unittest.TestCase):
     @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
         mock_mqtt.return_value = helpers.init_mock_mqtt()
@@ -470,10 +470,10 @@ class ClientFileDownloadAsyncSuccess(unittest.TestCase):
     def runTest(self, mock_get, mock_mqtt, mock_sleep, mock_exists,
                 mock_isfile, mock_isdir, mock_rename, mock_open, mock_context):
         # Set up mocks
-        mock_exists.side_effect = [True, True, True]
+        mock_exists.side_effect = [True, True, True, True]
         mock_isdir.side_effect = [False, True]
         mock_isfile.side_effect = [True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_client_read = mock_open.return_value.__enter__.return_value.read
         mock_client_read.side_effect = read_strings
         mock_handle_write = mock_open.return_value.__enter__.return_value.write
@@ -528,6 +528,7 @@ class ClientFileDownloadAsyncSuccess(unittest.TestCase):
         message.topic = "reply/0001"
         mqtt.messages.put(message)
         sleep(1)
+
         #TODO Make a better check for download completion
 
         # Check to see what has been downloaded and written to a file
@@ -561,9 +562,9 @@ class ClientFileUploadAsyncSuccess(unittest.TestCase):
     def runTest(self, mock_post, mock_mqtt, mock_sleep, mock_exists,
                 mock_isfile, mock_open, mock_context):
         # Set up mocks
-        mock_exists.side_effect = [True, True, True]
-        mock_isfile.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True, True]
+        mock_isfile.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
         file_content = "This is totally a file.\nWhat are you talking about.\n"
@@ -717,8 +718,8 @@ class ClientInitFailWriteDevId(unittest.TestCase):
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, False]
-        read_strings = [json.dumps(self.config_args)]
+        mock_exists.side_effect = [True, False, True]
+        read_strings = [json.dumps(self.config_args), json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_write = mock_open.return_value.__enter__.return_value.write
         mock_read.side_effect = read_strings
@@ -745,8 +746,8 @@ class ClientInitMissingAppId(unittest.TestCase):
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
 
@@ -773,8 +774,8 @@ class ClientInitOverlengthAppId(unittest.TestCase):
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
 
@@ -803,8 +804,8 @@ class ClientLocationPublish(unittest.TestCase):
     @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
         mock_mqtt.return_value = helpers.init_mock_mqtt()
@@ -840,8 +841,8 @@ class ClientTelemetryPublish(unittest.TestCase):
     @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
         mock_mqtt.return_value = helpers.init_mock_mqtt()
@@ -868,8 +869,8 @@ class ConfigMissingHost(unittest.TestCase):
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
 
@@ -899,8 +900,8 @@ class ConfigMissingPort(unittest.TestCase):
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
 
@@ -930,8 +931,8 @@ class ConfigMissingToken(unittest.TestCase):
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
 
@@ -961,8 +962,8 @@ class ConfigReadFile(unittest.TestCase):
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
 
@@ -975,7 +976,7 @@ class ConfigReadFile(unittest.TestCase):
         # Check that the 'file' was read and parsed correctly
         mock_open.assert_any_call("some/other/directory/device_id", "r")
         mock_open.assert_any_call("some/other/directory/someotherfile.cfg", "r")
-        assert mock_read.call_count == 2
+        assert mock_read.call_count == 3
         assert self.client.config.cloud.host == "api.notarealcloudhost.com"
         assert self.client.config.cloud.port == 8883
         assert self.client.config.cloud.token == "abcdefghijklm"
@@ -992,9 +993,9 @@ class ConfigReadDefaults(unittest.TestCase):
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_isfile, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, False]
+        mock_exists.side_effect = [True, False, True]
         mock_isfile.side_effect = [True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
         mock_write = mock_open.return_value.__enter__.return_value.write
@@ -1028,8 +1029,8 @@ class ConfigWriteReadDeviceID(unittest.TestCase):
     @mock.patch("helix._core.client.os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, False]
-        read_strings = [json.dumps(self.config_args)]
+        mock_exists.side_effect = [True, False, True]
+        read_strings = [json.dumps(self.config_args), json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_write = mock_open.return_value.__enter__.return_value.write
         mock_read.side_effect = read_strings
@@ -1042,18 +1043,18 @@ class ConfigWriteReadDeviceID(unittest.TestCase):
         # found
         device_id = self.client.config.device_id
         mock_write.assert_called_once_with(device_id)
-        mock_read.assert_called_once()
+        #mock_read.assert_called_once()
         mock_open.reset_mock()
         mock_read.reset_mock()
         mock_write.reset_mock()
-        mock_exists.side_effect = [True, True]
+        mock_exists.side_effect = [True, True, True]
         read_strings = [json.dumps(self.config_args), device_id]
         mock_read.side_effect = read_strings
 
         # device_id is read and used when it exists
         self.client_2 = helix.Client("testing-client-2")
         self.client_2.initialize()
-        assert mock_read.call_count == 2
+        assert mock_read.call_count == 3
         assert mock_write.call_count == 0
         mock_write.asser_not_called()
         assert self.client_2.config.device_id == device_id
@@ -1073,9 +1074,9 @@ class HandleActionExecCallbackSuccess(unittest.TestCase):
     def runTest(self, mock_mqtt, mock_inspect, mock_sleep, mock_exists,
                 mock_isfile, mock_open, mock_context):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
+        mock_exists.side_effect = [True, True, True]
         mock_isfile.side_effect = [True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
         mock_inspect.getargspec.return_value.args.__len__.return_value = 3
@@ -1184,9 +1185,9 @@ class HandlePublishAllTypes(unittest.TestCase):
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
                 mock_open, mock_context):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
+        mock_exists.side_effect = [True, True, True]
         mock_isfile.side_effect = [True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
         mock_mqtt.return_value = helpers.init_mock_mqtt()
@@ -1306,8 +1307,8 @@ class HandlerInitWebsockets(unittest.TestCase):
     @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
         mock_mqtt.return_value = helpers.init_mock_mqtt()
@@ -1761,8 +1762,8 @@ class ActionAcknowledge(unittest.TestCase):
     @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open, mock_ack):
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
 
@@ -1785,8 +1786,8 @@ class ActionProgressUpdate(unittest.TestCase):
     @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open, mock_update):
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
 
@@ -1904,8 +1905,8 @@ class HandlerHandleActionException(unittest.TestCase):
     @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open):
-        mock_exists.side_effect = [True, True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
 
@@ -2154,10 +2155,10 @@ class ClientFileDownloadAsyncChecksumFail(unittest.TestCase):
                 mock_isfile, mock_isdir, mock_rename, mock_open, mock_remove,
                 mock_context):
         # Set up mocks
-        mock_exists.side_effect = [True, True, True]
+        mock_exists.side_effect = [True, True, True, True]
         mock_isdir.side_effect = [False, True]
-        mock_isfile.side_effect = [True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_isfile.side_effect = [True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid,json.dumps(self.config_args)]
         mock_client_read = mock_open.return_value.__enter__.return_value.read
         mock_client_read.side_effect = read_strings
         mock_handle_write = mock_open.return_value.__enter__.return_value.write
@@ -2246,10 +2247,10 @@ class ClientFileDownloadAsyncRequestFail(unittest.TestCase):
                 mock_isfile, mock_isdir, mock_rename, mock_open, mock_remove,
                 mock_context):
         # Set up mocks
-        mock_exists.side_effect = [True, True, True]
-        mock_isdir.side_effect = [False, True]
-        mock_isfile.side_effect = [True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        mock_exists.side_effect = [True, True, True, True]
+        mock_isdir.side_effect = [False, True, True]
+        mock_isfile.side_effect = [True, True]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_client_read = mock_open.return_value.__enter__.return_value.read
         mock_client_read.side_effect = read_strings
         mock_handle_write = mock_open.return_value.__enter__.return_value.write
@@ -2332,9 +2333,9 @@ class ClientConnectMissingHost(unittest.TestCase):
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
                 mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
+        mock_exists.side_effect = [True, True, True]
         mock_isfile.side_effect = [True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
         mock_mqtt.return_value = helpers.init_mock_mqtt()
@@ -2365,9 +2366,9 @@ class ClientConnectMissingPort(unittest.TestCase):
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_isfile,
                 mock_open):
         # Set up mocks
-        mock_exists.side_effect = [True, True]
+        mock_exists.side_effect = [True, True, True]
         mock_isfile.side_effect = [True]
-        read_strings = [json.dumps(self.config_args), helpers.uuid]
+        read_strings = [json.dumps(self.config_args), helpers.uuid, json.dumps(self.config_args)]
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
         mock_mqtt.return_value = helpers.init_mock_mqtt()
