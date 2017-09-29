@@ -96,16 +96,8 @@ class Handler(object):
             log_file_handler.setFormatter(log_formatter)
             self.logger.addHandler(log_file_handler)
 
-        # Ensure we're not missing required configuration information
-        if not self.config.key or not self.config.cloud.token:
-            self.logger.error("Missing key or cloud token from configuration")
-            raise KeyError("Missing key or cloud token from configuration")
-
-        # Print configuration
-        self.logger.debug("CONFIG:\n%s", self.config)
-
 	#Set log level
-	log_level = client.config.log_level
+	log_level = self.config.log_level
 	if log_level in ('CRITICAL', 'DEBUG', 'ERROR', 'INFO', 'LOG', 'WARNING', 'ALL'):
 		if log_level == 'ALL':
 			log_number = getattr(logging, 'DEBUG')
@@ -119,6 +111,13 @@ class Handler(object):
 		self.logger.warning("log_level not found, DEBUG used as default")
 		self.logger.setLevel(logging.DEBUG)
 
+        # Ensure we're not missing required configuration information
+        if not self.config.key or not self.config.cloud.token:
+            self.logger.error("Missing key or cloud token from configuration")
+            raise KeyError("Missing key or cloud token from configuration")
+
+        # Print configuration
+        self.logger.debug("CONFIG:\n%s", self.config)
 
 	#self.logger.critical("This is a critical")
 	#self.logger.debug("This is a debug")
