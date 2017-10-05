@@ -25,6 +25,9 @@ import signal
 import sys
 from time import sleep
 
+head, tail = os.path.split(os.path.dirname(os.path.realpath(__file__)))
+sys.path.insert(0, head)
+
 import helix as iot
 from helix import osal
 
@@ -184,8 +187,8 @@ if __name__ == "__main__":
     # Deregister a previously registered action
     client.action_deregister("deregistered_action")
 
-    counter = 0
     while running and client.is_alive():
+
         # Wrap sleep with an exception handler to fix SIGINT handling on Windows
         try:
             sleep(1)
