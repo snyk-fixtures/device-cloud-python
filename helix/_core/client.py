@@ -272,7 +272,6 @@ class Client(object):
           STATUS_EXISTS                Action with that name already exists
           STATUS_SUCCESS               Successfully registered callback
         """
-
         return self.handler.action_register_callback(action_name,
                                                      callback_function,
                                                      user_data)
@@ -356,6 +355,15 @@ class Client(object):
 
         return self.handler.disconnect(wait_for_replies=wait_for_replies,
                                        timeout=timeout)
+
+    def diag_ping(self):
+        return self.handler.handle_ping()
+
+    def diag_time(self):
+        return self.handler.handle_time()
+
+    def log_level(self, level):
+        return self.handler.log_level(level)
 
     def event_publish(self, message):
         """

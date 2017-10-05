@@ -55,6 +55,7 @@ class TR50Command(object):
     attribute_publish = "attribute.publish"
     diag_echo = "diag.echo"
     diag_ping = "diag.ping"
+    diag_time = "diag.time"
     file_get = "file.get"
     file_put = "file.put"
     location_publish = "location.publish"
@@ -134,7 +135,6 @@ def create_diag_echo(params):
     """
     Generate a TR50 JSON request for a diagnostic echo
     """
-
     cmd = {"command":TR50Command.diag_echo}
     cmd["params"] = params
     return cmd
@@ -143,15 +143,21 @@ def create_diag_ping():
     """
     Generate a TR50 JSON request for a diagnostic ping
     """
-
     cmd = {"command":TR50Command.diag_ping}
+    return cmd
+
+def create_diag_time(params=None):
+    """
+    Generate a TR50 JSON request for a diagnostic time
+    """
+    cmd = {"command":TR50Command.diag_time}
+    cmd["params"] = params
     return cmd
 
 def create_file_get(thing_key, file_name, file_global=False):
     """
     Generate a TR50 JSON request for getting a file from the Cloud
     """
-
     kwargs = {
         "thingKey":thing_key,
         "fileName":file_name,
