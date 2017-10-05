@@ -30,7 +30,6 @@ import signal
 import sys
 from time import sleep
 import uuid
-import logging
 
 from helix import osal
 from helix import ota_handler

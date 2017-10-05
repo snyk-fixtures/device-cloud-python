@@ -24,6 +24,9 @@ import signal
 import sys
 from time import sleep
 
+head, tail = os.path.split(os.path.dirname(os.path.realpath(__file__)))
+sys.path.insert(0, head)
+
 import helix as iot
 
 running = True
