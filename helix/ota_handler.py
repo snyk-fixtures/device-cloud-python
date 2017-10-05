@@ -245,7 +245,10 @@ class OTAHandler(object):
             os.remove(file_name)
 
         # Unlock the updater
-        os.remove(os.path.join(self._runtime_dir, OTA_LOCKFILE))
+        try:
+            os.remove(os.path.join(self._runtime_dir, OTA_LOCKFILE))
+        except (OSError, IOError) as err:
+            print(err)
 
         client.log(iot.LOGINFO, \
             "Update finished with status {}".format(iot.status_string(status)))

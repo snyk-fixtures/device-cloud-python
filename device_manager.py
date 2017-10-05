@@ -41,6 +41,8 @@ running = True
 
 default_cfg_dir = "."
 
+
+
 def sighandler(signum, frame):
     """
     Signal handler for exiting app.
@@ -354,6 +356,7 @@ def remote_access(client, params):
         client.error(str(error))
         return (iot.STATUS_FAILURE, str(error))
 
+
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, sighandler)
     if osal.POSIX:
@@ -420,6 +423,7 @@ if __name__ == "__main__":
     action_register_conditional(client, "reset_agent", agent_reset, \
                                 config.actions_enabled.reset_agent, \
                                 (runtime_dir, ota))
+
     action_register_conditional(client, "quit", quit_me, \
                                 config.actions_enabled.reset_agent)
 
@@ -433,7 +437,15 @@ if __name__ == "__main__":
     # Publish system details
     publish_platform_info(client)
 
+    if os.path.isfile(os.path.join(runtime_dir, ".otalock")):
+        try:
+            os.remove(os.path.join(runtime_dir, ".otalock"))
+        except (OSError, IOError) as err:
+            print(err)
+
+
     while running and client.is_alive():
+
         # Wrap sleep with an exception handler to fix SIGINT handling on Windows
         try:
             sleep(1)
