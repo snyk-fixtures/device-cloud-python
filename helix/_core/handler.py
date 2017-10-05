@@ -96,35 +96,15 @@ class Handler(object):
             log_file_handler.setFormatter(log_formatter)
             self.logger.addHandler(log_file_handler)
 
-        #Set log level
-        log_level = self.config.log_level
-        if log_level in ('CRITICAL', 'DEBUG', 'ERROR', 'INFO', 'LOG', 'WARNING', 'ALL'):
-                if log_level == 'ALL':
-                    log_number = getattr(logging, 'DEBUG')
-                    self.logger.setLevel(log_number)
-                    self.logger.warning("log_level set as 'ALL', DEBUG used as default")
-                else:
-                    log_number = getattr(logging, log_level)
-                    self.logger.setLevel(log_number)
-                    self.logger.log(logging.INFO, "%s used", log_level)
-        else:
-                self.logger.warning("log_level not found, DEBUG used as default")
-                self.logger.setLevel(logging.DEBUG)
-
         # Ensure we're not missing required configuration information
         if not self.config.key or not self.config.cloud.token:
             self.logger.error("Missing key or cloud token from configuration")
             raise KeyError("Missing key or cloud token from configuration")
 
+	self.log_level(self.config.log_level)
+
         # Print configuration
         self.logger.debug("CONFIG:\n%s", self.config)
-
-        #self.logger.critical("This is a critical")
-        #self.logger.debug("This is a debug")
-        #self.logger.error("This is a error")
-        #self.logger.info("This is a info")
-        #self.logger.log(logging.INFO, "This is a log with info")
-        #self.logger.warning("This is a warning")
 
         # Ensure the paho socket pair is not using proxy sockets
         socket.socket = original_socket
@@ -250,7 +230,6 @@ class Handler(object):
         """
         Associate a callback function with an action in the Cloud
         """
-
         status = constants.STATUS_SUCCESS
         action = defs.Action(action_name, callback_function, self.client,
                              user_data=user_data)
@@ -479,7 +458,6 @@ class Handler(object):
             message_desc += " \"{}\"".format(str(result_args["params"]))
         message = defs.OutMessage(mailbox_ack, message_desc)
         status = self.send(message)
-
         return status
 
     def handle_file_download(self, download):
@@ -709,6 +687,28 @@ class Handler(object):
                                                  action_request)
                                 self.queue_work(work)
 
+                elif sent_command_type == TR50Command.diag_time:
+                    # Recevied a reply for a ping request
+                    if reply.get("success"):
+                        mill = reply["params"].get("time")
+                        print (datetime.fromtimestamp(mill/1000.0))
+
+                    else:
+                        if -90008 in reply.get("errorCodes", []):
+                            sent_message.data.status = constants.STATUS_NOT_FOUND
+                        else:
+                            sent_message.data.status = constants.STATUS_FAILURE
+
+                elif sent_command_type == TR50Command.diag_ping:
+                    # Recevied a reply for a ping request
+                    if reply.get("success"):
+                       print ('*Connection Okay* \n')
+                    else:
+                        if -90008 in reply.get("errorCodes", []):
+                            sent_message.data.status = constants.STATUS_NOT_FOUND
+                        else:
+                            sent_message.data.status = constants.STATUS_FAILURE
+
             status = constants.STATUS_SUCCESS
 
         return status
@@ -825,9 +825,35 @@ class Handler(object):
     def is_connected(self):
         """
         Returns connection status of Client to Cloud
-        """
 
+        """
         return self.state == constants.STATE_CONNECTED
+
+
+    def log_level(self, log_level):
+        """
+        Set Logging Level
+
+        """
+        if log_level in ('CRITICAL', 'DEBUG', 'ERROR', 'INFO', 'LOG', 'WARNING', 'ALL'):
+            if log_level == 'ALL':
+                log_number = getattr(logging, 'DEBUG')
+                self.logger.setLevel(log_number)
+                self.logger.warning("log_level set as 'ALL', DEBUG used as default")
+            else:
+                log_number = getattr(logging, log_level)
+                self.logger.setLevel(log_number)
+                self.logger.log(logging.INFO, "log_level Set As %s", log_level)
+        else:
+            self.logger.warning("log_level not found, DEBUG used as default")
+            self.logger.setLevel(logging.DEBUG)
+
+        #self.logger.critical("This is a critical")
+        #self.logger.debug("This is a debug")
+        #self.logger.error("This is a error")
+        #self.logger.info("This is a info")
+        #self.logger.log(logging.INFO, "This is a log with info")
+        #self.logger.warning("This is a warning")
 
     def main_loop(self):
         """
@@ -947,6 +973,22 @@ class Handler(object):
         self.work_queue.put(work)
         return constants.STATUS_SUCCESS
 
+    def handle_ping(self):
+	command = tr50.create_diag_ping()
+	message_desc = "Connected"
+        message = defs.OutMessage(command, message_desc)
+        status = self.send(message)
+        return constants.STATUS_SUCCESS
+
+    def handle_time(self):
+	command = tr50.create_diag_time()
+        message_desc = "Retrieving Time.."
+        message = defs.OutMessage(command, message_desc)
+        status = self.send(message)
+        return constants.STATUS_SUCCESS
+
+
+
     def request_download(self, file_name, file_dest, blocking=False,
                          callback=None, timeout=0, file_global=False):
         """
@@ -1057,7 +1099,6 @@ class Handler(object):
         """
         Send commands to the Cloud, and track them to wait for replies
         """
-
         status = constants.STATUS_FAILURE
 
         message_list = messages
