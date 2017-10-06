@@ -5,7 +5,7 @@ Running Python On MacOSX
 Python
 -------
 
-Python must be present to run the hdc-python applications.  If you do
+Python must be present to run the device-cloud-python applications.  If you do
 not have Python installed, you can install it with "brew".  Both
 python 2.7.9+ and 3.4.x are supported.
 

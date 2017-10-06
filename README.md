@@ -1,4 +1,4 @@
-Wind River Python Agent for HDC
+Wind River® Helix™ Device Cloud Python Agent
 ===============================
 [![Build Status](https://travis-ci.com/Wind-River/hdc-python.png?token=yc4Y8jiCm8qEF3kCTkqZ&branch=master)](https://travis-ci.com/Wind-River/hdc-python)
 
