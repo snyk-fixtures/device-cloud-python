@@ -41,8 +41,6 @@ running = True
 
 default_cfg_dir = "."
 
-
-
 def sighandler(signum, frame):
     """
     Signal handler for exiting app.
@@ -356,7 +354,6 @@ def remote_access(client, params):
         client.error(str(error))
         return (iot.STATUS_FAILURE, str(error))
 
-
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, sighandler)
     if osal.POSIX:
@@ -441,8 +438,8 @@ if __name__ == "__main__":
         try:
             os.remove(os.path.join(runtime_dir, ".otalock"))
         except (OSError, IOError) as err:
-            print(err)
-
+            error = str(err)
+            print(error+". This file blocks OTA operations. Please remove it.")
 
     while running and client.is_alive():
 
