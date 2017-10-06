@@ -248,7 +248,8 @@ class OTAHandler(object):
         try:
             os.remove(os.path.join(self._runtime_dir, OTA_LOCKFILE))
         except (OSError, IOError) as err:
-            print(err)
+            error = str(err)
+            print(error+". This file will block future OTA operations. Please remove it.")
 
         client.log(iot.LOGINFO, \
             "Update finished with status {}".format(iot.status_string(status)))
