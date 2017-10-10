@@ -822,6 +822,26 @@ class Handler(object):
 
         return constants.STATUS_SUCCESS
 
+    def handle_ping(self):
+        """
+        Request connection check
+        """
+        command = tr50.create_diag_ping()
+        message_desc = "Connected"
+        message = defs.OutMessage(command, message_desc)
+        status = self.send(message)
+        return constants.STATUS_SUCCESS
+
+    def handle_time(self):
+        """
+        Request time from the cloud
+        """
+        command = tr50.create_diag_time()
+        message_desc = "Retrieving Time.."
+        message = defs.OutMessage(command, message_desc)
+        status = self.send(message)
+        return constants.STATUS_SUCCESS
+
     def is_connected(self):
         """
         Returns connection status of Client to Cloud
@@ -971,20 +991,6 @@ class Handler(object):
         """
 
         self.work_queue.put(work)
-        return constants.STATUS_SUCCESS
-
-    def handle_ping(self):
-        command = tr50.create_diag_ping()
-        message_desc = "Connected"
-        message = defs.OutMessage(command, message_desc)
-        status = self.send(message)
-        return constants.STATUS_SUCCESS
-
-    def handle_time(self):
-        command = tr50.create_diag_time()
-        message_desc = "Retrieving Time.."
-        message = defs.OutMessage(command, message_desc)
-        status = self.send(message)
         return constants.STATUS_SUCCESS
 
     def request_download(self, file_name, file_dest, blocking=False,
