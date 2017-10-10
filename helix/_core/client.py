@@ -357,12 +357,30 @@ class Client(object):
                                        timeout=timeout)
 
     def diag_ping(self):
+        """
+        Request diagonstic ping from the cloud
+
+        Returns:
+          STATUS_SUCCESS               Successfully disconnected
+        """
         return self.handler.handle_ping()
 
     def diag_time(self):
+        """
+        Request diagonstic time from the cloud
+
+        Returns:
+          STATUS_SUCCESS               Successfully disconnected
+        """
         return self.handler.handle_time()
 
     def log_level(self, level):
+        """
+        Set the log level
+        
+        Parameters:
+          level             (string) Requested level
+        """
         return self.handler.log_level(level)
 
     def event_publish(self, message):
