@@ -39,10 +39,10 @@ from time import sleep
 import requests
 import paho.mqtt.client as mqttlib
 
-from helix._core import constants
-from helix._core import defs
-from helix._core import tr50
-from helix._core.tr50 import TR50Command
+from device_cloud._core import constants
+from device_cloud._core import defs
+from device_cloud._core import tr50
+from device_cloud._core.tr50 import TR50Command
 
 original_socket = socket.socket
 

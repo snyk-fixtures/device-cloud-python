@@ -20,15 +20,15 @@ import json
 import os
 import uuid
 
-from helix._core.constants import DEFAULT_CONFIG_DIR
-from helix._core.constants import DEFAULT_CONFIG_FILE
-from helix._core.constants import DEFAULT_KEEP_ALIVE
-from helix._core.constants import DEFAULT_LOOP_TIME
-from helix._core.constants import DEFAULT_THREAD_COUNT
-from helix._core.constants import STATUS_SUCCESS
-from helix._core.constants import WORK_PUBLISH
-from helix._core import defs
-from helix._core.handler import Handler
+from device_cloud._core.constants import DEFAULT_CONFIG_DIR
+from device_cloud._core.constants import DEFAULT_CONFIG_FILE
+from device_cloud._core.constants import DEFAULT_KEEP_ALIVE
+from device_cloud._core.constants import DEFAULT_LOOP_TIME
+from device_cloud._core.constants import DEFAULT_THREAD_COUNT
+from device_cloud._core.constants import STATUS_SUCCESS
+from device_cloud._core.constants import WORK_PUBLISH
+from device_cloud._core import defs
+from device_cloud._core.handler import Handler
 
 
 class Client(object):

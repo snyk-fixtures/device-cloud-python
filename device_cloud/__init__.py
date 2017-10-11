@@ -23,39 +23,39 @@ from logging import INFO as LOGINFO
 from logging import NOTSET as LOGNOTSET
 from logging import WARNING as LOGWARNING
 
-from helix._core.client import Client
-from helix._core.handler import status_string
+from device_cloud._core.client import Client
+from device_cloud._core.handler import status_string
 
-from helix._core.constants import DEFAULT_CONFIG_DIR
-from helix._core.constants import DEFAULT_CONFIG_FILE
-from helix._core.constants import DEFAULT_KEEP_ALIVE
-from helix._core.constants import DEFAULT_LOOP_TIME
-from helix._core.constants import DEFAULT_THREAD_COUNT
+from device_cloud._core.constants import DEFAULT_CONFIG_DIR
+from device_cloud._core.constants import DEFAULT_CONFIG_FILE
+from device_cloud._core.constants import DEFAULT_KEEP_ALIVE
+from device_cloud._core.constants import DEFAULT_LOOP_TIME
+from device_cloud._core.constants import DEFAULT_THREAD_COUNT
 
-from helix._core.constants import STATUS_SUCCESS
-from helix._core.constants import STATUS_INVOKED
-from helix._core.constants import STATUS_BAD_PARAMETER
-from helix._core.constants import STATUS_BAD_REQUEST
-from helix._core.constants import STATUS_EXECUTION_ERROR
-from helix._core.constants import STATUS_EXISTS
-from helix._core.constants import STATUS_FILE_OPEN_FAILED
-from helix._core.constants import STATUS_FULL
-from helix._core.constants import STATUS_IO_ERROR
-from helix._core.constants import STATUS_NO_MEMORY
-from helix._core.constants import STATUS_NO_PERMISSION
-from helix._core.constants import STATUS_NOT_EXECUTABLE
-from helix._core.constants import STATUS_NOT_FOUND
-from helix._core.constants import STATUS_NOT_INITIALIZED
-from helix._core.constants import STATUS_OUT_OF_RANGE
-from helix._core.constants import STATUS_PARSE_ERROR
-from helix._core.constants import STATUS_TIMED_OUT
-from helix._core.constants import STATUS_TRY_AGAIN
-from helix._core.constants import STATUS_NOT_SUPPORTED
-from helix._core.constants import STATUS_FAILURE
+from device_cloud._core.constants import STATUS_SUCCESS
+from device_cloud._core.constants import STATUS_INVOKED
+from device_cloud._core.constants import STATUS_BAD_PARAMETER
+from device_cloud._core.constants import STATUS_BAD_REQUEST
+from device_cloud._core.constants import STATUS_EXECUTION_ERROR
+from device_cloud._core.constants import STATUS_EXISTS
+from device_cloud._core.constants import STATUS_FILE_OPEN_FAILED
+from device_cloud._core.constants import STATUS_FULL
+from device_cloud._core.constants import STATUS_IO_ERROR
+from device_cloud._core.constants import STATUS_NO_MEMORY
+from device_cloud._core.constants import STATUS_NO_PERMISSION
+from device_cloud._core.constants import STATUS_NOT_EXECUTABLE
+from device_cloud._core.constants import STATUS_NOT_FOUND
+from device_cloud._core.constants import STATUS_NOT_INITIALIZED
+from device_cloud._core.constants import STATUS_OUT_OF_RANGE
+from device_cloud._core.constants import STATUS_PARSE_ERROR
+from device_cloud._core.constants import STATUS_TIMED_OUT
+from device_cloud._core.constants import STATUS_TRY_AGAIN
+from device_cloud._core.constants import STATUS_NOT_SUPPORTED
+from device_cloud._core.constants import STATUS_FAILURE
 
-import helix.osal
-import helix.ota_handler
-import helix.relay
+import device_cloud.osal
+import device_cloud.ota_handler
+import device_cloud.relay
 
 __all__ = ["Client",
            "status_string",
