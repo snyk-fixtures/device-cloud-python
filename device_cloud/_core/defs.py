@@ -12,7 +12,7 @@
 '''
 
 """
-This module defines several helper classes for use in the helix handler
+This module defines several helper classes for use in the device_cloud handler
 """
 
 import inspect
@@ -20,7 +20,7 @@ import json
 import subprocess
 from datetime import datetime
 
-from helix._core import constants
+from device_cloud._core import constants
 
 class Action(object):
     """

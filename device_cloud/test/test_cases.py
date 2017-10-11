@@ -32,8 +32,8 @@ except ImportError:
 
 from time import sleep
 
-import helix
-import helix.test.test_helpers as helpers
+import device_cloud
+import device_cloud.test.test_helpers as helpers
 
 if sys.version_info.major == 2:
     builtin = "__builtin__"
@@ -53,7 +53,7 @@ class ClientActionDeregister(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         self.client.initialize()
 
         # Set up a callback function
@@ -64,7 +64,7 @@ class ClientActionDeregister(unittest.TestCase):
         # Register action with callback
         result = self.client.action_register_callback("action-name", callback,
                                                       user_data)
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         assert "action-name" in self.client.handler.callbacks
         assert self.client.handler.callbacks["action-name"].callback is callback
         assert (self.client.handler.callbacks["action-name"].user_data is
@@ -72,7 +72,7 @@ class ClientActionDeregister(unittest.TestCase):
 
         # Deregister action
         result = self.client.action_deregister("action-name")
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         assert "action-name" not in self.client.handler.callbacks
 
     def setUp(self):
@@ -90,12 +90,12 @@ class ClientActionReregisterNotExist(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         self.client.initialize()
 
         # Attempt to deregister an action that does not exist
         result = self.client.action_deregister("action-name")
-        assert result == helix.STATUS_NOT_FOUND
+        assert result == device_cloud.STATUS_NOT_FOUND
         assert "action-name" not in self.client.handler.callbacks
 
     def setUp(self):
@@ -113,7 +113,7 @@ class ClientActionRegisterCallback(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         self.client.initialize()
 
         # Register action with callback
@@ -122,7 +122,7 @@ class ClientActionRegisterCallback(unittest.TestCase):
                                                        user_data, 0)
         result = self.client.action_register_callback("action-name", callback,
                                                       user_data)
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         assert "action-name" in self.client.handler.callbacks
         assert self.client.handler.callbacks["action-name"].callback is callback
         assert (self.client.handler.callbacks["action-name"].user_data is
@@ -143,7 +143,7 @@ class ClientActionRegisterCallbackExists(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         self.client.initialize()
 
         # Setup callbacks and user data
@@ -157,7 +157,7 @@ class ClientActionRegisterCallbackExists(unittest.TestCase):
         # Register action with callback
         result = self.client.action_register_callback("action-name", callback,
                                                       user_data)
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         assert "action-name" in self.client.handler.callbacks
         assert self.client.handler.callbacks["action-name"].callback is callback
         assert (self.client.handler.callbacks["action-name"].user_data is
@@ -166,7 +166,7 @@ class ClientActionRegisterCallbackExists(unittest.TestCase):
         # Attempt (and fail) to register same action with a different callback
         result = self.client.action_register_callback("action-name", callback_2,
                                                       user_data_2)
-        assert result == helix.STATUS_EXISTS
+        assert result == device_cloud.STATUS_EXISTS
         assert "action-name" in self.client.handler.callbacks
         assert self.client.handler.callbacks["action-name"].callback is callback
         assert (self.client.handler.callbacks["action-name"].user_data is
@@ -187,13 +187,13 @@ class ClientActionRegisterCommand(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         self.client.initialize()
 
         # Register action with a command
         command = "do a thing"
         result = self.client.action_register_command("action-name", command)
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         assert "action-name" in self.client.handler.callbacks
         assert self.client.handler.callbacks["action-name"].command is command
 
@@ -212,7 +212,7 @@ class ClientActionRegisterCommandExists(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         self.client.initialize()
 
         # Set up commands
@@ -221,13 +221,13 @@ class ClientActionRegisterCommandExists(unittest.TestCase):
 
         # Regsiter action with a command
         result = self.client.action_register_command("action-name", command)
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         assert "action-name" in self.client.handler.callbacks
         assert self.client.handler.callbacks["action-name"].command is command
 
         # Attempt (and fail) to register action with a different command
         result = self.client.action_register_command("action-name", command_2)
-        assert result == helix.STATUS_EXISTS
+        assert result == device_cloud.STATUS_EXISTS
         assert "action-name" in self.client.handler.callbacks
         assert self.client.handler.callbacks["action-name"].command is command
 
@@ -250,20 +250,20 @@ class ClientAlarmPublish(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":0}
-        self.client = helix.Client("testing-client", kwargs)
+        self.client = device_cloud.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Queue alarm for publishing
         result = self.client.alarm_publish("alarm_key", 5,
                                            message="alarm message")
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         pub = self.client.handler.publish_queue.get()
-        assert isinstance(pub, helix._core.defs.PublishAlarm)
+        assert isinstance(pub, device_cloud._core.defs.PublishAlarm)
         assert pub.name == "alarm_key"
         assert pub.state == 5
         assert pub.message == "alarm message"
         work = self.client.handler.work_queue.get()
-        assert work.type == helix._core.constants.WORK_PUBLISH
+        assert work.type == device_cloud._core.constants.WORK_PUBLISH
 
     def setUp(self):
         # Configuration to be 'read' from config file
@@ -284,15 +284,15 @@ class ClientAttributePublish(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":0}
-        self.client = helix.Client("testing-client", kwargs)
+        self.client = device_cloud.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Queue attribute for publishing
         result = self.client.attribute_publish("attribute_key",
                                                "attribute string")
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         pub = self.client.handler.publish_queue.get()
-        assert isinstance(pub, helix._core.defs.PublishAttribute)
+        assert isinstance(pub, device_cloud._core.defs.PublishAttribute)
         assert pub.name == "attribute_key"
         assert pub.value == "attribute string"
 
@@ -320,12 +320,12 @@ class ClientConnectFailure(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":0}
-        self.client = helix.Client("testing-client", kwargs)
+        self.client = device_cloud.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Fail to connect
         mqtt = self.client.handler.mqtt
-        assert self.client.connect(timeout=5) == helix.STATUS_FAILURE
+        assert self.client.connect(timeout=5) == device_cloud.STATUS_FAILURE
         mqtt.connect.assert_called_once_with("api.notarealcloudhost.com",
                                              8883, 60)
         assert self.client.is_alive() is False
@@ -360,16 +360,16 @@ class ClientConnectSuccess(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":0}
-        self.client = helix.Client("testing-client", kwargs)
+        self.client = device_cloud.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Connect successfully
         mqtt = self.client.handler.mqtt
-        assert self.client.connect(timeout=5) == helix.STATUS_SUCCESS
+        assert self.client.connect(timeout=5) == device_cloud.STATUS_SUCCESS
         mqtt.connect.assert_called_once_with("api.notarealcloudhost.com",
                                              8883, 60)
         assert self.client.is_connected() is True
-        assert self.client.disconnect() == helix.STATUS_SUCCESS
+        assert self.client.disconnect() == device_cloud.STATUS_SUCCESS
         mqtt.disconnect.assert_called_once()
         assert self.client.is_connected() is False
 
@@ -403,17 +403,17 @@ class ClientDisconnectFailure(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":0}
-        self.client = helix.Client("testing-client", kwargs)
+        self.client = device_cloud.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Receive failure for disconnecting
         mqtt = self.client.handler.mqtt
-        assert self.client.connect(timeout=5) == helix.STATUS_SUCCESS
+        assert self.client.connect(timeout=5) == device_cloud.STATUS_SUCCESS
         mqtt.connect.assert_called_once_with("api.notarealcloudhost.com",
                                              8883, 60)
         assert self.client.is_alive() is True
         assert self.client.is_connected() is True
-        assert self.client.disconnect() == helix.STATUS_SUCCESS
+        assert self.client.disconnect() == device_cloud.STATUS_SUCCESS
         mqtt.disconnect.assert_called_once()
         assert self.client.is_alive() is False
         assert self.client.is_connected() is False
@@ -443,14 +443,14 @@ class ClientEventPublish(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":0}
-        self.client = helix.Client("testing-client", kwargs)
+        self.client = device_cloud.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Queue event (log) for publishing
         result = self.client.event_publish("event message")
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         pub = self.client.handler.publish_queue.get()
-        assert isinstance(pub, helix._core.defs.PublishLog)
+        assert isinstance(pub, device_cloud._core.defs.PublishLog)
         assert pub.message == "event message"
 
     def setUp(self):
@@ -493,20 +493,20 @@ class ClientFileDownloadAsyncSuccess(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":1}
-        self.client = helix.Client("testing-client", kwargs)
+        self.client = device_cloud.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Connect client to Cloud
         mqtt = self.client.handler.mqtt
         result = self.client.connect()
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         assert self.client.is_connected()
 
         # Request download
         result = self.client.file_download("filename.ext",
                                            "/destination/file.ext",
                                            callback=download_callback)
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         download_callback.assert_not_called()
         args = mqtt.publish.call_args_list[0][0]
         assert args[0] == "api/0001"
@@ -539,7 +539,7 @@ class ClientFileDownloadAsyncSuccess(unittest.TestCase):
         args = download_callback.call_args_list[0][0]
         assert args[0] is self.client
         assert args[1] == "filename.ext"
-        assert args[2] == helix.STATUS_SUCCESS
+        assert args[2] == device_cloud.STATUS_SUCCESS
 
     def setUp(self):
         # Configuration to be 'read' from config file
@@ -583,19 +583,19 @@ class ClientFileUploadAsyncSuccess(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":1}
-        self.client = helix.Client("testing-client", kwargs)
+        self.client = device_cloud.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Connect client to Cloud
         mqtt = self.client.handler.mqtt
         result = self.client.connect()
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         assert self.client.is_connected()
 
         # Request upload
         result = self.client.file_upload("/path/to/some/filename.ext",
                                          callback=upload_callback)
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         checksum = 0
         checksum = crc32(file_bytes, checksum)
         checksum &= 0xffffffff
@@ -624,7 +624,7 @@ class ClientFileUploadAsyncSuccess(unittest.TestCase):
         args = upload_callback.call_args_list[0][0]
         assert args[0] is self.client
         assert args[1] == "filename.ext"
-        assert args[2] == helix.STATUS_SUCCESS
+        assert args[2] == device_cloud.STATUS_SUCCESS
 
     def setUp(self):
         # Configuration to be 'read' from config file
@@ -644,7 +644,7 @@ class ClientInitFailFindConfig(unittest.TestCase):
         mock_exists.side_effect = [False]
 
         # Initialize client (with a different configuration file)
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         self.client.config.config_dir = "some/other/directory"
         self.client.config.config_file = "someotherfile.cfg"
         excepted = False
@@ -670,7 +670,7 @@ class ClientInitFailReadConfig(unittest.TestCase):
         mock_read.side_effect = [IOError]
 
         # Initialize client (with a different configuration file)
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         self.client.config.config_dir = "some/other/directory"
         self.client.config.config_file = "someotherfile.cfg"
         excepted = False
@@ -697,7 +697,7 @@ class ClientInitFailReadDevId(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client (with a different configuration file)
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         self.client.config.config_dir = "some/other/directory"
         self.client.config.config_file = "someotherfile.cfg"
         excepted = False
@@ -726,7 +726,7 @@ class ClientInitFailWriteDevId(unittest.TestCase):
         mock_write.side_effect = [IOError]
 
         # Initialize client
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         excepted = False
         try:
             self.client.initialize()
@@ -752,7 +752,7 @@ class ClientInitMissingAppId(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client (with a different configuration file)
-        self.client = helix.Client("")
+        self.client = device_cloud.Client("")
         self.client.config.config_dir = "some/other/directory"
         self.client.config.config_file = "someotherfile.cfg"
         excepted = False
@@ -780,7 +780,7 @@ class ClientInitOverlengthAppId(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client (with a different configuration file)
-        self.client = helix.Client("this-app-id-is-surely-way-too-long-to-be-used-in-a-64-byte-key")
+        self.client = device_cloud.Client("this-app-id-is-surely-way-too-long-to-be-used-in-a-64-byte-key")
         self.client.config.config_dir = "some/other/directory"
         self.client.config.config_file = "someotherfile.cfg"
         excepted = False
@@ -812,16 +812,16 @@ class ClientLocationPublish(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":0}
-        self.client = helix.Client("testing-client", kwargs)
+        self.client = device_cloud.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Queue location for publishing
         result = self.client.location_publish(12.34, 56.78, heading=90.12,
                                               altitude=34.56, speed=78.90,
                                               accuracy=12.34, fix_type="gps")
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         pub = self.client.handler.publish_queue.get()
-        assert isinstance(pub, helix._core.defs.PublishLocation)
+        assert isinstance(pub, device_cloud._core.defs.PublishLocation)
         assert pub.latitude == 12.34
         assert pub.longitude == 56.78
         assert pub.heading == 90.12
@@ -849,14 +849,14 @@ class ClientTelemetryPublish(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":0}
-        self.client = helix.Client("testing-client", kwargs)
+        self.client = device_cloud.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Queue telemetry for publishing
         result = self.client.telemetry_publish("property_key", 26.6)
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         pub = self.client.handler.publish_queue.get()
-        assert isinstance(pub, helix._core.defs.PublishTelemetry)
+        assert isinstance(pub, device_cloud._core.defs.PublishTelemetry)
         assert pub.name == "property_key"
         assert pub.value == 26.6
 
@@ -875,7 +875,7 @@ class ConfigMissingHost(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client (with a different configuration file)
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         self.client.config.config_dir = "some/other/directory"
         self.client.config.config_file = "someotherfile.cfg"
         excepted = False
@@ -906,7 +906,7 @@ class ConfigMissingPort(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client (with a different configuration file)
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         self.client.config.config_dir = "some/other/directory"
         self.client.config.config_file = "someotherfile.cfg"
         excepted = False
@@ -937,7 +937,7 @@ class ConfigMissingToken(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client (with a different configuration file)
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         self.client.config.config_dir = "some/other/directory"
         self.client.config.config_file = "someotherfile.cfg"
         excepted = False
@@ -968,7 +968,7 @@ class ConfigReadFile(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client (with a different configuration file)
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         self.client.config.config_dir = "some/other/directory"
         self.client.config.config_file = "someotherfile.cfg"
         self.client.initialize()
@@ -1001,7 +1001,7 @@ class ConfigReadDefaults(unittest.TestCase):
         mock_write = mock_open.return_value.__enter__.return_value.write
 
         # Initialize client
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         self.client.initialize()
 
         # Check that all defaults are being used
@@ -1025,8 +1025,8 @@ class ConfigReadDefaults(unittest.TestCase):
                            "port":8883, "token":"abcdefghijklm"}}
 
 class ConfigWriteReadDeviceID(unittest.TestCase):
-    @mock.patch("helix._core.client.open")
-    @mock.patch("helix._core.client.os.path.exists")
+    @mock.patch("device_cloud._core.client.open")
+    @mock.patch("device_cloud._core.client.os.path.exists")
     def runTest(self, mock_exists, mock_open):
         # Set up mocks
         mock_exists.side_effect = [True, False, True]
@@ -1036,7 +1036,7 @@ class ConfigWriteReadDeviceID(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # Initialize client
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         self.client.initialize()
 
         # device_id is generated and written when the device_id file is not
@@ -1052,7 +1052,7 @@ class ConfigWriteReadDeviceID(unittest.TestCase):
         mock_read.side_effect = read_strings
 
         # device_id is read and used when it exists
-        self.client_2 = helix.Client("testing-client-2")
+        self.client_2 = device_cloud.Client("testing-client-2")
         self.client_2.initialize()
         assert mock_read.call_count == 3
         assert mock_write.call_count == 0
@@ -1069,7 +1069,7 @@ class HandleActionExecCallbackSuccess(unittest.TestCase):
     @mock.patch("os.path.isfile")
     @mock.patch("os.path.exists")
     @mock.patch("time.sleep")
-    @mock.patch("helix._core.defs.inspect")
+    @mock.patch("device_cloud._core.defs.inspect")
     @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_inspect, mock_sleep, mock_exists,
                 mock_isfile, mock_open, mock_context):
@@ -1085,7 +1085,7 @@ class HandleActionExecCallbackSuccess(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":1}
-        self.client = helix.Client("testing-client", kwargs)
+        self.client = device_cloud.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Set up action callback
@@ -1093,11 +1093,11 @@ class HandleActionExecCallbackSuccess(unittest.TestCase):
         params = {"some_param":521, "some_other_param":6234}
         user_data = "User Data"
         callback = mock.Mock(return_value=(0, "I did it!"))
-        action = helix._core.defs.Action("some_action", callback, self.client, user_data)
+        action = device_cloud._core.defs.Action("some_action", callback, self.client, user_data)
         self.client.handler.callbacks.add_action(action)
 
         # Connect to Cloud
-        assert self.client.connect(timeout=5) == helix.STATUS_SUCCESS
+        assert self.client.connect(timeout=5) == device_cloud.STATUS_SUCCESS
 
         thing_key = mock_mqtt.call_args_list[0][0][0]
         assert thing_key == "{}-testing-client".format(helpers.uuid)
@@ -1194,25 +1194,25 @@ class HandlePublishAllTypes(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":1}
-        self.client = helix.Client("testing-client", kwargs)
+        self.client = device_cloud.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Set up pending publishes
-        alarm = helix._core.defs.PublishAlarm("alarm_key", 6,
+        alarm = device_cloud._core.defs.PublishAlarm("alarm_key", 6,
                                             message="I'm an alarm")
-        attr = helix._core.defs.PublishAttribute("attribute_key",
+        attr = device_cloud._core.defs.PublishAttribute("attribute_key",
                                                "Attribute String")
-        loc = helix._core.defs.PublishLocation(11.11, 22.22, heading=33.33,
+        loc = device_cloud._core.defs.PublishLocation(11.11, 22.22, heading=33.33,
                                              altitude=44.44, speed=55.55,
                                              accuracy=66.66, fix_type="gps")
-        event = helix._core.defs.PublishLog("Event Message")
-        telem = helix._core.defs.PublishTelemetry("property_key", 12.34)
+        event = device_cloud._core.defs.PublishLog("Event Message")
+        telem = device_cloud._core.defs.PublishTelemetry("property_key", 12.34)
         publishes = [alarm, attr, loc, event, telem]
         for pub in publishes:
             self.client.handler.queue_publish(pub)
 
         # Connect to Cloud
-        assert self.client.connect(timeout=5) == helix.STATUS_SUCCESS
+        assert self.client.connect(timeout=5) == device_cloud.STATUS_SUCCESS
         sleep(2)
         #TODO Make a better check for publish handling
         thing_key = mock_mqtt.call_args_list[0][0][0]
@@ -1283,12 +1283,12 @@ class HandlerInitMissingKey(unittest.TestCase):
     @mock.patch("paho.mqtt.client.Client")
     def runTest(self, mock_mqtt, mock_sleep, mock_exists, mock_open):
         # Initialize handler directly to pass invalid config
-        config = helix._core.defs.Config()
+        config = device_cloud._core.defs.Config()
         config.update(self.config_args)
         totally_a_client = "No, really."
         excepted = False
         try:
-            handler = helix._core.handler.Handler(config, totally_a_client)
+            handler = device_cloud._core.handler.Handler(config, totally_a_client)
         except KeyError:
             excepted = True
 
@@ -1314,7 +1314,7 @@ class HandlerInitWebsockets(unittest.TestCase):
         mock_mqtt.return_value = helpers.init_mock_mqtt()
 
         # Initialize client (with a different configuration file)
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         self.client.config.config_dir = "some/other/directory"
         self.client.config.config_file = "someotherfile.cfg"
         self.client.initialize()
@@ -1335,10 +1335,10 @@ class OTAExecute(unittest.TestCase):
         test_cmd = "echo 'Hello'"
         mock_system.return_value = 0
 
-        self.ota = helix.ota_handler.OTAHandler();
+        self.ota = device_cloud.ota_handler.OTAHandler();
         result = self.ota._execute(test_cmd)
 
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         mock_system.assert_called_once_with(test_cmd)
 
 class OTAExecuteBadCommand(unittest.TestCase):
@@ -1348,10 +1348,10 @@ class OTAExecuteBadCommand(unittest.TestCase):
         test_cmd = "eacho 'Hello'"
         mock_system.return_value = 127
 
-        self.ota = helix.ota_handler.OTAHandler();
+        self.ota = device_cloud.ota_handler.OTAHandler();
         result = self.ota._execute(test_cmd)
 
-        assert result == helix.STATUS_EXECUTION_ERROR
+        assert result == device_cloud.STATUS_EXECUTION_ERROR
         mock_system.assert_called_once_with(test_cmd)
 
 class OTAExecuteNoCommand(unittest.TestCase):
@@ -1361,10 +1361,10 @@ class OTAExecuteNoCommand(unittest.TestCase):
         test_cmd = None
         mock_system.return_value = -1
 
-        self.ota = helix.ota_handler.OTAHandler();
+        self.ota = device_cloud.ota_handler.OTAHandler();
         result = self.ota._execute(test_cmd)
 
-        assert result == helix.STATUS_NOT_FOUND
+        assert result == device_cloud.STATUS_NOT_FOUND
         mock_system.assert_not_called()
 
 class OTAExecuteBadWorkingDir(unittest.TestCase):
@@ -1375,10 +1375,10 @@ class OTAExecuteBadWorkingDir(unittest.TestCase):
         mock_isdir.return_value = False
         test_cmd = "echo 'Hello'"
 
-        self.ota = helix.ota_handler.OTAHandler();
+        self.ota = device_cloud.ota_handler.OTAHandler();
         result = self.ota._execute(test_cmd, ".....not_a_real_dir.....")
 
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         mock_system.assert_called_once_with(test_cmd)
 
 class OTAExecuteWorkingDir(unittest.TestCase):
@@ -1388,57 +1388,57 @@ class OTAExecuteWorkingDir(unittest.TestCase):
         mock_system.return_value = 0
         mock_isdir.return_value = True
 
-        self.ota = helix.ota_handler.OTAHandler();
+        self.ota = device_cloud.ota_handler.OTAHandler();
         result = self.ota._execute("echo 'Hello'", "../")
 
         full_cmd = mock_system.call_args[0][0]
         pat = re.compile("cd \\.\\.\\/(;|( &)) echo 'Hello'")
         assert pat.match(full_cmd) != None
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         mock_system.assert_called_once()
 
 class OTAPackageDownload(unittest.TestCase):
-    @mock.patch("helix._core.client.Client.file_download")
+    @mock.patch("device_cloud._core.client.Client.file_download")
     def runTest(self, mock_download):
-        mock_download.return_value = helix.STATUS_SUCCESS
+        mock_download.return_value = device_cloud.STATUS_SUCCESS
 
-        self.client = helix.Client("testing-client")
-        self.ota = helix.ota_handler.OTAHandler()
+        self.client = device_cloud.Client("testing-client")
+        self.ota = device_cloud.ota_handler.OTAHandler()
         self.ota._runtime_dir = ""
         result = self.ota._package_download(self.client, "fake.tar.gz")
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
 
 class OTAPackageDownloadNoClient(unittest.TestCase):
-    @mock.patch("helix._core.client.Client.file_download")
+    @mock.patch("device_cloud._core.client.Client.file_download")
     def runTest(self, mock_download):
-        mock_download.return_value = helix.STATUS_SUCCESS
+        mock_download.return_value = device_cloud.STATUS_SUCCESS
 
-        self.ota = helix.ota_handler.OTAHandler()
+        self.ota = device_cloud.ota_handler.OTAHandler()
         self.ota._runtime_dir = ""
         result = self.ota._package_download(None, "fake.tar.gz")
-        assert result == helix.STATUS_BAD_PARAMETER
+        assert result == device_cloud.STATUS_BAD_PARAMETER
 
 class OTAPackageDownloadBadFile(unittest.TestCase):
-    @mock.patch("helix._core.client.Client.file_download")
+    @mock.patch("device_cloud._core.client.Client.file_download")
     def runTest(self, mock_download):
-        mock_download.return_value = helix.STATUS_FAILURE
+        mock_download.return_value = device_cloud.STATUS_FAILURE
 
-        self.client = helix.Client("testing-client")
-        self.ota = helix.ota_handler.OTAHandler()
+        self.client = device_cloud.Client("testing-client")
+        self.ota = device_cloud.ota_handler.OTAHandler()
         self.ota._runtime_dir = ""
         result = self.ota._package_download(self.client, "fake.tar.gz")
-        assert result == helix.STATUS_FAILURE
+        assert result == device_cloud.STATUS_FAILURE
 
 class OTAPackageUnzipOther(unittest.TestCase):
     @mock.patch("os.path.isfile")
     def runTest(self, mock_isfile):
         mock_isfile.return_value = True
 
-        self.ota = helix.ota_handler.OTAHandler()
+        self.ota = device_cloud.ota_handler.OTAHandler()
         self.ota._runtime_dir = ""
 
         result = self.ota._package_unzip("aaaa.rar", "bbbb")
-        assert result == helix.STATUS_NOT_SUPPORTED
+        assert result == device_cloud.STATUS_NOT_SUPPORTED
 
 class OTAPackageUnzipTar(unittest.TestCase):
     @mock.patch("os.path.isfile")
@@ -1448,11 +1448,11 @@ class OTAPackageUnzipTar(unittest.TestCase):
     def runTest(self, mock_close, mock_extract, mock_open, mock_isfile):
         mock_isfile.return_value = True
 
-        self.ota = helix.ota_handler.OTAHandler()
+        self.ota = device_cloud.ota_handler.OTAHandler()
         self.ota._runtime_dir = ""
 
         result = self.ota._package_unzip("aaaa.tar.gz", "bbbb")
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
 
 class OTAPackageUnzipZip(unittest.TestCase):
     @mock.patch("os.path.isfile")
@@ -1462,11 +1462,11 @@ class OTAPackageUnzipZip(unittest.TestCase):
     def runTest(self, mock_close, mock_extract, mock_open, mock_isfile):
         mock_isfile.return_value = True
 
-        self.ota = helix.ota_handler.OTAHandler()
+        self.ota = device_cloud.ota_handler.OTAHandler()
         self.ota._runtime_dir = ""
 
         result = self.ota._package_unzip("aaaa.zip", "bbbb")
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
 
 class OTAPackageUnzipOpenException(unittest.TestCase):
     @mock.patch("os.path.isfile")
@@ -1475,16 +1475,16 @@ class OTAPackageUnzipOpenException(unittest.TestCase):
     def runTest(self, mock_tar, mock_open, mock_isfile):
         mock_isfile.return_value = True
 
-        self.ota = helix.ota_handler.OTAHandler()
+        self.ota = device_cloud.ota_handler.OTAHandler()
         self.ota._runtime_dir = ""
 
         mock_open.side_effect = IOError
         result = self.ota._package_unzip("aaaa.tar.gz", "bbbb")
-        assert result == helix.STATUS_FILE_OPEN_FAILED
+        assert result == device_cloud.STATUS_FILE_OPEN_FAILED
 
         mock_open.side_effect = OSError
         result = self.ota._package_unzip("aaaa.tar.gz", "bbbb")
-        assert result == helix.STATUS_FILE_OPEN_FAILED
+        assert result == device_cloud.STATUS_FILE_OPEN_FAILED
 
 class OTAPackageUnzipExtractException(unittest.TestCase):
     @mock.patch("os.path.isfile")
@@ -1494,16 +1494,16 @@ class OTAPackageUnzipExtractException(unittest.TestCase):
         mock_isfile.return_value = True
         mock_open.return_value = mock_tar
 
-        self.ota = helix.ota_handler.OTAHandler()
+        self.ota = device_cloud.ota_handler.OTAHandler()
         self.ota._runtime_dir = ""
 
         mock_tar.extractall.side_effect = IOError
         result = self.ota._package_unzip("aaaa.tar.gz", "bbbb")
-        assert result == helix.STATUS_IO_ERROR
+        assert result == device_cloud.STATUS_IO_ERROR
 
         mock_tar.extractall.side_effect = OSError
         result = self.ota._package_unzip("aaaa.tar.gz", "bbbb")
-        assert result == helix.STATUS_IO_ERROR
+        assert result == device_cloud.STATUS_IO_ERROR
 
 class OTAReadUpdateJSON(unittest.TestCase):
     @mock.patch("json.load")
@@ -1512,9 +1512,9 @@ class OTAReadUpdateJSON(unittest.TestCase):
     def runTest(self, mock_open, mock_isfile, mock_json):
         mock_isfile.return_value = True
 
-        self.ota = helix.ota_handler.OTAHandler()
+        self.ota = device_cloud.ota_handler.OTAHandler()
         result = self.ota._read_update_json("fake")
-        assert result[0] == helix.STATUS_SUCCESS
+        assert result[0] == device_cloud.STATUS_SUCCESS
         assert result[1] != None
 
 class OTAReadUpdateJSONBadFormat(unittest.TestCase):
@@ -1525,9 +1525,9 @@ class OTAReadUpdateJSONBadFormat(unittest.TestCase):
         mock_json.side_effect = ValueError
         mock_isfile.return_value = True
 
-        self.ota = helix.ota_handler.OTAHandler()
+        self.ota = device_cloud.ota_handler.OTAHandler()
         result = self.ota._read_update_json("fake")
-        assert result[0] == helix.STATUS_IO_ERROR
+        assert result[0] == device_cloud.STATUS_IO_ERROR
         assert result[1] == None
 
 class OTAReadUpdateJSONNonExistant(unittest.TestCase):
@@ -1535,9 +1535,9 @@ class OTAReadUpdateJSONNonExistant(unittest.TestCase):
     def runTest(self, mock_isfile):
         mock_isfile.return_value = False
 
-        self.ota = helix.ota_handler.OTAHandler()
+        self.ota = device_cloud.ota_handler.OTAHandler()
         result = self.ota._read_update_json("")
-        assert result[0] == helix.STATUS_BAD_PARAMETER
+        assert result[0] == device_cloud.STATUS_BAD_PARAMETER
         assert result[1] == None
 
 class OTAUpdateCallback(unittest.TestCase):
@@ -1547,11 +1547,11 @@ class OTAUpdateCallback(unittest.TestCase):
     def runTest(self, mock_start, mock_open, mock_isfile):
         mock_isfile.return_value = False
 
-        self.client = helix.Client("testing-client")
-        self.ota = helix.ota_handler.OTAHandler()
+        self.client = device_cloud.Client("testing-client")
+        self.ota = device_cloud.ota_handler.OTAHandler()
 
         result = self.ota.update_callback(self.client, {}, ["aaaa"], None)
-        assert result[0] == helix.STATUS_INVOKED
+        assert result[0] == device_cloud.STATUS_INVOKED
 
 class OTAUpdateCallbackInProgress(unittest.TestCase):
     @mock.patch("os.path.isfile")
@@ -1560,21 +1560,21 @@ class OTAUpdateCallbackInProgress(unittest.TestCase):
     def runTest(self, mock_start, mock_open, mock_isfile):
         mock_isfile.return_value = True
 
-        self.client = helix.Client("testing-client")
-        self.ota = helix.ota_handler.OTAHandler()
+        self.client = device_cloud.Client("testing-client")
+        self.ota = device_cloud.ota_handler.OTAHandler()
 
         result = self.ota.update_callback(self.client, {}, ["aaaa"], None)
-        assert result[0] == helix.STATUS_FAILURE
+        assert result[0] == device_cloud.STATUS_FAILURE
 
 class OTAUpdateSoftware(unittest.TestCase):
     """
     Test "suite" that will run success and failure cases on the main
     "_update_software" method.
     """
-    @mock.patch("helix.Client")
+    @mock.patch("device_cloud.Client")
     def setUp(self, mock_client):
-        self.ota = helix.ota_handler.OTAHandler()
-        self.client = helix.Client("testing-client")
+        self.ota = device_cloud.ota_handler.OTAHandler()
+        self.client = device_cloud.Client("testing-client")
         self.params = {"package": "fake"}
         self.update_data = {"pre_install": "pre", \
                             "install": "install", \
@@ -1585,10 +1585,10 @@ class OTAUpdateSoftware(unittest.TestCase):
 
     @mock.patch("os.remove")
     @mock.patch("os.path")
-    @mock.patch("helix.ota_handler.OTAHandler._execute")
-    @mock.patch("helix.ota_handler.OTAHandler._read_update_json")
-    @mock.patch("helix.ota_handler.OTAHandler._package_unzip")
-    @mock.patch("helix.ota_handler.OTAHandler._package_download")
+    @mock.patch("device_cloud.ota_handler.OTAHandler._execute")
+    @mock.patch("device_cloud.ota_handler.OTAHandler._read_update_json")
+    @mock.patch("device_cloud.ota_handler.OTAHandler._package_unzip")
+    @mock.patch("device_cloud.ota_handler.OTAHandler._package_download")
     def runTest(self, mock_dl, mock_unzip, mock_read, mock_execute, mock_path, mock_remove):
         # Store mocks for tests
         self.mock_dl = mock_dl
@@ -1626,10 +1626,10 @@ class OTAUpdateSoftware(unittest.TestCase):
 
         self.mock_path.isdir.return_value = False
         self.mock_path.isfile.return_value = False
-        self.mock_dl.return_value = helix.STATUS_SUCCESS
-        self.mock_unzip.return_value = helix.STATUS_SUCCESS
-        self.mock_read.return_value = (helix.STATUS_SUCCESS, self.update_data)
-        self.mock_execute.return_value = helix.STATUS_SUCCESS
+        self.mock_dl.return_value = device_cloud.STATUS_SUCCESS
+        self.mock_unzip.return_value = device_cloud.STATUS_SUCCESS
+        self.mock_read.return_value = (device_cloud.STATUS_SUCCESS, self.update_data)
+        self.mock_execute.return_value = device_cloud.STATUS_SUCCESS
 
     def successCase(self):
         self.resetMocks()
@@ -1640,12 +1640,12 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_unzip.assert_called_once()
         self.mock_read.assert_called_once()
         assert self.mock_execute.call_count == 3
-        assert mock.call(helix.LOGERROR, "OTA Failed!") not in self.client.log.call_args_list
-        assert mock.call(helix.LOGINFO, "OTA Successful!") in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGERROR, "OTA Failed!") not in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGINFO, "OTA Successful!") in self.client.log.call_args_list
 
     def downloadFailCase(self):
         self.resetMocks()
-        self.mock_dl.return_value = helix.STATUS_FAILURE
+        self.mock_dl.return_value = device_cloud.STATUS_FAILURE
 
         self.ota._update_software(self.client, self.params, self.request)
 
@@ -1653,13 +1653,13 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_unzip.assert_not_called()
         self.mock_read.assert_not_called()
         assert self.mock_execute.call_count == 0
-        assert mock.call(helix.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
-        assert mock.call(helix.LOGERROR, "Download Failed!") in self.client.log.call_args_list
-        assert mock.call(helix.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGERROR, "Download Failed!") in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
 
     def unzipFailCase(self):
         self.resetMocks()
-        self.mock_unzip.return_value = helix.STATUS_IO_ERROR
+        self.mock_unzip.return_value = device_cloud.STATUS_IO_ERROR
 
         self.ota._update_software(self.client, self.params, self.request)
 
@@ -1667,13 +1667,13 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_unzip.assert_called_once()
         self.mock_read.assert_not_called()
         assert self.mock_execute.call_count == 0
-        assert mock.call(helix.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
-        assert mock.call(helix.LOGERROR, "Unzip Failed!") in self.client.log.call_args_list
-        assert mock.call(helix.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGERROR, "Unzip Failed!") in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
 
     def dataReadFailCase(self):
         self.resetMocks()
-        self.mock_read.return_value = (helix.STATUS_FAILURE, "")
+        self.mock_read.return_value = (device_cloud.STATUS_FAILURE, "")
 
         self.ota._update_software(self.client, self.params, self.request)
 
@@ -1681,14 +1681,14 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_unzip.assert_called_once()
         self.mock_read.assert_called_once()
         assert self.mock_execute.call_count == 0
-        assert mock.call(helix.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
-        assert mock.call(helix.LOGERROR, "Data Read Failed!") in self.client.log.call_args_list
-        assert mock.call(helix.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGERROR, "Data Read Failed!") in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
 
     def preInstallFailCase(self):
         self.resetMocks()
         self.mock_execute.return_value = None
-        self.mock_execute.side_effect = [helix.STATUS_EXECUTION_ERROR, helix.STATUS_SUCCESS, helix.STATUS_SUCCESS]
+        self.mock_execute.side_effect = [device_cloud.STATUS_EXECUTION_ERROR, device_cloud.STATUS_SUCCESS, device_cloud.STATUS_SUCCESS]
 
         self.ota._update_software(self.client, self.params, self.request)
 
@@ -1696,13 +1696,13 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_unzip.assert_called_once()
         self.mock_read.assert_called_once()
         assert self.mock_execute.call_count == 2
-        assert mock.call(helix.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
-        assert mock.call(helix.LOGERROR, "Pre-Install Failed!") in self.client.log.call_args_list
-        assert mock.call(helix.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGERROR, "Pre-Install Failed!") in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
 
     def installFailCase(self):
         self.resetMocks()
-        self.mock_execute.side_effect = [helix.STATUS_SUCCESS, helix.STATUS_EXECUTION_ERROR, helix.STATUS_SUCCESS]
+        self.mock_execute.side_effect = [device_cloud.STATUS_SUCCESS, device_cloud.STATUS_EXECUTION_ERROR, device_cloud.STATUS_SUCCESS]
 
         self.ota._update_software(self.client, self.params, self.request)
 
@@ -1710,13 +1710,13 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_unzip.assert_called_once()
         self.mock_read.assert_called_once()
         assert self.mock_execute.call_count == 3
-        assert mock.call(helix.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
-        assert mock.call(helix.LOGERROR, "Install Failed!") in self.client.log.call_args_list
-        assert mock.call(helix.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGERROR, "Install Failed!") in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
 
     def postInstallFailCase(self):
         self.resetMocks()
-        self.mock_execute.side_effect = [helix.STATUS_SUCCESS, helix.STATUS_SUCCESS, helix.STATUS_EXECUTION_ERROR, helix.STATUS_SUCCESS]
+        self.mock_execute.side_effect = [device_cloud.STATUS_SUCCESS, device_cloud.STATUS_SUCCESS, device_cloud.STATUS_EXECUTION_ERROR, device_cloud.STATUS_SUCCESS]
 
         self.ota._update_software(self.client, self.params, self.request)
 
@@ -1724,9 +1724,9 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_unzip.assert_called_once()
         self.mock_read.assert_called_once()
         assert self.mock_execute.call_count == 4
-        assert mock.call(helix.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
-        assert mock.call(helix.LOGERROR, "Post-Install Failed!") in self.client.log.call_args_list
-        assert mock.call(helix.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGINFO, "OTA Successful!") not in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGERROR, "Post-Install Failed!") in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGERROR, "OTA Failed!") in self.client.log.call_args_list
 
     def preInstallNoneCase(self):
         self.resetMocks()
@@ -1738,9 +1738,9 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_unzip.assert_called_once()
         self.mock_read.assert_called_once()
         assert self.mock_execute.call_count == 2
-        assert mock.call(helix.LOGINFO, "OTA Successful!") in self.client.log.call_args_list
-        assert mock.call(helix.LOGERROR, "Pre-Install Failed!") not in self.client.log.call_args_list
-        assert mock.call(helix.LOGERROR, "OTA Failed!") not in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGINFO, "OTA Successful!") in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGERROR, "Pre-Install Failed!") not in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGERROR, "OTA Failed!") not in self.client.log.call_args_list
 
     def postInstallNoneCase(self):
         self.resetMocks()
@@ -1752,13 +1752,13 @@ class OTAUpdateSoftware(unittest.TestCase):
         self.mock_unzip.assert_called_once()
         self.mock_read.assert_called_once()
         assert self.mock_execute.call_count == 2
-        assert mock.call(helix.LOGINFO, "OTA Successful!") in self.client.log.call_args_list
-        assert mock.call(helix.LOGERROR, "Post-Install Failed!") not in self.client.log.call_args_list
-        assert mock.call(helix.LOGERROR, "OTA Failed!") not in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGINFO, "OTA Successful!") in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGERROR, "Post-Install Failed!") not in self.client.log.call_args_list
+        assert mock.call(device_cloud.LOGERROR, "OTA Failed!") not in self.client.log.call_args_list
 
 
 class ActionAcknowledge(unittest.TestCase):
-    @mock.patch("helix._core.tr50.create_mailbox_ack")
+    @mock.patch("device_cloud._core.tr50.create_mailbox_ack")
     @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open, mock_ack):
@@ -1767,14 +1767,14 @@ class ActionAcknowledge(unittest.TestCase):
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
 
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         self.client.initialize()
 
         self.client.handler.send = mock.Mock()
-        self.client.handler.send.return_value = helix.STATUS_SUCCESS
+        self.client.handler.send.return_value = device_cloud.STATUS_SUCCESS
 
         result = self.client.action_acknowledge("message_id", 0, "")
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         self.client.handler.send.assert_called_once()
         mock_ack.assert_called_once()
 
@@ -1782,7 +1782,7 @@ class ActionAcknowledge(unittest.TestCase):
         self.config_args = helpers.config_file_default()
 
 class ActionProgressUpdate(unittest.TestCase):
-    @mock.patch("helix._core.tr50.create_mailbox_update")
+    @mock.patch("device_cloud._core.tr50.create_mailbox_update")
     @mock.patch(builtin + ".open")
     @mock.patch("os.path.exists")
     def runTest(self, mock_exists, mock_open, mock_update):
@@ -1791,14 +1791,14 @@ class ActionProgressUpdate(unittest.TestCase):
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
 
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         self.client.initialize()
 
         self.client.handler.send = mock.Mock()
-        self.client.handler.send.return_value = helix.STATUS_SUCCESS
+        self.client.handler.send.return_value = device_cloud.STATUS_SUCCESS
 
         result = self.client.action_progress_update("message_id", "update msg")
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         self.client.handler.send.assert_called_once()
         mock_update.assert_called_once()
 
@@ -1809,15 +1809,15 @@ class OSALExecl(unittest.TestCase):
     @mock.patch("os.execvp")
     def runTest(self, mock_exec):
         mock_exec.return_value = 0
-        result = helix.osal.execl(["python", "hello.py"])
-        assert result == helix.osal.EXECUTION_FAILURE
+        result = device_cloud.osal.execl(["python", "hello.py"])
+        assert result == device_cloud.osal.EXECUTION_FAILURE
         mock_exec.assert_called_once()
 
 class OSALSystemShutdown(unittest.TestCase):
     @mock.patch("os.system")
     def runTest(self, mock_system):
         mock_system.return_value = 0
-        result = helix.osal.system_shutdown()
+        result = device_cloud.osal.system_shutdown()
         assert result == 0
         mock_system.assert_called_once()
 
@@ -1825,44 +1825,44 @@ class OSALSystemReboot(unittest.TestCase):
     @mock.patch("os.system")
     def runTest(self, mock_system):
         mock_system.return_value = 0
-        result = helix.osal.system_reboot()
+        result = device_cloud.osal.system_reboot()
         assert result == 0
         mock_system.assert_called_once()
 
 class OSALOSKernel(unittest.TestCase):
     def runTest(self):
-        result = helix.osal.os_kernel()
-        if helix.osal.LINUX:
+        result = device_cloud.osal.os_kernel()
+        if device_cloud.osal.LINUX:
             assert result == platform.release()
-        elif helix.osal.WIN32:
+        elif device_cloud.osal.WIN32:
             assert result == platform.version()
         else:
             assert result == "Unknown"
 
 class OSALOSVersion(unittest.TestCase):
     def runTest(self):
-        result = helix.osal.os_version()
-        if helix.osal.LINUX:
+        result = device_cloud.osal.os_version()
+        if device_cloud.osal.LINUX:
             expect = "{}-{}".format(platform.linux_distribution()[1], platform.linux_distribution()[2])
             assert result == expect
-        elif helix.osal.WIN32:
+        elif device_cloud.osal.WIN32:
             assert result == platform.release()
         else:
             assert result == "Unknown"
 
 class OSALOSName(unittest.TestCase):
     def runTest(self):
-        result = helix.osal.os_name()
-        if helix.osal.LINUX:
+        result = device_cloud.osal.os_name()
+        if device_cloud.osal.LINUX:
             rgx = re.compile("^.* \\(.*\\)$")
             assert rgx.match(result) != None
-        elif helix.osal.WIN32:
+        elif device_cloud.osal.WIN32:
             assert result == platform.system()
         else:
             assert result == "Unknown"
 
 class ActionCommandExecuteBasic(unittest.TestCase):
-    @mock.patch("helix._core.defs.Action")
+    @mock.patch("device_cloud._core.defs.Action")
     @mock.patch("subprocess.Popen")
     def runTest(self, mock_popen, mock_action):
         mock_proc = mock.Mock()
@@ -1870,7 +1870,7 @@ class ActionCommandExecuteBasic(unittest.TestCase):
         mock_proc.returncode = 0
         mock_popen.return_value = mock_proc
 
-        action = helix._core.defs.ActionCommand("name", "cmd", None)
+        action = device_cloud._core.defs.ActionCommand("name", "cmd", None)
 
         request = mock.Mock()
         request.params = None
@@ -1881,7 +1881,7 @@ class ActionCommandExecuteBasic(unittest.TestCase):
 
 # this test is failing randomly
 #class ActionCommandExecuteParams(unittest.TestCase):
-    #@mock.patch("helix._core.defs.Action")
+    #@mock.patch("device_cloud._core.defs.Action")
     #@mock.patch("subprocess.Popen")
     #def runTest(self, mock_popen, mock_action):
         #mock_proc = mock.Mock()
@@ -1889,7 +1889,7 @@ class ActionCommandExecuteBasic(unittest.TestCase):
         #mock_proc.returncode = 0
         #mock_popen.return_value = mock_proc
 
-        #action = helix._core.defs.ActionCommand("name", "cmd", None)
+        #action = device_cloud._core.defs.ActionCommand("name", "cmd", None)
 
         #request = mock.Mock()
         #request.params = {"t": True, "f": False, "v":"val"}
@@ -1910,20 +1910,20 @@ class HandlerHandleActionException(unittest.TestCase):
         mock_read = mock_open.return_value.__enter__.return_value.read
         mock_read.side_effect = read_strings
 
-        self.client = helix.Client("testing-client")
+        self.client = device_cloud.Client("testing-client")
         self.client.initialize()
 
         self.client.handler.callbacks.execute_action = mock.Mock()
         self.client.handler.callbacks.execute_action.side_effect = Exception
         self.client.handler.logger.error = mock.Mock()
         self.client.handler.send = mock.Mock()
-        self.client.handler.send.return_value = helix.STATUS_SUCCESS
+        self.client.handler.send.return_value = device_cloud.STATUS_SUCCESS
         request = mock.Mock()
         request.name = "req"
 
         result = self.client.handler.handle_action(request)
 
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         self.client.handler.callbacks.execute_action.assert_called_once()
         assert self.client.handler.logger.error.call_count == 2
 
@@ -1932,7 +1932,7 @@ class HandlerHandleActionException(unittest.TestCase):
 
 class RelayInitNoLogger(unittest.TestCase):
     def runTest(self):
-        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345, True, None)
+        self.relay = device_cloud.relay.Relay("host1.aaa", "host2.aaa", 12345, True, None)
         assert self.relay
         assert self.relay.running == False
         assert self.relay.thread == None
@@ -1940,7 +1940,7 @@ class RelayInitNoLogger(unittest.TestCase):
 
 class RelayStartAlreadyRunning(unittest.TestCase):
     def runTest(self):
-        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay = device_cloud.relay.Relay("host1.aaa", "host2.aaa", 12345)
         self.relay.running = True
         self.assertRaises(RuntimeError, self.relay.start)
 
@@ -1948,7 +1948,7 @@ class RelayStartSSLFail(unittest.TestCase):
     @mock.patch("websocket.WebSocket.connect")
     def runTest(self, mock_connect):
         mock_connect.side_effect = ssl.SSLError
-        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay = device_cloud.relay.Relay("host1.aaa", "host2.aaa", 12345)
         self.assertRaises(ssl.SSLError, self.relay.start)
         assert self.relay.running == False
         assert self.relay.wsock == None
@@ -1957,7 +1957,7 @@ class RelayStartSuccess(unittest.TestCase):
     @mock.patch("threading.Thread.start")
     @mock.patch("websocket.WebSocket.connect")
     def runTest(self, mock_connect, mock_tstart):
-        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay = device_cloud.relay.Relay("host1.aaa", "host2.aaa", 12345)
         self.relay.start()
         assert self.relay.running == True
         assert self.relay.wsock != None
@@ -1967,7 +1967,7 @@ class RelayStartInsecure(unittest.TestCase):
     @mock.patch("threading.Thread.start")
     @mock.patch("websocket.WebSocket.connect")
     def runTest(self, mock_connect, mock_tstart):
-        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345, False)
+        self.relay = device_cloud.relay.Relay("host1.aaa", "host2.aaa", 12345, False)
         self.relay.start()
         assert self.relay.running == True
         assert self.relay.wsock != None
@@ -1975,7 +1975,7 @@ class RelayStartInsecure(unittest.TestCase):
 
 class RelayStop(unittest.TestCase):
     def runTest(self):
-        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay = device_cloud.relay.Relay("host1.aaa", "host2.aaa", 12345)
         self.relay.running = True
         mock_thread = mock.Mock()
         self.relay.thread = mock_thread
@@ -1989,32 +1989,32 @@ class RelayCreateRelay(unittest.TestCase):
     @mock.patch("threading.Thread.start")
     @mock.patch("websocket.WebSocket.connect")
     def runTest(self, mock_connect, mock_tstart, mock_tjoin):
-        helix.relay.create_relay("host1.aaa", "host2.aaa", 12345)
-        assert helix.relay.relays[0]
+        device_cloud.relay.create_relay("host1.aaa", "host2.aaa", 12345)
+        assert device_cloud.relay.relays[0]
 
-        self.relay = helix.relay.relays[0]
+        self.relay = device_cloud.relay.relays[0]
         assert self.relay.running == True
         assert self.relay.wsock != None
         assert self.relay.thread != None
 
         self.relay.stop()
-        del helix.relay.relays[0]
+        del device_cloud.relay.relays[0]
 
 class RelayStopRelays(unittest.TestCase):
     @mock.patch("threading.Thread.join")
     @mock.patch("threading.Thread.start")
     @mock.patch("websocket.WebSocket.connect")
     def runTest(self, mock_connect, mock_tstart, mock_tjoin):
-        helix.relay.create_relay("host1.aaa", "host2.aaa", 12345)
-        assert helix.relay.relays[0]
-        helix.relay.create_relay("host3.aaa", "host4.aaa", 6789)
-        assert helix.relay.relays[1]
-        helix.relay.stop_relays()
-        assert len(helix.relay.relays) == 0
+        device_cloud.relay.create_relay("host1.aaa", "host2.aaa", 12345)
+        assert device_cloud.relay.relays[0]
+        device_cloud.relay.create_relay("host3.aaa", "host4.aaa", 6789)
+        assert device_cloud.relay.relays[1]
+        device_cloud.relay.stop_relays()
+        assert len(device_cloud.relay.relays) == 0
 
 class RelayLoopNotRunning(unittest.TestCase):
     def runTest(self):
-        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay = device_cloud.relay.Relay("host1.aaa", "host2.aaa", 12345)
         self.relay.running = False
         self.relay.wsock = mock.Mock()
         self.relay.lsock = mock.Mock()
@@ -2025,7 +2025,7 @@ class RelayLoopNotRunning(unittest.TestCase):
 class RelayLoopWSClosed(unittest.TestCase):
     @mock.patch("select.select")
     def runTest(self, mock_select):
-        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay = device_cloud.relay.Relay("host1.aaa", "host2.aaa", 12345)
         self.relay.running = True
         self.relay.wsock = mock.Mock()
         self.relay.lsock = mock.Mock()
@@ -2042,7 +2042,7 @@ class RelayLoopWSClosed(unittest.TestCase):
 class RelayLoopNoData(unittest.TestCase):
     @mock.patch("select.select")
     def runTest(self, mock_select):
-        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay = device_cloud.relay.Relay("host1.aaa", "host2.aaa", 12345)
         self.relay.running = True
         self.relay.wsock = mock.Mock()
         self.relay.lsock = mock.Mock()
@@ -2059,7 +2059,7 @@ class RelayLoopNoData(unittest.TestCase):
 class RelayLoopWithData(unittest.TestCase):
     @mock.patch("select.select")
     def runTest(self, mock_select):
-        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay = device_cloud.relay.Relay("host1.aaa", "host2.aaa", 12345)
         self.relay.running = True
         self.relay.wsock = mock.Mock()
         self.relay.lsock = mock.Mock()
@@ -2081,13 +2081,13 @@ class RelayLoopNoLocal(unittest.TestCase):
     @mock.patch("socket.socket")
     @mock.patch("select.select")
     def runTest(self, mock_select, mock_socket):
-        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay = device_cloud.relay.Relay("host1.aaa", "host2.aaa", 12345)
         self.relay.running = True
         self.relay.wsock = mock.Mock()
         mock_select.return_value = ([self.relay.wsock], None, None)
         mock_socket.side_effect = self.socket_side_effect
         mock_recv = mock.Mock()
-        mock_recv.return_value = (0, helix.relay.CONNECT_MSG)
+        mock_recv.return_value = (0, device_cloud.relay.CONNECT_MSG)
         self.relay.wsock.recv_data = mock_recv
 
         self.relay._loop()
@@ -2106,13 +2106,13 @@ class RelayLoopNoLocalError(unittest.TestCase):
     @mock.patch("socket.socket")
     @mock.patch("select.select")
     def runTest(self, mock_select, mock_socket):
-        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay = device_cloud.relay.Relay("host1.aaa", "host2.aaa", 12345)
         self.relay.running = True
         self.relay.wsock = mock.Mock()
         mock_select.return_value = ([self.relay.wsock], None, None)
         mock_socket.side_effect = socket.error
         mock_recv = mock.Mock()
-        mock_recv.return_value = (0, helix.relay.CONNECT_MSG)
+        mock_recv.return_value = (0, device_cloud.relay.CONNECT_MSG)
         self.relay.wsock.recv_data = mock_recv
 
         self.relay._loop()
@@ -2125,7 +2125,7 @@ class RelayLoopLocalReadError(unittest.TestCase):
     @mock.patch("socket.socket")
     @mock.patch("select.select")
     def runTest(self, mock_select, mock_socket):
-        self.relay = helix.relay.Relay("host1.aaa", "host2.aaa", 12345)
+        self.relay = device_cloud.relay.Relay("host1.aaa", "host2.aaa", 12345)
         self.relay.running = True
         self.relay.wsock = mock.Mock(name="w")
         self.relay.lsock = mock.Mock(name="l")
@@ -2178,20 +2178,20 @@ class ClientFileDownloadAsyncChecksumFail(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":1}
-        self.client = helix.Client("testing-client", kwargs)
+        self.client = device_cloud.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Connect client to Cloud
         mqtt = self.client.handler.mqtt
         result = self.client.connect()
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         assert self.client.is_connected()
 
         # Request download
         result = self.client.file_download("filename.ext",
                                            "/destination/file.ext",
                                            callback=download_callback)
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         download_callback.assert_not_called()
         args = mqtt.publish.call_args_list[0][0]
         assert args[0] == "api/0001"
@@ -2220,7 +2220,7 @@ class ClientFileDownloadAsyncChecksumFail(unittest.TestCase):
         args = download_callback.call_args_list[0][0]
         assert args[0] is self.client
         assert args[1] == "filename.ext"
-        assert args[2] == helix.STATUS_FAILURE
+        assert args[2] == device_cloud.STATUS_FAILURE
 
     def setUp(self):
         # Configuration to be 'read' from config file
@@ -2270,20 +2270,20 @@ class ClientFileDownloadAsyncRequestFail(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":1}
-        self.client = helix.Client("testing-client", kwargs)
+        self.client = device_cloud.Client("testing-client", kwargs)
         self.client.initialize()
 
         # Connect client to Cloud
         mqtt = self.client.handler.mqtt
         result = self.client.connect()
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         assert self.client.is_connected()
 
         # Request download
         result = self.client.file_download("filename.ext",
                                            "/destination/file.ext",
                                            callback=download_callback)
-        assert result == helix.STATUS_SUCCESS
+        assert result == device_cloud.STATUS_SUCCESS
         download_callback.assert_not_called()
         args = mqtt.publish.call_args_list[0][0]
         assert args[0] == "api/0001"
@@ -2312,7 +2312,7 @@ class ClientFileDownloadAsyncRequestFail(unittest.TestCase):
         args = download_callback.call_args_list[0][0]
         assert args[0] is self.client
         assert args[1] == "filename.ext"
-        assert args[2] == helix.STATUS_FAILURE
+        assert args[2] == device_cloud.STATUS_FAILURE
 
     def setUp(self):
         # Configuration to be 'read' from config file
@@ -2342,14 +2342,14 @@ class ClientConnectMissingHost(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":0}
-        self.client = helix.Client("testing-client", kwargs)
+        self.client = device_cloud.Client("testing-client", kwargs)
         self.client.initialize()
 
         self.client.config.cloud.host = ""
 
         # Connect successfully
         mqtt = self.client.handler.mqtt
-        assert self.client.connect(timeout=5) == helix.STATUS_BAD_PARAMETER
+        assert self.client.connect(timeout=5) == device_cloud.STATUS_BAD_PARAMETER
         mqtt.connect.assert_not_called()
         assert self.client.is_connected() is False
 
@@ -2375,14 +2375,14 @@ class ClientConnectMissingPort(unittest.TestCase):
 
         # Initialize client
         kwargs = {"loop_time":1, "thread_count":0}
-        self.client = helix.Client("testing-client", kwargs)
+        self.client = device_cloud.Client("testing-client", kwargs)
         self.client.initialize()
 
         self.client.config.cloud.port = None
 
         # Connect successfully
         mqtt = self.client.handler.mqtt
-        assert self.client.connect(timeout=5) == helix.STATUS_BAD_PARAMETER
+        assert self.client.connect(timeout=5) == device_cloud.STATUS_BAD_PARAMETER
         mqtt.connect.assert_not_called()
         assert self.client.is_connected() is False
 

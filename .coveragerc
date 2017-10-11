@@ -1,2 +1,2 @@
 [run]
-omit = helix/test/*
+omit = device_cloud/test/*

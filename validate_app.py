@@ -19,7 +19,7 @@ application.
 """
 
 import errno
-import helix
+import device_cloud
 import os
 import signal
 import sys
@@ -64,7 +64,7 @@ if __name__ == "__main__":
         cov = coverage.Coverage()
         cov.start()
 
-    client = helix.Client("iot-validate-app")
+    client = device_cloud.Client("iot-validate-app")
     client.config.config_file = "validate.cfg"
 
     client.initialize()
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     client.action_register_callback("pass_action", pass_action)
     client.action_register_callback("fail_action", fail_action)
 
-    if client.connect(timeout=10) != helix.STATUS_SUCCESS:
+    if client.connect(timeout=10) != device_cloud.STATUS_SUCCESS:
         print("Failed to connect")
         sys.exit(1)
 

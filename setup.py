@@ -17,16 +17,16 @@ import sys
 pyver = sys.version_info
 
 if pyver < (2,7,9) or (pyver > (3,0,0) and pyver < (3,4,0)):
-    print("Sorry, your Python version ({}.{}.{}) is not supported by helix!".format(pyver[0], pyver[1], pyver[2]))
+    print("Sorry, your Python version ({}.{}.{}) is not supported by device_cloud!".format(pyver[0], pyver[1], pyver[2]))
     sys.exit('Please upgrade to Python 2.7.9 or 3.4 and try again.')
 
 setup(
-    name='helix',
+    name='device_cloud',
     version='17.08.25',
     description='Python library for Wind River\'s Helix Device Cloud',
     author='Wind River Systems',
     author_email='',
-    packages=['helix','helix._core','helix.test'],
+    packages=['device_cloud','device_cloud._core','device_cloud.test'],
     install_requires=[
         'paho-mqtt',
         'requests',
@@ -36,7 +36,7 @@ setup(
         ],
     maintainer='Paul Barrette',
     maintainer_email='paul.barrette@windriver.com',
-    url='http://www.windriver.com/products/helix/',
+    url='http://www.windriver.com/products/device_cloud/',
     license='Apache License, Version 2.0',
     classifiers=[
         'Development Status :: 3 - Alpha',

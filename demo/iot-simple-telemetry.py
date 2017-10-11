@@ -22,12 +22,13 @@ import errno
 import random
 import signal
 import sys
+import os
 from time import sleep
 
 head, tail = os.path.split(os.path.dirname(os.path.realpath(__file__)))
 sys.path.insert(0, head)
 
-import helix as iot
+import device_cloud as iot
 
 running = True
 sending_telemetry = False

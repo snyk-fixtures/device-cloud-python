@@ -18,7 +18,7 @@ Client application
 
 import json
 
-from helix._core import constants
+from device_cloud._core import constants
 
 
 CLOUD_ERROR_CODES = {
