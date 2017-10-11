@@ -115,9 +115,9 @@ def device_decommission(client, params, user_data):
     # TODO: fix this for paths use default_cfg_dir and
     # default_runtime_dir
     files_to_remove = [
-        default_cfg_dir + "iot.cfg",
-        default_cfg_dir + "iot-connect.cfg",
-        runtime_dir + "device_id"
+        default_cfg_dir + "/" + "iot.cfg",
+        default_cfg_dir + "/" + "iot-connect.cfg",
+        default_cfg_dir + "/" + "device_id"
         ]
 
     directories_to_remove = [
