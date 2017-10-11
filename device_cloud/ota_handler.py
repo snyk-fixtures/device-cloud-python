@@ -25,8 +25,8 @@ import tarfile
 import threading
 import zipfile
 
-from helix import osal
-import helix as iot
+from device_cloud import osal
+import device_cloud as iot
 
 # Alarm Constants
 ALARM_NAME = "software_update"

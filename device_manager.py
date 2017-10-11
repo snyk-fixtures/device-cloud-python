@@ -31,10 +31,10 @@ import sys
 from time import sleep
 import uuid
 
-from helix import osal
-from helix import ota_handler
-from helix import relay
-import helix as iot
+from device_cloud import osal
+from device_cloud import ota_handler
+from device_cloud import relay
+import device_cloud as iot
 
 running = True
 
@@ -314,7 +314,7 @@ def publish_platform_info(client):
     client.log(iot.LOGINFO, "Publishing platform Info")
 
     try:
-        hdc_version = pkg_resources.get_distribution("helix").version
+        hdc_version = pkg_resources.get_distribution("device_cloud").version
     except pkg_resources.DistributionNotFound:
         hdc_version = "Unknown"
 

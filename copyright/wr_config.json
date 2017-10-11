@@ -2,5 +2,5 @@
 	"year":"2016-2017",
 	"author": "Wind River Systems, Inc.",
 	"exclude": "*.md,*.bat,*.sh,.pylintrc,.git*,*.cfg,*.json",
-	"license": "wr_helix"
+	"license": "wr_device_cloud"
 }
