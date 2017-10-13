@@ -32,7 +32,6 @@ import platform
 
 from datetime import datetime
 
-
 if sys.version_info.major == 2:
     input = raw_input
 
@@ -226,6 +225,44 @@ def change_session_org(session_id, org):
         ret = True
     return ret
 
+def get_role_id(session_id, role_key):
+    """
+    check for and return a role id
+    """
+    data_params = {"key":role_key}
+    data = {"cmd":{"command":"role.find", "params":data_params}}
+    result = _send(data, session_id)
+    ret = "Undef"
+    if result.get("success") is True:
+        ret = result["params"]["id"]
+    #print(json.dumps(result, indent=2, sort_keys=True))
+    return ret
+
+def find_role( session_id, role_key):
+    """
+    Check to see if a role exists
+    """
+    data_params = {"key":role_key}
+    data = {"cmd":{"command":"role.find", "params":data_params}}
+    role_exists = _send(data, session_id)
+    if role_exists.get("success") is True:
+        return True
+    else:
+        return False
+
+def update_role(session_id, role, role_key, role_perms, action):
+    """
+    Create or update a role
+    """
+    data_params = {"key":role_key, "name":role, "perms":role_perms}
+    data = {"cmd":{"command":action, "params":data_params}}
+    result = _send(data, session_id)
+    #print(json.dumps(result, indent=2, sort_keys=True))
+    if result.get("success") is True:
+        ret = True
+    else:
+        return False
+
 def main():
     """
     Main function to validate abilites of host
@@ -235,6 +272,7 @@ def main():
     # relative path to the defs
     thing_def_dir = "thing_defs"
     app_def_dir = "app_defs"
+    role_dir = "role_defs"
 
     # credentials in env
     cloud = os.environ.get("HDCADDRESS")
@@ -306,6 +344,35 @@ def main():
                     if update_thing_def( session_id, thing_def, action ) == False:
                         error_quit("Failed to update thing def %s with action %s." % (thing_def, action))
 
+    # role creation
+    print("Processing related roles")
+    for path, dirs, files in os.walk( role_dir ):
+        for fh in files:
+            if fh.endswith(".cfg"):
+                def_file = os.path.join( path, fh )
+                print( "Processing %s" % def_file )
+                with open( def_file ) as cloud_file:
+                    data = json.load( cloud_file )
+
+                # check the cloud for this role, if it exists, update it
+                # with this one.  There may be more than one role def in this
+                # file.
+                role_definitions = data["role_definitions"]
+                for role in role_definitions:
+                    role_name = role["name"]
+                    role_key = role["key"]
+                    role_perms = role["perms"]
+                    if find_role( session_id, role_key ) == False:
+                        print( "Creating role %s" % role_name )
+                        action = "role.create"
+                    else:
+                        print( "Updating role %s" % role_name )
+                        action = "role.update"
+
+                    if update_role( session_id, role_name, role_key, role_perms, action ) == False:
+                        print ("WARNING: Failed to update role %s with action %s." % (role-name, action))
+
+
     # application creation
     print("Processing application definitions")
     for path, dirs, files in os.walk( app_def_dir ):
@@ -325,18 +392,29 @@ def main():
                         print( "Updating app def %s" % app_name )
                         action = "app.update"
 
-                    # Note: the autoRegThingDefId must be the id not
-                    # the name.  The cfg will contain the name, so
+                    # Note: the role and autoRegThingDefId must be the id,
+                    # not the name.  The cfg will contain the name, so
                     # look it up here and update the json data
+                    role_keys = app_def.get("roles")
+                    role_list = []
+                    for role_key in role_keys:
+                        role_id = get_role_id(session_id, role_key)
+                        if role_id == "Undef":
+                            error_quit("Error: Role to set as default does not"
+                            "exist for %s." % app_def)
+                        print("Found role id %s for role %s" % (role_id, role_name))
+                        role_list.append(role_id)
                     thing_def_name = app_def.get("autoRegThingDefId")
                     thing_def_id = get_thing_def_id(session_id, thing_def_name )
                     if thing_def_id == "Undef":
                         error_quit("Error: thing def to set as default does not"
                             "exist for %s." % app_def)
                     print("Found thing def id %s for thing def %s" % (thing_def_id, thing_def_name))
+                    app_def["roles"] = role_list
                     app_def["autoRegThingDefId"] = thing_def_id
                     if update_app_def( session_id, app_def, action ) == False:
                         error_quit("Failed to update app def %s with action %s." % (app_def, action))
+
 
 if __name__ == "__main__":
    main()
