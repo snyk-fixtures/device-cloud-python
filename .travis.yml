@@ -9,7 +9,7 @@ script:
 - pytest
 - "./validate_script.py"
 notifications:
-  slack: windriver-device_cloud:BFoLaezR6JkK49VORhYzSSw5
+  slack: windriver-helix:BFoLaezR6JkK49VORhYzSSw5
 after_success: "./deploy-pages.sh"
 env:
   global:
