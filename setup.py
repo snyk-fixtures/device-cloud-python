@@ -36,7 +36,7 @@ setup(
         ],
     maintainer='Paul Barrette',
     maintainer_email='paul.barrette@windriver.com',
-    url='http://www.windriver.com/products/device_cloud/',
+    url='http://www.windriver.com/products/helix/',
     license='Apache License, Version 2.0',
     classifiers=[
         'Development Status :: 3 - Alpha',
