@@ -23,9 +23,13 @@ import math
 import random
 import signal
 import sys
+import os
 from time import sleep
 
-import helix as iot
+head, tail = os.path.split(os.path.dirname(os.path.realpath(__file__)))
+sys.path.insert(0, head)
+
+import device_cloud as iot
 
 running = True
 sending_location = False

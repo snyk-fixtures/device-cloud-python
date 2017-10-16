@@ -13,7 +13,7 @@ console etc.
 The Python agent for HDC is designed for quick deployment on any
 platform that supports Python.  The continuous deployment model uses
 "pip" to install and update the latest modules.  Any application that
-wants to use HDC cloud services can import the "helix" module and
+wants to use HDC cloud services can import the "device_cloud" module and
 begin using the HDC APIs.
 
 Requirements:
@@ -26,16 +26,16 @@ Requirements:
 
 Pip Installation:
 -----------------
-The "helix" module will be deployed on a public PyPI repository.
+The "device_cloud" module will be deployed on a public PyPI repository.
 However, pip can be used on a git checkout by running  the following
 command in the checkout top level directory:
 ```sh
 pip install .
 ```
 
-The above command will install the helix module and all its dependencies. The
+The above command will install the device_cloud module and all its dependencies. The
 agent can then be used into other Python scripts in the usual python
-way e.g `import helix`.
+way e.g `import device_cloud`.
 
 Configuration:
 --------------
@@ -94,7 +94,7 @@ deploy the service.
 Validation:
 -----------
 Running `./validate_script.py` will validate that all the features of
-the helix API work on the host. It requires that validate_app.py and
+the device_cloud API work on the host. It requires that validate_app.py and
 generate_config.py are in the same directory. Cloud credentials are
 required.  The validate_script.py app will prompt for a cloud address
 and credentials for connecting to the cloud. You can also set the
@@ -104,7 +104,7 @@ this step.
 
 HDC Features Supported:
 -----------------------
-- Documented user APIs (can be obtained by running `pydoc helix`)
+- Documented user APIs (can be obtained by running `pydoc device_cloud`)
 - Telemetry (known as properties on the Cloud side)
 - Attributes
 - Actions (both function callbacks and console commands. Known as methods on
@@ -121,7 +121,7 @@ HDC Features Supported:
 - Event message publishing
 - Alarm publishing
 - pytest (Install pytest, pytest-mock, pytest-cov with pip. Run `pytest -v .` to
-  run unit tests.  `pytest --cov-report=html --cov=helix --cov-config 
+  run unit tests.  `pytest --cov-report=html --cov=device_cloud --cov-config 
   .coveragerc -v .` will generate a directory containing an HTML report of 
   coverage. Prepending `python2/python3 -m ` will let you specify which version
   of Python to test.)

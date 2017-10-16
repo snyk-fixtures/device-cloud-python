@@ -139,5 +139,3 @@ WORK_ACTION = 2
 WORK_DOWNLOAD = 3
 # Upload a file
 WORK_UPLOAD = 4
-
-

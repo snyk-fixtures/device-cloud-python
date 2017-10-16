@@ -6,7 +6,7 @@ set -o errexit -o nounset
 # only run this if cron triggered it
 if [ "$TRAVIS_PYTHON_VERSION" = "2.7" ]; then
 	if [ "$TRAVS_EVENT_TYPE" = "cron" ]; then
-		pytest --cov-report=html --cov=helix --cov-config .coveragerc -v .
+		pytest --cov-report=html --cov=device_cloud --cov-config .coveragerc -v .
 		rev=$(git rev-parse --short HEAD)
 
 		if [ -d "htmlcov" ]; then

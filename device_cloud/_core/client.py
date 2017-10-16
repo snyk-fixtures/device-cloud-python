@@ -20,15 +20,15 @@ import json
 import os
 import uuid
 
-from helix._core.constants import DEFAULT_CONFIG_DIR
-from helix._core.constants import DEFAULT_CONFIG_FILE
-from helix._core.constants import DEFAULT_KEEP_ALIVE
-from helix._core.constants import DEFAULT_LOOP_TIME
-from helix._core.constants import DEFAULT_THREAD_COUNT
-from helix._core.constants import STATUS_SUCCESS
-from helix._core.constants import WORK_PUBLISH
-from helix._core import defs
-from helix._core.handler import Handler
+from device_cloud._core.constants import DEFAULT_CONFIG_DIR
+from device_cloud._core.constants import DEFAULT_CONFIG_FILE
+from device_cloud._core.constants import DEFAULT_KEEP_ALIVE
+from device_cloud._core.constants import DEFAULT_LOOP_TIME
+from device_cloud._core.constants import DEFAULT_THREAD_COUNT
+from device_cloud._core.constants import STATUS_SUCCESS
+from device_cloud._core.constants import WORK_PUBLISH
+from device_cloud._core import defs
+from device_cloud._core.handler import Handler
 
 
 class Client(object):
@@ -272,7 +272,6 @@ class Client(object):
           STATUS_EXISTS                Action with that name already exists
           STATUS_SUCCESS               Successfully registered callback
         """
-
         return self.handler.action_register_callback(action_name,
                                                      callback_function,
                                                      user_data)
@@ -356,6 +355,33 @@ class Client(object):
 
         return self.handler.disconnect(wait_for_replies=wait_for_replies,
                                        timeout=timeout)
+
+    def diag_ping(self):
+        """
+        Request diagonstic ping from the cloud
+
+        Returns:
+          STATUS_SUCCESS               Successfully disconnected
+        """
+        return self.handler.handle_ping()
+
+    def diag_time(self):
+        """
+        Request diagonstic time from the cloud
+
+        Returns:
+          STATUS_SUCCESS               Successfully disconnected
+        """
+        return self.handler.handle_time()
+
+    def log_level(self, level):
+        """
+        Set the log level
+        
+        Parameters:
+          level             (string) Requested level
+        """
+        return self.handler.log_level(level)
 
     def event_publish(self, message):
         """
