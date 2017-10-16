@@ -415,7 +415,6 @@ def main():
                     if update_app_def( session_id, app_def, action ) == False:
                         error_quit("Failed to update app def %s with action %s." % (app_def, action))
 
-
 if __name__ == "__main__":
    main()
    sys.exit(0)
