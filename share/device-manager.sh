@@ -14,13 +14,13 @@
 # Python-based Device Manager. See share/readme.md for more information.
 #
 ### BEGIN INIT INFO
-# Provides:          hdc-dev-mgr
+# Provides:          device_manager
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Start hdc-dev-mgr at boot time
-# Description:       Enable service provided by hdc-dev-mgr.
+# Short-Description: Start device_manager at boot time
+# Description:       Enable service provided by device_manager.
 ### END INIT INFO
 
 DEV_MGR_PATH=/path/to/apps/device_manager/
