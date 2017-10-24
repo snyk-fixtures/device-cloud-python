@@ -10,8 +10,8 @@
 # under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
 # OR CONDITIONS OF ANY KIND, either express or implied.
 
-TOKEN="jhfeRnIWk77HPEl8"
-CLOUD="api.devicewise.com"
+TOKEN="<token>"
+CLOUD="<cloud url>"
 PORT="8883"
 DEVICE=""
 VALIDATE=""
@@ -20,7 +20,7 @@ SSL=""
 help ()
 {
   echo "Usage: $0 [-h] [-c CLOUD] [-p PORT] [-t TOKEN] [-d DEVICE-ID] [-n] [-s SSL_BUNDLE]"
-  echo 'e.g.)  $0 -h api.devicewise.com -p 8883 -a Klza2g56b2PaqPeS'
+  echo 'e.g.)  $0 -h $CLOUD -p 8883 -a $TOKEN'
 }
 
 while getopts ":hnc:d:p:s:t:" option; do
