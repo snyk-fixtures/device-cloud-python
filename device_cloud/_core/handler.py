@@ -930,10 +930,20 @@ class Handler(object):
 
         return constants.STATUS_SUCCESS
 
+    def num_unfinished(self):
+        """
+        Get number of unfulfilled requests
+        """
+        return len(self.mqtt._out_messages)
+
     def on_connect(self, mqtt, userdata, flags, rc):
         """
         Callback when MQTT Client connects to Cloud
         """
+
+        unfinished = self.num_unfinished()
+        if unfinished > 0:
+            self.logger.info("%s messages are pending..", unfinished)
 
         # Check connection result from MQTT
         self.logger.info("MQTT connected: %s", mqttlib.connack_string(rc))
